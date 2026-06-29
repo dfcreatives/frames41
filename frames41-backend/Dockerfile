@@ -8,6 +8,9 @@ WORKDIR /app
 # Install system dependencies for Prisma
 RUN apk add --no-cache openssl
 
+# Copy prisma schema first (needed for postinstall)
+COPY prisma ./prisma
+
 # Install dependencies
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
@@ -64,12 +67,14 @@ WORKDIR /app
 # Install system dependencies for Prisma
 RUN apk add --no-cache openssl
 
+# Copy prisma schema first
+COPY prisma ./prisma
+
 # Install all dependencies (including dev)
 COPY package*.json ./
 RUN npm install
 
-# Copy prisma schema for generation
-COPY prisma ./prisma
+# Generate Prisma client
 RUN npx prisma generate
 
 # Copy source code

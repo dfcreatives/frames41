@@ -35,8 +35,7 @@
     "typecheck": "tsc --noEmit",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f app",
-    "postinstall": "prisma generate"
+    "docker:logs": "docker-compose logs -f app"
   },
   "keywords": [
     "ecommerce",
