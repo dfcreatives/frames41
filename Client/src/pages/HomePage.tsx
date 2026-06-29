@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import AnnouncementBar from '../components/home/AnnouncementBar'
 import Navbar from '../components/home/Navbar'
 import HeroSection from '../components/home/HeroSection'
@@ -18,7 +17,6 @@ import {
 } from '../constants/home'
 
 export default function HomePage() {
-  const navigate = useNavigate()
   const { categories, budgetProducts, bestsellers } = useHomePage()
   const { addItem } = useCart()
 

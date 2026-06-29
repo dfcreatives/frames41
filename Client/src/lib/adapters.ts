@@ -7,8 +7,8 @@ import type { ProfileUser, ProfileAddress } from '@/types/profile'
 import type { WishlistItem } from '@/types/wishlist'
 import type { ReviewItem, ReviewFormProduct } from '@/types/review'
 import type { ReferralEntry, ReferralStats } from '@/types/refer'
-import type { OrderDetails, OrderItem, OrderStep, OrderTrackingData, DeliveryInfo } from '@/types/order'
-import type { TrackingStep, ShipmentEvent } from '@/types/ordertracking'
+import type { OrderDetails, OrderItem, OrderStep } from '@/types/order'
+import type { TrackingStep, ShipmentEvent, OrderTrackingData, DeliveryInfo, TrackingStepStatus } from '@/types/ordertracking'
 import type { TrackingOrderItem } from '@/types/ordertracking'
 
 // ─── Backend response shapes (loose) ─────────────────────────────────────────
@@ -226,7 +226,7 @@ export function adaptReferralEntry(r: Raw): ReferralEntry {
   }
 }
 
-export function adaptReferralStats(code: Raw, history: Raw[]): ReferralStats {
+export function adaptReferralStats(_code: Raw, history: Raw[]): ReferralStats {
   const completed = history.filter((r: Raw) => r.orderId)
   return {
     totalEarnedInr: completed.reduce((sum: number, r: Raw) => sum + Number(r.commissionAmount ?? 0), 0),
@@ -287,9 +287,9 @@ function orderStepStatus(current: string, target: string): 'complete' | 'active'
 export function adaptOrderTracking(order: Raw): OrderTrackingData {
   const steps: TrackingStep[] = [
     { id: '1', label: 'Order Placed', icon: 'receipt', status: 'complete', timestamp: order.placedAt ?? '' },
-    { id: '2', label: 'Processing', icon: 'inventory', status: orderStepStatus(order.status, 'PROCESSING'), timestamp: '' },
-    { id: '3', label: 'Shipped', icon: 'local_shipping', status: orderStepStatus(order.status, 'SHIPPED'), timestamp: order.shippedAt ?? '' },
-    { id: '4', label: 'Delivered', icon: 'home', status: orderStepStatus(order.status, 'DELIVERED'), timestamp: order.deliveredAt ?? '' },
+    { id: '2', label: 'Processing', icon: 'inventory', status: orderStepStatus(order.status, 'PROCESSING') as TrackingStepStatus, timestamp: '' },
+    { id: '3', label: 'Shipped', icon: 'local_shipping', status: orderStepStatus(order.status, 'SHIPPED') as TrackingStepStatus, timestamp: order.shippedAt ?? '' },
+    { id: '4', label: 'Delivered', icon: 'home', status: orderStepStatus(order.status, 'DELIVERED') as TrackingStepStatus, timestamp: order.deliveredAt ?? '' },
   ]
 
   const events: ShipmentEvent[] = (order.statusHistory ?? []).map((h: Raw, i: number) => ({

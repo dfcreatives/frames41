@@ -8,7 +8,7 @@ import Navbar from '@/components/home/Navbar'
 export default function CartPage() {
   const navigate = useNavigate()
   const { cartData, loading, applyPromo } = useCartData()
-  const { updateItem, removeItem } = useCart()
+  useCart()
 
   if (loading) {
     return (

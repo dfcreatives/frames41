@@ -8,7 +8,7 @@ export default function ProductDetailPage() {
   const { slug = '' } = useParams<{ slug: string }>()
   const { product, loading, error } = useProductDetailData(slug)
   const { addItem } = useCart()
-  const { toggle, isWishlisted } = useWishlist()
+  const { toggle } = useWishlist()
   const navigate = useNavigate()
 
   if (loading) {
