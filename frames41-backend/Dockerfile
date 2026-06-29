@@ -5,6 +5,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install system dependencies for Prisma
+RUN apk add --no-cache openssl
+
 # Install dependencies
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
@@ -20,6 +23,9 @@ RUN npm run build
 
 # Stage 2: Production
 FROM node:20-alpine AS production
+
+# Install system dependencies for Prisma
+RUN apk add --no-cache openssl
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -54,6 +60,9 @@ CMD ["node", "dist/src/server.js"]
 FROM node:20-alpine AS development
 
 WORKDIR /app
+
+# Install system dependencies for Prisma
+RUN apk add --no-cache openssl
 
 # Install all dependencies (including dev)
 COPY package*.json ./

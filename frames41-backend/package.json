@@ -10,6 +10,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/src/server.js",
+    "start:prod": "npx prisma migrate deploy && node dist/src/server.js",
     "start:worker": "node dist/src/worker.js",
     "dev": "tsx watch src/server.ts",
     "dev:worker": "tsx watch src/worker.ts",
@@ -34,7 +35,8 @@
     "typecheck": "tsc --noEmit",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f app"
+    "docker:logs": "docker-compose logs -f app",
+    "postinstall": "prisma generate"
   },
   "keywords": [
     "ecommerce",
