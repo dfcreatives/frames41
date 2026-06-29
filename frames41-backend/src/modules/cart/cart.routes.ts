@@ -1,0 +1,35 @@
+import { Router } from 'express';
+import { CartController } from './cart.controller.js';
+import { CartService } from './cart.service.js';
+import { CartRepository } from './cart.repository.js';
+import { prisma } from '../../infrastructure/database/prisma.client.js';
+import { authenticate } from '../../middleware/auth.middleware.js';
+import { generalRateLimiter } from '../../middleware/rateLimit.middleware.js';
+
+/**
+ * Create cart routes
+ */
+export function createCartRoutes(): Router {
+  const router = Router();
+
+  // Dependency injection
+  const repository = new CartRepository(prisma);
+  const service = new CartService(repository);
+  const controller = new CartController(service);
+
+  // All cart routes require authentication
+  router.use(authenticate);
+  router.use(generalRateLimiter);
+
+  // Cart operations
+  router.get('/', controller.getCart);
+  router.post('/items', controller.addToCart);
+  router.patch('/items/:id', controller.updateCartItem);
+  router.delete('/items/:id', controller.removeCartItem);
+  router.delete('/', controller.clearCart);
+  router.post('/calculate', controller.calculateCart);
+
+  return router;
+}
+
+export default createCartRoutes;
