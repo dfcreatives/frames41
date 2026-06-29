@@ -8,12 +8,14 @@ import {
   isTokenExpiringSoon,
 } from './token'
 
+const API_BASE = 'https://frames41-production.up.railway.app/api/v1'
+
 // ─── Plain instance used only for token refresh (avoids interceptor loops) ───
-const plainAxios = axios.create({ baseURL: '/api/v1' })
+const plainAxios = axios.create({ baseURL: API_BASE })
 
 // ─── Main instance ─────────────────────────────────────────────────────────────
 const instance: AxiosInstance = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
 })
 
