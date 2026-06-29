@@ -7,7 +7,8 @@ import type { ProfileUser, ProfileAddress } from '@/types/profile'
 import type { WishlistItem } from '@/types/wishlist'
 import type { ReviewItem, ReviewFormProduct } from '@/types/review'
 import type { ReferralEntry, ReferralStats } from '@/types/refer'
-import type { OrderDetails, OrderItem, OrderStep, TrackingStep, ShipmentEvent, OrderTrackingData, DeliveryInfo } from '@/types/order'
+import type { OrderDetails, OrderItem, OrderStep, OrderTrackingData, DeliveryInfo } from '@/types/order'
+import type { TrackingStep, ShipmentEvent } from '@/types/ordertracking'
 import type { TrackingOrderItem } from '@/types/ordertracking'
 
 // ─── Backend response shapes (loose) ─────────────────────────────────────────

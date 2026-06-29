@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import Icon from '../ui/Icon'
 
 export interface AddressFormData {
   fullName: string

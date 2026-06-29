@@ -10,7 +10,7 @@ export default function RecommendedProductCard({
   product,
   onSelect,
 }: RecommendedProductCardProps) {
-  const { id, name, subtitle, priceInr, imageUrl, imageAlt } = product
+  const { id, name, subtitle, priceInr, imageUrl } = product
 
   return (
     <article>

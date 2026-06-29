@@ -1,4 +1,4 @@
-import type { TrackingStep, TrackingStepStatus } from '../../types/ordertracking'
+import type { TrackingStep } from '../../types/ordertracking'
 import Icon from '../ui/Icon'
 
 interface StepNodeProps {

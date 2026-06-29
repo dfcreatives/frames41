@@ -58,6 +58,7 @@ export const CATEGORIES: ReadonlyArray<Category> = [
 export const BUDGET_PRODUCTS: ReadonlyArray<Product> = [
   {
     id: "minimalist-a5-frame",
+    slug: "minimalist-a5-frame",
     name: "Minimalist A5 Frame",
     priceInr: 499,
     imageUrl:
@@ -67,6 +68,7 @@ export const BUDGET_PRODUCTS: ReadonlyArray<Product> = [
   },
   {
     id: "mandala-coaster-set",
+    slug: "mandala-coaster-set",
     name: "Mandala Coaster Set",
     priceInr: 799,
     imageUrl:
@@ -76,6 +78,7 @@ export const BUDGET_PRODUCTS: ReadonlyArray<Product> = [
   },
   {
     id: "owl-desk-totem",
+    slug: "owl-desk-totem",
     name: "Owl Desk Totem",
     priceInr: 850,
     imageUrl:
@@ -84,6 +87,7 @@ export const BUDGET_PRODUCTS: ReadonlyArray<Product> = [
   },
   {
     id: "bud-vase-teak",
+    slug: "bud-vase-teak",
     name: "Bud Vase – Teak",
     priceInr: 949,
     imageUrl:
@@ -95,6 +99,7 @@ export const BUDGET_PRODUCTS: ReadonlyArray<Product> = [
 export const BESTSELLERS: ReadonlyArray<Product> = [
   {
     id: "world-map-triptych",
+    slug: "world-map-triptych",
     name: "World Map Triptych",
     priceInr: 12000,
     description: "Premium Walnut & Oak Finish. Hand-carved with precision.",
@@ -104,6 +109,7 @@ export const BESTSELLERS: ReadonlyArray<Product> = [
   },
   {
     id: "chronos-wall-clock",
+    slug: "chronos-wall-clock",
     name: "Chronos Wall Clock",
     priceInr: 4200,
     description: "Solid mahogany frame with silent quartz mechanism.",
@@ -113,6 +119,7 @@ export const BESTSELLERS: ReadonlyArray<Product> = [
   },
   {
     id: "honeycomb-planters",
+    slug: "honeycomb-planters",
     name: "Honeycomb Planters",
     priceInr: 2800,
     description: "Modular hexagonal units to bring nature into your workspace.",

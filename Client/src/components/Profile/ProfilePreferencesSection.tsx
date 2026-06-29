@@ -1,5 +1,3 @@
-import type { ProfileData } from '../../types/profile'
-
 interface ProfilePreferencesSectionProps {
   isNewsletterSubscribed: boolean
   onToggle: () => void

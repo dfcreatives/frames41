@@ -81,6 +81,7 @@ export const PRODUCT_DATA: ProductData = {
   relatedProducts: [
     {
       id: 'related_oak_organizer',
+      slug: 'oak-organizer-set',
       name: 'Oak Organizer Set',
       priceInr: 75,
       badge: 'New',
@@ -90,6 +91,7 @@ export const PRODUCT_DATA: ProductData = {
     },
     {
       id: 'related_geometric_kit',
+      slug: 'diy-geometric-kit',
       name: 'DIY Geometric Kit',
       priceInr: 42,
       imageUrl:
@@ -98,6 +100,7 @@ export const PRODUCT_DATA: ProductData = {
     },
     {
       id: 'related_ebony_clock',
+      slug: 'ebony-wall-clock',
       name: 'Ebony Wall Clock',
       priceInr: 120,
       imageUrl:
@@ -106,6 +109,7 @@ export const PRODUCT_DATA: ProductData = {
     },
     {
       id: 'related_culinary_set',
+      slug: 'culinary-wood-set',
       name: 'Culinary Wood Set',
       priceInr: 88,
       imageUrl:

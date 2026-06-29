@@ -103,7 +103,7 @@ export default function Profile({
           {activeSection === 'orders' && <ProfileOrdersSection />}
           {activeSection === 'preferences' && (
             <ProfilePreferencesSection
-              isSubscribed={isNewsletterSubscribed}
+              isNewsletterSubscribed={isNewsletterSubscribed}
               onToggle={handleToggleNewsletter}
             />
           )}

@@ -49,6 +49,7 @@ export const ORDER_STEPS: ReadonlyArray<OrderStep> = [
 export const RECOMMENDED_PRODUCTS: ReadonlyArray<RecommendedProduct> = [
   {
     id: 'woven-suede-tray',
+    slug: 'woven-suede-tray',
     name: 'Woven Suede Tray',
     subtitle: 'Hand-braided leather',
     priceInr: 145,
@@ -58,6 +59,7 @@ export const RECOMMENDED_PRODUCTS: ReadonlyArray<RecommendedProduct> = [
   },
   {
     id: 'orbital-brass-lamp',
+    slug: 'orbital-brass-lamp',
     name: 'Orbital Brass Lamp',
     subtitle: 'Limited Edition',
     priceInr: 420,
@@ -67,6 +69,7 @@ export const RECOMMENDED_PRODUCTS: ReadonlyArray<RecommendedProduct> = [
   },
   {
     id: 'nocturne-sketch-04',
+    slug: 'nocturne-sketch-04',
     name: 'Nocturne Sketch 04',
     subtitle: 'Original Artwork',
     priceInr: 890,
