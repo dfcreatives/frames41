@@ -11,9 +11,9 @@ RUN apk add --no-cache openssl
 # Copy prisma schema first (needed for postinstall)
 COPY prisma ./prisma
 
-# Install dependencies (need dev deps for TypeScript build)
+# Install dependencies (npm install because package-lock.json is not in git)
 COPY package*.json ./
-RUN npm ci && npm cache clean --force
+RUN npm install && npm cache clean --force
 
 # Copy source code
 COPY . .
@@ -65,14 +65,16 @@ RUN addgroup -g 1001 -S nodejs && \
 
 WORKDIR /app
 
-# Install production dependencies
-COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+# Copy node_modules from builder (already has all deps, but we only need prod)
+# Pruning dev deps keeps image small
+COPY --from=builder /app/node_modules ./node_modules
+RUN npm prune --omit=dev && npm cache clean --force
 
 # Copy built application
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package*.json ./
 
 # Set permissions
 RUN chown -R nodejs:nodejs /app
