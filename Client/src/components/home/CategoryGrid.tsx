@@ -12,7 +12,7 @@ function CategoryCard({ category }: CategoryCardProps) {
   const hasImage = category.imageUrl && !imgError
 
   return (
-    <article className={`${spanClass} group relative h-[500px] overflow-hidden`}>
+    <article className={`${spanClass} group relative h-[350px] sm:h-[500px] overflow-hidden`}>
       {hasImage ? (
         <img
           src={category.imageUrl}
@@ -33,7 +33,7 @@ function CategoryCard({ category }: CategoryCardProps) {
         className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500"
       />
       <div className="absolute bottom-0 left-0 p-10 w-full text-white">
-        <h3 className="font-headline text-headline-md italic mb-2">{category.title}</h3>
+        <h3 className="font-headline text-xl sm:text-headline-md italic mb-2">{category.title}</h3>
         {category.description && (
           <p className="text-white/80 mb-6 text-sm max-w-xs">{category.description}</p>
         )}
@@ -56,14 +56,14 @@ export default function CategoryGrid({ categories }: CategoryGridProps) {
   return (
     <section
       aria-labelledby="categories-heading"
-      className="py-xl max-w-container mx-auto px-6"
+      className="py-16 sm:py-xl max-w-container mx-auto px-4 sm:px-6"
     >
-      <div className="flex flex-col md:flex-row justify-between items-baseline mb-12 gap-4 border-b border-on-background/10 pb-8">
+      <div className="flex flex-col md:flex-row justify-between items-baseline mb-8 sm:mb-12 gap-4 border-b border-on-background/10 pb-6 sm:pb-8">
         <div>
           <span className="text-label-bold text-primary text-[10px] tracking-[0.3em] uppercase block mb-1">
             Collections
           </span>
-          <h2 id="categories-heading" className="font-headline text-headline-lg italic">
+          <h2 id="categories-heading" className="font-headline text-[28px] sm:text-headline-lg italic">
             Curated Categories
           </h2>
         </div>

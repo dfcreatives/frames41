@@ -12,7 +12,7 @@ interface BestsellerCardProps {
 
 function BestsellerCard({ product, onAddToCart }: BestsellerCardProps) {
   return (
-    <article className="min-w-[400px] group">
+    <article className="min-w-[280px] sm:min-w-[400px] snap-start group">
       <a href={`/shop/${product.slug}`} className="block">
         <div className="relative overflow-hidden aspect-video mb-6">
           <img
@@ -22,17 +22,17 @@ function BestsellerCard({ product, onAddToCart }: BestsellerCardProps) {
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
         </div>
-        <h3 className="font-headline text-headline-md italic mb-2">{product.name}</h3>
+        <h3 className="font-headline text-xl sm:text-headline-md italic mb-1 sm:mb-2">{product.name}</h3>
         {product.description && (
-          <p className="text-on-background/60 mb-6 text-sm">{product.description}</p>
+          <p className="text-on-background/60 mb-4 sm:mb-6 text-sm">{product.description}</p>
         )}
       </a>
       <div className="flex justify-between items-center">
-        <span className="text-label-bold text-lg">{formatINR(product.priceInr)}</span>
+        <span className="text-label-bold text-base sm:text-lg">{formatINR(product.priceInr)}</span>
         <button
           type="button"
           onClick={() => onAddToCart(product.id)}
-          className="bg-on-background text-white px-6 py-2 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-primary transition-colors"
+          className="bg-on-background text-white px-4 sm:px-6 py-2 rounded-full font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:bg-primary transition-colors"
         >
           Add to Cart
         </button>
@@ -59,18 +59,18 @@ export default function BestsellersSection({ products, onAddToCart }: Bestseller
   return (
     <section
       aria-labelledby="bestsellers-heading"
-      className="py-xl max-w-container mx-auto px-6"
+      className="py-16 sm:py-xl max-w-container mx-auto px-4 sm:px-6"
     >
-      <div className="flex justify-between items-baseline mb-12 border-b border-on-background/10 pb-8">
-        <h2 id="bestsellers-heading" className="font-headline text-headline-lg italic">
+      <div className="flex justify-between items-baseline mb-8 sm:mb-12 border-b border-on-background/10 pb-6 sm:pb-8">
+        <h2 id="bestsellers-heading" className="font-headline text-[28px] sm:text-headline-lg italic">
           Bestsellers
         </h2>
-        <div className="flex gap-4">
+        <div className="flex gap-2 sm:gap-4">
           <button
             type="button"
             onClick={() => scroll('prev')}
             aria-label="Scroll to previous bestsellers"
-            className="w-10 h-10 border border-on-background/20 rounded-full flex items-center justify-center hover:bg-on-background hover:text-white transition-all"
+            className="w-9 h-9 sm:w-10 sm:h-10 border border-on-background/20 rounded-full flex items-center justify-center hover:bg-on-background hover:text-white transition-all"
           >
             <Icon name="chevron_left" className="text-sm" />
           </button>
@@ -78,7 +78,7 @@ export default function BestsellersSection({ products, onAddToCart }: Bestseller
             type="button"
             onClick={() => scroll('next')}
             aria-label="Scroll to next bestsellers"
-            className="w-10 h-10 border border-on-background/20 rounded-full flex items-center justify-center hover:bg-on-background hover:text-white transition-all"
+            className="w-9 h-9 sm:w-10 sm:h-10 border border-on-background/20 rounded-full flex items-center justify-center hover:bg-on-background hover:text-white transition-all"
           >
             <Icon name="chevron_right" className="text-sm" />
           </button>
@@ -87,7 +87,7 @@ export default function BestsellersSection({ products, onAddToCart }: Bestseller
 
       <div
         ref={scrollRef}
-        className="flex gap-8 overflow-x-auto no-scrollbar pb-12"
+        className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pb-8 sm:pb-12 snap-x snap-mandatory"
       >
         {products.map((product) => (
           <BestsellerCard key={product.id} product={product} onAddToCart={onAddToCart} />

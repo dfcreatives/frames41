@@ -37,8 +37,8 @@ function SocialIcon({ name }: { name: string }) {
 export default function Footer({ columns, socialLinks }: FooterProps) {
   return (
     <footer className="bg-on-background text-background border-t border-white/5">
-      <div className="max-w-container mx-auto px-8 pt-xl pb-md">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
+      <div className="max-w-container mx-auto px-4 sm:px-8 pt-16 sm:pt-xl pb-md">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 sm:gap-16 mb-12 sm:mb-20">
           <div className="col-span-1">
             <a
               href="/"
@@ -88,7 +88,7 @@ export default function Footer({ columns, socialLinks }: FooterProps) {
           ))}
         </div>
 
-        <div className="border-t border-white/5 pt-12 pb-8 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="border-t border-white/5 pt-8 sm:pt-12 pb-6 sm:pb-8 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
           <p className="text-white/20 text-[10px] font-bold uppercase tracking-[0.3em]">
             © {new Date().getFullYear()} Frames 41 Co. All Rights Reserved.
           </p>

@@ -42,19 +42,19 @@ export default function BudgetSection({ products, priceLimit = 999 }: BudgetSect
   return (
     <section
       aria-labelledby="budget-heading"
-      className="bg-on-background text-background py-xl"
+      className="bg-on-background text-background py-16 sm:py-xl"
     >
-      <div className="max-w-container mx-auto px-6">
-        <div className="text-center mb-16">
+      <div className="max-w-container mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10 sm:mb-16">
           <span className="text-label-bold text-primary text-[10px] tracking-[0.3em] uppercase block mb-1">
             Value Picks
           </span>
-          <h2 id="budget-heading" className="font-headline text-headline-lg italic">
+          <h2 id="budget-heading" className="font-headline text-[28px] sm:text-headline-lg italic">
             Under {formatINR(priceLimit)}
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

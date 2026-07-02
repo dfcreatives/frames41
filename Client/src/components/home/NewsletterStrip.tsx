@@ -31,15 +31,15 @@ export default function NewsletterStrip() {
   return (
     <section
       aria-labelledby="newsletter-heading"
-      className="bg-primary py-xl relative overflow-hidden"
+      className="bg-primary py-16 sm:py-xl relative overflow-hidden"
     >
-      <div className="max-w-container mx-auto px-6 relative z-10 flex flex-col items-center text-center">
-        <span className="text-label-bold text-white/80 text-[10px] tracking-[0.4em] uppercase mb-6">
+      <div className="max-w-container mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center text-center">
+        <span className="text-label-bold text-white/80 text-[10px] tracking-[0.4em] uppercase mb-4 sm:mb-6">
           Join the Community
         </span>
         <h2
           id="newsletter-heading"
-          className="font-headline text-headline-lg italic text-white mb-10 max-w-2xl"
+          className="font-headline text-[24px] sm:text-headline-lg italic text-white mb-6 sm:mb-10 max-w-2xl"
         >
           Subscribe for early access to sales and exclusive DIY tips.
         </h2>
