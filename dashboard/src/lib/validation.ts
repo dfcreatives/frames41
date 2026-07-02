@@ -11,7 +11,7 @@ export interface ValidationRule<T = string> {
 export type FieldErrors<T extends Record<string, unknown>> = Partial<Record<keyof T, string>>
 
 export function validateField<T extends string | number>(
-  value: T | undefined,
+  value: string | number | undefined,
   rules: ValidationRule<T>,
   label: string,
 ): string | undefined {
@@ -45,7 +45,7 @@ export function validateField<T extends string | number>(
   }
 
   if (rules.custom) {
-    return rules.custom(value)
+    return rules.custom(value as T)
   }
 
   return undefined
@@ -61,7 +61,7 @@ export function validateForm<T extends Record<string, unknown>>(
   for (const key of Object.keys(rules) as Array<keyof T>) {
     const error = validateField(
       values[key] as string | number | undefined,
-      rules[key]!,
+      rules[key] as ValidationRule<string | number>,
       labels[key] ?? String(key),
     )
     if (error) {

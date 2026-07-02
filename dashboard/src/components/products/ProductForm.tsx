@@ -57,7 +57,7 @@ function flattenCategories(cats: AdminCategory[], depth = 0): { id: string; labe
   ])
 }
 
-const FIELD_RULES: Record<string, ValidationRule> = {
+const FIELD_RULES: Record<string, ValidationRule<string | number>> = {
   name: { required: true, minLength: 1, maxLength: 200 },
   slug: { required: true, minLength: 1, maxLength: 100, pattern: /^[a-z0-9-]+$/ },
   sku: { required: true, minLength: 1, maxLength: 50 },
@@ -387,7 +387,7 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
         <VariantsEditor variants={form.variants} onChange={(v) => set('variants', v)} />
         {form.variants.length > 0 && (
           <div className="mt-2 space-y-1">
-            {form.variants.map((v, i) => (
+            {form.variants.map((_v, i) => (
               <div key={i}>
                 {touched[`variant_${i}_name` as string] && errors[`variant_${i}_name`] && (
                   <p className="text-xs text-red-500">{errors[`variant_${i}_name`]}</p>
