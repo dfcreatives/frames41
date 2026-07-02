@@ -43,10 +43,10 @@ export interface ICategoryRepository {
     slug: string;
     name: string;
     description?: string;
-    parentId?: string;
+    parentId?: string | null;
     mdfShape?: string;
     sortOrder: number;
-    image?: string;
+    image?: string | null;
     isActive: boolean;
   }): Promise<Category>;
 
@@ -92,10 +92,10 @@ export interface ICategoryService {
     slug: string;
     name: string;
     description?: string;
-    parentId?: string;
+    parentId?: string | null;
     mdfShape?: string;
     sortOrder?: number;
-    image?: string;
+    image?: string | null;
     isActive?: boolean;
   }): Promise<Category>;
 
@@ -108,10 +108,10 @@ export interface ICategoryService {
       slug: string;
       name: string;
       description: string;
-      parentId: string;
+      parentId: string | null;
       mdfShape: string;
       sortOrder: number;
-      image: string;
+      image: string | null;
       isActive: boolean;
     }>,
   ): Promise<Category>;

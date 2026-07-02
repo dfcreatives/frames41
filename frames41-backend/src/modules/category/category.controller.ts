@@ -110,7 +110,17 @@ export class CategoryController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const data = createCategorySchema.parse(req.body);
+      const parsed = createCategorySchema.parse(req.body);
+      const data: Parameters<ICategoryService['createCategory']>[0] = {
+        slug: parsed.slug,
+        name: parsed.name,
+        sortOrder: parsed.sortOrder,
+        isActive: parsed.isActive,
+        ...(parsed.description !== undefined ? { description: parsed.description } : {}),
+        ...(parsed.mdfShape !== undefined ? { mdfShape: parsed.mdfShape } : {}),
+        ...(parsed.image ? { image: parsed.image } : (parsed.imageUrl ? { image: parsed.imageUrl } : {})),
+        ...(parsed.parentId !== undefined && parsed.parentId !== null ? { parentId: parsed.parentId } : {}),
+      };
       const category = await this.categoryService.createCategory(data);
 
       res.status(201).json({
@@ -137,7 +147,17 @@ export class CategoryController {
   ): Promise<void> => {
     try {
       const { id } = categoryIdParamSchema.parse(req.params);
-      const data = updateCategorySchema.parse(req.body);
+      const parsed = updateCategorySchema.parse(req.body);
+      const data: Parameters<ICategoryService['updateCategory']>[1] = {
+        ...(parsed.slug !== undefined ? { slug: parsed.slug } : {}),
+        ...(parsed.name !== undefined ? { name: parsed.name } : {}),
+        ...(parsed.description !== undefined ? { description: parsed.description } : {}),
+        ...(parsed.mdfShape !== undefined ? { mdfShape: parsed.mdfShape } : {}),
+        ...(parsed.sortOrder !== undefined ? { sortOrder: parsed.sortOrder } : {}),
+        ...(parsed.isActive !== undefined ? { isActive: parsed.isActive } : {}),
+        ...((parsed.image || parsed.imageUrl) ? { image: parsed.image || parsed.imageUrl } : {}),
+        ...(parsed.parentId !== undefined ? { parentId: parsed.parentId } : {}),
+      };
       const category = await this.categoryService.updateCategory(id, data);
 
       res.status(200).json({

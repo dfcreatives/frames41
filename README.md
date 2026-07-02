@@ -17,6 +17,7 @@ A production-grade e-commerce backend for MDF cutouts, DIY craft kits, and perso
 ## ✨ Features
 
 ### Phase 1: Foundation
+
 - ✅ Phone-based OTP authentication
 - JWT access + refresh tokens with rotation
 - Role-based access control (User/Admin)
@@ -27,6 +28,7 @@ A production-grade e-commerce backend for MDF cutouts, DIY craft kits, and perso
 - Error tracking
 
 ### Phase 2: Catalog
+
 - ✅ Category management with nested hierarchy
 - Product catalog with variants & price tiers
 - Image management
@@ -35,6 +37,7 @@ A production-grade e-commerce backend for MDF cutouts, DIY craft kits, and perso
 - Full-text search with pg_trgm
 
 ### Phase 3: Commerce
+
 - ✅ Shopping cart with persistent storage
 - Pricing engine with bulk discounts
 - Coupon system (percentage, flat, first-order)
@@ -42,6 +45,7 @@ A production-grade e-commerce backend for MDF cutouts, DIY craft kits, and perso
 - Cart customization support
 
 ### Phase 4: Checkout
+
 - ✅ Order creation with stock reservation
 - Razorpay payment integration
 - Payment verification & webhooks
@@ -50,6 +54,7 @@ A production-grade e-commerce backend for MDF cutouts, DIY craft kits, and perso
 - Refund request flow
 
 ### Phase 5: Engagement
+
 - ✅ Wishlist management
 - Product reviews with verified badges
 - Abandoned cart recovery with WhatsApp/SMS
@@ -57,11 +62,13 @@ A production-grade e-commerce backend for MDF cutouts, DIY craft kits, and perso
 - Digital gift cards
 
 ### Phase 6: Content
+
 - ✅ Blog posts
 - FAQ management
 - Newsletter subscriptions
 
 ### Phase 7: Admin Dashboard
+
 - ✅ Basic admin APIs
 - Product/category CRUD
 - Order management
@@ -69,6 +76,7 @@ A production-grade e-commerce backend for MDF cutouts, DIY craft kits, and perso
 - Customer management
 
 ### Phase 8: DevOps
+
 - ✅ Docker support
 - PM2 cluster configuration
 - Database migrations
@@ -117,6 +125,7 @@ frames41-backend/
 ## 🛠️ Setup
 
 ### Prerequisites
+
 - Node.js 20+
 - PostgreSQL 16
 - npm or yarn
@@ -160,7 +169,7 @@ NODE_ENV="development"
 API_VERSION="v1"
 
 # CORS
-CORS_ORIGIN="http://localhost:3000,http://localhost:5173"
+CORS_ORIGIN="https://frames41-production.up.railway.app,http://localhost:5173"
 ```
 
 ### 3. Database Setup
@@ -206,6 +215,7 @@ npm run test:coverage
 ## 📡 API Endpoints
 
 ### Authentication
+
 ```
 POST /api/v1/auth/otp/request      # Request OTP
 POST /api/v1/auth/otp/verify       # Verify OTP & login
@@ -214,6 +224,7 @@ POST /api/v1/auth/logout           # Logout
 ```
 
 ### Products
+
 ```
 GET    /api/v1/products            # List products
 GET    /api/v1/products/:slug      # Product details
@@ -222,6 +233,7 @@ GET    /api/v1/categories          # Category tree
 ```
 
 ### Cart
+
 ```
 GET    /api/v1/cart                # Get cart
 POST   /api/v1/cart/items          # Add item
@@ -231,6 +243,7 @@ POST   /api/v1/cart/calculate      # Calculate totals
 ```
 
 ### Orders
+
 ```
 POST   /api/v1/orders              # Create order
 GET    /api/v1/orders              # My orders
@@ -238,6 +251,7 @@ GET    /api/v1/orders/:id          # Order details
 ```
 
 ### Wishlist
+
 ```
 GET    /api/v1/wishlist            # Get wishlist
 POST   /api/v1/wishlist            # Add to wishlist
@@ -245,6 +259,7 @@ DELETE /api/v1/wishlist/:productId # Remove from wishlist
 ```
 
 ### Reviews
+
 ```
 GET    /api/v1/reviews/product/:productId
 POST   /api/v1/reviews
@@ -252,6 +267,7 @@ PATCH  /api/v1/reviews/:id
 ```
 
 ### Referrals
+
 ```
 GET    /api/v1/referrals/my-code
 POST   /api/v1/referrals
@@ -259,6 +275,7 @@ GET    /api/v1/referrals/validate?code=
 ```
 
 ### Gift Cards
+
 ```
 GET    /api/v1/gift-cards/check/:code
 POST   /api/v1/gift-cards
@@ -266,6 +283,7 @@ POST   /api/v1/gift-cards/redeem
 ```
 
 ### Admin (Require admin role)
+
 ```
 GET    /api/v1/admin/dashboard/stats
 GET    /api/v1/admin/users
@@ -287,6 +305,7 @@ docker-compose down
 ```
 
 Services included:
+
 - PostgreSQL 16
 - MinIO (S3-compatible storage)
 - Application server
@@ -294,12 +313,14 @@ Services included:
 ## 🚀 Deployment
 
 ### Railway (Recommended)
+
 1. Connect GitHub repo to Railway
 2. Add PostgreSQL database
 3. Set environment variables
 4. Deploy automatically on push
 
 ### Manual Server
+
 ```bash
 # Build
 npm run build

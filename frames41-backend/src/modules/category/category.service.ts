@@ -42,10 +42,10 @@ export class CategoryService implements ICategoryService {
     slug: string;
     name: string;
     description?: string;
-    parentId?: string;
+    parentId?: string | null;
     mdfShape?: string;
     sortOrder?: number;
-    image?: string;
+    image?: string | null;
     isActive?: boolean;
   }): Promise<Category> {
     // Check slug uniqueness
@@ -83,10 +83,10 @@ export class CategoryService implements ICategoryService {
       slug: string;
       name: string;
       description: string;
-      parentId: string;
+      parentId: string | null;
       mdfShape: string;
       sortOrder: number;
-      image: string;
+      image: string | null;
       isActive: boolean;
     }>,
   ): Promise<Category> {

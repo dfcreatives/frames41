@@ -69,10 +69,10 @@ export class CategoryRepository implements ICategoryRepository {
     slug: string;
     name: string;
     description?: string;
-    parentId?: string;
+    parentId?: string | null;
     mdfShape?: string;
     sortOrder: number;
-    image?: string;
+    image?: string | null;
     isActive: boolean;
   }): Promise<Category> {
     return this.prisma.category.create({ data });

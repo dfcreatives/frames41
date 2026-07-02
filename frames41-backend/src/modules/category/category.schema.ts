@@ -16,10 +16,11 @@ export const createCategorySchema = z.object({
   slug: slugSchema,
   name: z.string().min(1, 'Name is required').max(100),
   description: z.string().max(500).optional(),
-  parentId: z.string().uuid().optional(),
+  parentId: z.string().uuid().nullish(),
   mdfShape: z.string().max(50).optional(),
   sortOrder: z.number().int().min(0).default(0),
-  image: z.string().url().optional(),
+  image: z.union([z.literal(''), z.string().url()]).optional(),
+  imageUrl: z.union([z.literal(''), z.string().url()]).optional(),
   isActive: z.boolean().default(true),
 });
 
