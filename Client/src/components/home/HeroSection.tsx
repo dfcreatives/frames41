@@ -24,7 +24,7 @@ export default function HeroSection({ data, onExploreCta, onWatchCta }: HeroSect
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
       </div>
 
-      <div className="relative z-10 max-w-container mx-auto px-4 sm:px-6 h-full flex flex-col justify-center items-start py-16 sm:py-0">
+      <div className="relative z-10 max-w-container mx-auto px-4 sm:px-6 min-h-[65dvh] sm:min-h-[80vh] flex flex-col justify-center items-start py-16 sm:py-0">
         <span className="text-label-bold text-white mb-4 sm:mb-6 border border-white/30 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[10px] tracking-widest">
           {data.badge}
         </span>
