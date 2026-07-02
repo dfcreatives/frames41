@@ -24,7 +24,36 @@ RUN npx prisma generate
 # Build TypeScript
 RUN npm run build
 
-# Stage 2: Production
+# ─────────────────────────────────────────
+# Stage 2: Development (used for local dev)
+# ─────────────────────────────────────────
+FROM node:20-alpine AS development
+
+WORKDIR /app
+
+# Install system dependencies for Prisma
+RUN apk add --no-cache openssl
+
+# Copy prisma schema first
+COPY prisma ./prisma
+
+# Install all dependencies (including dev)
+COPY package*.json ./
+RUN npm install
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Copy source code
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]
+
+# ─────────────────────────────────────────
+# Stage 3: Production (MUST be final stage)
+# ─────────────────────────────────────────
 FROM node:20-alpine AS production
 
 # Install system dependencies for Prisma
@@ -54,32 +83,7 @@ EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('https://frames41-production.up.railway.app/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"
+  CMD node -e "require('http').get('http://localhost:3000/api/v1/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"
 
 # Start application
 CMD ["node", "dist/src/server.js"]
-
-# Stage 3: Development
-FROM node:20-alpine AS development
-
-WORKDIR /app
-
-# Install system dependencies for Prisma
-RUN apk add --no-cache openssl
-
-# Copy prisma schema first
-COPY prisma ./prisma
-
-# Install all dependencies (including dev)
-COPY package*.json ./
-RUN npm install
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Copy source code
-COPY . .
-
-EXPOSE 3000
-
-CMD ["npm", "run", "dev"]
