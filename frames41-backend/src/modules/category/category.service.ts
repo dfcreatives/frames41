@@ -65,13 +65,13 @@ export class CategoryService implements ICategoryService {
     const category = await this.repository.create({
       slug: data.slug,
       name: data.name,
-      description: data.description,
-      parentId: data.parentId,
-      mdfShape: data.mdfShape,
       sortOrder: data.sortOrder ?? 0,
-      image: data.image,
       isActive: data.isActive ?? true,
-    });
+      ...(data.description !== undefined ? { description: data.description } : {}),
+      ...(data.mdfShape !== undefined ? { mdfShape: data.mdfShape } : {}),
+      ...(data.image !== undefined && data.image !== null ? { image: data.image } : {}),
+      ...(data.parentId !== undefined && data.parentId !== null ? { parentId: data.parentId } : {}),
+    } as Parameters<ICategoryRepository['create']>[0]);
 
     logger.info({ categoryId: category.id }, 'Category created');
     return category;

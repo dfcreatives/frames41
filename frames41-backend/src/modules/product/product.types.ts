@@ -95,6 +95,11 @@ export interface IProductRepository {
    * Check if SKU exists
    */
   skuExists(sku: string, excludeId?: string): Promise<boolean>;
+
+  /**
+   * Check if any variant SKU already exists globally
+   */
+  variantSkuExists(skus: string[], excludeProductId?: string): Promise<string[]>;
 }
 
 /**

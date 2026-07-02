@@ -322,7 +322,7 @@ export class ProductRepository implements IProductRepository {
   async slugExists(slug: string, excludeId?: string): Promise<boolean> {
     const count = await this.prisma.product.count({
       where: {
-        slug,
+        slug: { equals: slug, mode: 'insensitive' },
         ...(excludeId ? { id: { not: excludeId } } : {}),
       },
     });
@@ -332,10 +332,21 @@ export class ProductRepository implements IProductRepository {
   async skuExists(sku: string, excludeId?: string): Promise<boolean> {
     const count = await this.prisma.product.count({
       where: {
-        sku,
+        sku: { equals: sku, mode: 'insensitive' },
         ...(excludeId ? { id: { not: excludeId } } : {}),
       },
     });
     return count > 0;
+  }
+
+  async variantSkuExists(skus: string[], excludeProductId?: string): Promise<string[]> {
+    const existing = await this.prisma.productVariant.findMany({
+      where: {
+        sku: { in: skus, mode: 'insensitive' },
+        ...(excludeProductId ? { productId: { not: excludeProductId } } : {}),
+      },
+      select: { sku: true },
+    });
+    return existing.map((v) => v.sku);
   }
 }

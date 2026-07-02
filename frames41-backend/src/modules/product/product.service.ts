@@ -88,12 +88,16 @@ export class ProductService implements IProductService {
       throw new ConflictError(`Product with SKU "${data.sku}" already exists`);
     }
 
-    // Validate variants have unique SKUs
+    // Validate variants have unique SKUs and don't conflict with existing variants
     if (data.variants && data.variants.length > 0) {
       const variantSkus = data.variants.map((v) => v.sku);
       const uniqueVariantSkus = new Set(variantSkus);
       if (variantSkus.length !== uniqueVariantSkus.size) {
         throw new ConflictError('Variant SKUs must be unique');
+      }
+      const conflicting = await this.repository.variantSkuExists(variantSkus);
+      if (conflicting.length > 0) {
+        throw new ConflictError(`Variant SKU(s) already exist: ${conflicting.join(', ')}`);
       }
     }
 
@@ -125,6 +129,19 @@ export class ProductService implements IProductService {
       const skuExists = await this.repository.skuExists(data.sku, id);
       if (skuExists) {
         throw new ConflictError(`Product with SKU "${data.sku}" already exists`);
+      }
+    }
+
+    // Validate variant SKUs don't conflict with other products when updating
+    if (data.variants && data.variants.length > 0) {
+      const variantSkus = data.variants.map((v) => v.sku);
+      const uniqueVariantSkus = new Set(variantSkus);
+      if (variantSkus.length !== uniqueVariantSkus.size) {
+        throw new ConflictError('Variant SKUs must be unique');
+      }
+      const conflicting = await this.repository.variantSkuExists(variantSkus, id);
+      if (conflicting.length > 0) {
+        throw new ConflictError(`Variant SKU(s) already exist: ${conflicting.join(', ')}`);
       }
     }
 

@@ -11,9 +11,9 @@ RUN apk add --no-cache openssl
 # Copy prisma schema first (needed for postinstall)
 COPY prisma ./prisma
 
-# Install dependencies
+# Install dependencies (need dev deps for TypeScript build)
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 # Copy source code
 COPY . .

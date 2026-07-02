@@ -80,6 +80,12 @@ instance.interceptors.request.use(async (config: InternalAxiosRequestConfig) => 
 instance.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
+    // Extract backend error message so callers see meaningful text
+    const backendMessage = error.response?.data?.error?.message
+    if (backendMessage && typeof backendMessage === 'string') {
+      error.message = backendMessage
+    }
+
     const original = error.config
     if (error.response?.status !== 401 || original._retry) {
       return Promise.reject(error)

@@ -111,7 +111,7 @@ export class CategoryController {
   ): Promise<void> => {
     try {
       const parsed = createCategorySchema.parse(req.body);
-      const data: Parameters<ICategoryService['createCategory']>[0] = {
+      const data = {
         slug: parsed.slug,
         name: parsed.name,
         sortOrder: parsed.sortOrder,
@@ -120,7 +120,7 @@ export class CategoryController {
         ...(parsed.mdfShape !== undefined ? { mdfShape: parsed.mdfShape } : {}),
         ...(parsed.image ? { image: parsed.image } : (parsed.imageUrl ? { image: parsed.imageUrl } : {})),
         ...(parsed.parentId !== undefined && parsed.parentId !== null ? { parentId: parsed.parentId } : {}),
-      };
+      } as Parameters<ICategoryService['createCategory']>[0];
       const category = await this.categoryService.createCategory(data);
 
       res.status(201).json({
@@ -148,7 +148,7 @@ export class CategoryController {
     try {
       const { id } = categoryIdParamSchema.parse(req.params);
       const parsed = updateCategorySchema.parse(req.body);
-      const data: Parameters<ICategoryService['updateCategory']>[1] = {
+      const data = {
         ...(parsed.slug !== undefined ? { slug: parsed.slug } : {}),
         ...(parsed.name !== undefined ? { name: parsed.name } : {}),
         ...(parsed.description !== undefined ? { description: parsed.description } : {}),
@@ -157,7 +157,7 @@ export class CategoryController {
         ...(parsed.isActive !== undefined ? { isActive: parsed.isActive } : {}),
         ...((parsed.image || parsed.imageUrl) ? { image: parsed.image || parsed.imageUrl } : {}),
         ...(parsed.parentId !== undefined ? { parentId: parsed.parentId } : {}),
-      };
+      } as Parameters<ICategoryService['updateCategory']>[1];
       const category = await this.categoryService.updateCategory(id, data);
 
       res.status(200).json({
