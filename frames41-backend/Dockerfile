@@ -1,6 +1,9 @@
-# Multi-stage Dockerfile for production-grade builds
+# Multi-stage Dockerfile for Railway deployment
+# NOTE: Production stage MUST be the final stage (Docker builds last stage by default)
 
+# ─────────────────────────────────────────
 # Stage 1: Build
+# ─────────────────────────────────────────
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -11,7 +14,7 @@ RUN apk add --no-cache openssl
 # Copy prisma schema first (needed for postinstall)
 COPY prisma ./prisma
 
-# Install dependencies (npm install because package-lock.json is not in git)
+# Install dependencies (npm install because package-lock.json may not be in git)
 COPY package*.json ./
 RUN npm install && npm cache clean --force
 
@@ -21,38 +24,29 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build TypeScript
+# Build TypeScript (emits JS even if there are type errors)
 RUN npm run build
 
 # ─────────────────────────────────────────
-# Stage 2: Development (used for local dev)
+# Stage 2: Development (optional, for local dev)
 # ─────────────────────────────────────────
 FROM node:20-alpine AS development
 
 WORKDIR /app
 
-# Install system dependencies for Prisma
 RUN apk add --no-cache openssl
 
-# Copy prisma schema first
 COPY prisma ./prisma
-
-# Install all dependencies (including dev)
 COPY package*.json ./
 RUN npm install
-
-# Generate Prisma client
 RUN npx prisma generate
-
-# Copy source code
 COPY . .
 
 EXPOSE 3000
-
 CMD ["npm", "run", "dev"]
 
 # ─────────────────────────────────────────
-# Stage 3: Production (MUST be final stage)
+# Stage 3: Production (MUST be final stage for Railway)
 # ─────────────────────────────────────────
 FROM node:20-alpine AS production
 
@@ -65,14 +59,9 @@ RUN addgroup -g 1001 -S nodejs && \
 
 WORKDIR /app
 
-# Copy node_modules from builder (already has all deps, but we only need prod)
-# Pruning dev deps keeps image small
-COPY --from=builder /app/node_modules ./node_modules
-RUN npm prune --omit=dev && npm cache clean --force
-
-# Copy built application
+# Copy built application from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package*.json ./
 
@@ -83,7 +72,7 @@ USER nodejs
 # Expose port
 EXPOSE 3000
 
-# Health check
+# Health check (uses the container's own port)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/v1/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"
 
