@@ -35,10 +35,10 @@ export default function RelatedProductCard({ product, onClick }: RelatedProductC
           </span>
         )}
       </div>
-      <h3 className="text-headline-md font-headline font-bold text-on-background mb-1">
+      <h3 className="text-base sm:text-headline-md font-headline font-bold text-on-background mb-1">
         {product.name}
       </h3>
-      <p className="text-body-md font-bold text-primary">{formatINR(product.priceInr)}</p>
+      <p className="text-sm sm:text-body-md font-bold text-primary">{formatINR(product.priceInr)}</p>
     </article>
   )
 }

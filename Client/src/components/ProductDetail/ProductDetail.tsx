@@ -61,9 +61,9 @@ export default function ProductDetail({
   }, [isWishlisted, toggleWishlist, onWishlistToggle, data.id])
 
   return (
-    <main id="main-content" className="max-w-container mx-auto px-6 py-xl">
+    <main id="main-content" className="max-w-container mx-auto px-4 sm:px-6 py-12 sm:py-xl">
       {/* Gallery + product info */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-xl items-start">
         <ProductGallery images={data.images} />
 
         <section aria-label="Product information" className="lg:col-span-5 flex flex-col gap-8">
@@ -93,7 +93,7 @@ export default function ProductDetail({
       {/* Tabs + review summary */}
       <section
         aria-labelledby="details-heading"
-        className="mt-xl grid grid-cols-1 lg:grid-cols-12 gap-xl border-t border-outline-variant pt-xl"
+        className="mt-12 sm:mt-xl grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-xl border-t border-outline-variant pt-12 sm:pt-xl"
       >
         <h2 id="details-heading" className="sr-only">
           Product details and reviews

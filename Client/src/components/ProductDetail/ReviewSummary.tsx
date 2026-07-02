@@ -8,7 +8,7 @@ interface RatingBarProps {
 
 function RatingBar({ stars, percentage }: RatingBarProps) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-2 sm:gap-4">
       <span aria-hidden="true" className="text-xs font-bold w-4 text-on-background shrink-0">
         {stars}
       </span>
@@ -37,13 +37,13 @@ interface ReviewSummaryProps {
 export default function ReviewSummary({ reviews, onWriteReview }: ReviewSummaryProps) {
   return (
     <aside
-      className="bg-white p-8 rounded-xl border border-outline-variant shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)] self-start"
+      className="bg-white p-6 sm:p-8 rounded-xl border border-outline-variant shadow-[0_10px_30px_-10px_rgba(0,0,0,0.08)] self-start"
       aria-label="Review summary"
     >
-      <h3 className="text-headline-md font-headline font-bold text-on-background mb-6">Reviews</h3>
+      <h3 className="text-lg sm:text-headline-md font-headline font-bold text-on-background mb-4 sm:mb-6">Reviews</h3>
 
-      <div className="flex items-end gap-4 mb-8">
-        <span className="text-6xl font-headline font-bold text-on-background leading-none">
+      <div className="flex items-end gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <span className="text-4xl sm:text-6xl font-headline font-bold text-on-background leading-none">
           {reviews.average}
         </span>
         <div className="pb-1 flex flex-col gap-1">
@@ -63,7 +63,7 @@ export default function ReviewSummary({ reviews, onWriteReview }: ReviewSummaryP
       <button
         type="button"
         onClick={onWriteReview}
-        className="w-full mt-8 border border-on-background py-4 rounded font-bold uppercase tracking-widest hover:bg-on-background hover:text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-on-background"
+        className="w-full mt-6 sm:mt-8 border border-on-background py-3 sm:py-4 rounded font-bold uppercase tracking-widest hover:bg-on-background hover:text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-on-background text-sm sm:text-base"
       >
         Write a Review
       </button>

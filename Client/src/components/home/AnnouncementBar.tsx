@@ -1,5 +1,5 @@
 const ANNOUNCEMENT =
-  'Crafting Stories in Wood • Free Shipping Above ₹2000 • New Designs Weekly'
+  'Crafting Stories in Wood • Free Shipping Above ₹2000 • New Designs Weekly'
 
 export default function AnnouncementBar() {
   return (
@@ -8,7 +8,7 @@ export default function AnnouncementBar() {
       aria-label="Site announcement"
       className="bg-on-background text-background py-2 text-center overflow-hidden"
     >
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em]">{ANNOUNCEMENT}</p>
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] px-4 truncate">{ANNOUNCEMENT}</p>
     </div>
   )
 }

@@ -21,18 +21,20 @@ function TabContent({ tab }: { tab: ProductTab }) {
     const specs = parseJsonObject(tab.content)
     if (specs && Object.keys(specs).length > 0) {
       return (
-        <table className="w-full text-sm border-collapse">
-          <tbody>
-            {Object.entries(specs).map(([key, value]) => (
-              <tr key={key} className="border-b border-outline-variant last:border-0">
-                <td className="py-3 pr-6 font-semibold text-on-background capitalize w-2/5">
-                  {key.replace(/([A-Z])/g, ' $1').trim()}
-                </td>
-                <td className="py-3 text-on-surface-variant">{String(value)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse min-w-[300px]">
+            <tbody>
+              {Object.entries(specs).map(([key, value]) => (
+                <tr key={key} className="border-b border-outline-variant last:border-0">
+                  <td className="py-3 pr-6 font-semibold text-on-background capitalize w-2/5 whitespace-nowrap">
+                    {key.replace(/([A-Z])/g, ' $1').trim()}
+                  </td>
+                  <td className="py-3 text-on-surface-variant">{String(value)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )
     }
   }
@@ -44,7 +46,7 @@ function TabContent({ tab }: { tab: ProductTab }) {
   return (
     <>
       {tab.content.split('\n\n').map((paragraph, i) => (
-        <p key={i} className={i > 0 ? 'mt-6' : ''}>
+        <p key={i} className={`text-sm sm:text-base ${i > 0 ? 'mt-4 sm:mt-6' : ''}`}>
           {paragraph}
         </p>
       ))}
@@ -60,7 +62,7 @@ export default function ProductTabs({ tabs, activeTab, onTabChange }: ProductTab
       <div
         role="tablist"
         aria-label="Product details"
-        className="flex gap-12 mb-8 border-b border-outline-variant"
+        className="flex gap-6 sm:gap-12 mb-6 sm:mb-8 border-b border-outline-variant overflow-x-auto no-scrollbar"
       >
         {tabs.map((tab) => {
           const isActive = tab.id === activeTab
@@ -73,7 +75,7 @@ export default function ProductTabs({ tabs, activeTab, onTabChange }: ProductTab
               aria-selected={isActive}
               aria-controls={`panel-${tab.id}`}
               onClick={() => onTabChange(tab.id)}
-              className={`text-headline-md font-headline font-bold pb-2 border-b-2 -mb-px transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+              className={`text-sm sm:text-headline-md font-headline font-bold pb-2 border-b-2 -mb-px transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary whitespace-nowrap shrink-0 ${
                 isActive
                   ? 'border-primary text-on-background'
                   : 'border-transparent text-outline hover:text-on-background'
@@ -90,7 +92,7 @@ export default function ProductTabs({ tabs, activeTab, onTabChange }: ProductTab
           role="tabpanel"
           id={`panel-${activeContent.id}`}
           aria-labelledby={`tab-${activeContent.id}`}
-          className="text-body-lg text-on-surface-variant max-w-3xl"
+          className="text-sm sm:text-body-lg text-on-surface-variant max-w-3xl"
         >
           <TabContent tab={activeContent} />
         </div>

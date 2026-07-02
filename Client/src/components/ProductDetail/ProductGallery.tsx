@@ -14,10 +14,10 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
 
   return (
     <div className="lg:col-span-7 flex flex-col gap-4">
-      <div className="aspect-[4/5] rounded-xl overflow-hidden bg-surface-container-low border border-outline-variant/30">
+      <div className="aspect-[4/5] sm:aspect-[4/5] rounded-xl overflow-hidden bg-surface-container-low border border-outline-variant/30">
         {selectedImage?.isVideo ? (
           <div className="w-full h-full flex items-center justify-center bg-surface-container">
-            <Icon name="play_circle" className="text-outline text-6xl" />
+            <Icon name="play_circle" className="text-outline text-4xl sm:text-6xl" />
           </div>
         ) : (
           <img
@@ -33,7 +33,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
       <div
         role="tablist"
         aria-label="Product images"
-        className="grid grid-cols-4 gap-4"
+        className="grid grid-cols-4 sm:grid-cols-4 gap-2 sm:gap-4"
       >
         {thumbnails.map((image, i) => {
           const index = i + 1
@@ -52,7 +52,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
               } ${image.isVideo ? 'bg-surface-container-high flex items-center justify-center' : ''}`}
             >
               {image.isVideo ? (
-                <Icon name="play_circle" className="text-outline" />
+                <Icon name="play_circle" className="text-outline text-sm sm:text-base" />
               ) : (
                 <img
                   src={image.url}
