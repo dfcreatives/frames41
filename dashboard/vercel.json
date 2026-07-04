@@ -1,7 +1,11 @@
 {
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/:path*",
+      "destination": "https://frames41-production.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
