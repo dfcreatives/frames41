@@ -79,7 +79,7 @@ export class GiftCardController {
   createGiftCard = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.user?.userId;
-      const giftCard = await this.service.createGiftCard(userId, req.body);
+      const giftCard = await this.service.createGiftCard(userId ?? null, req.body);
 
       res.status(201).json({
         success: true,

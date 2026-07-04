@@ -151,6 +151,136 @@ function stripEmpty<T extends Record<string, unknown>>(obj: T): Partial<T> {
   ) as Partial<T>
 }
 
+type ProductApiShape = Omit<AdminProductDetail, 'imageUrls' | 'seoTitle' | 'seoDescription'> & {
+  images?: Array<{ url: string }>
+  category?: { name?: string }
+  metaTitle?: string | null
+  metaDescription?: string | null
+}
+
+function normalizeProduct(product: ProductApiShape): AdminProductDetail {
+  return {
+    ...product,
+    basePrice: Number(product.basePrice),
+    discountedPrice: product.discountedPrice == null ? undefined : Number(product.discountedPrice),
+    imageUrls: product.images?.map((image) => image.url) ?? [],
+    categoryName: product.categoryName ?? product.category?.name,
+    seoTitle: product.metaTitle ?? undefined,
+    seoDescription: product.metaDescription ?? undefined,
+    variants: (product.variants ?? []).map((variant) => ({
+      ...variant,
+      priceModifier: Number(variant.priceModifier),
+    })),
+    priceTiers: (product.priceTiers ?? []).map((tier) => ({
+      ...tier,
+      pricePerUnit: Number(tier.pricePerUnit),
+    })),
+  }
+}
+
+type AdminOrderApiShape = Omit<
+  AdminOrderDetail,
+  'address' | 'items' | 'statusHistory' | 'tracking' | 'subtotal' | 'discount' | 'shippingCharge' | 'total'
+> & {
+  address?: AdminOrderDetail['address']
+  addressSnapshot?: AdminOrderDetail['address']
+  subtotal: number | string
+  discount: number | string
+  shippingCharge: number | string
+  total: number | string
+  awbCode?: string | null
+  trackingUrl?: string | null
+  updatedAt?: string
+  items?: Array<{
+    id: string
+    productName?: string
+    productSnapshot?: {
+      name?: string
+      image?: string
+      imageUrl?: string
+      variantName?: string
+    }
+    variantName?: string
+    quantity: number
+    unitPrice: number | string
+    total?: number | string
+    totalPrice?: number | string
+    imageUrl?: string
+    customImageUrl?: string
+    customization?: {
+      wishes?: string
+      text?: string
+      customText?: string
+      customImageUrl?: string
+      imageUrl?: string
+    } | null
+  }>
+  statusHistory?: Array<{
+    status: OrderStatus
+    note: string | null
+    changedAt?: string
+    createdAt?: string
+    changedBy: string | null
+  }>
+  tracking?: AdminOrderDetail['tracking']
+}
+
+function normalizeAdminOrder(order: AdminOrderApiShape): AdminOrderDetail {
+  return {
+    ...order,
+    address: order.address ?? order.addressSnapshot,
+    subtotal: Number(order.subtotal),
+    discount: Number(order.discount),
+    shippingCharge: Number(order.shippingCharge),
+    total: Number(order.total),
+    items: (order.items ?? []).map((item) => ({
+      id: item.id,
+      productName: item.productName ?? item.productSnapshot?.name ?? 'Unknown product',
+      variantName: item.variantName ?? item.productSnapshot?.variantName,
+      quantity: Number(item.quantity),
+      unitPrice: Number(item.unitPrice),
+      total: Number(item.total ?? item.totalPrice ?? 0),
+      imageUrl: item.imageUrl ?? item.productSnapshot?.imageUrl ?? item.productSnapshot?.image,
+      customText:
+        item.customization?.wishes ??
+        item.customization?.customText ??
+        item.customization?.text,
+      customImageUrl:
+        item.customImageUrl ??
+        item.customization?.customImageUrl ??
+        item.customization?.imageUrl,
+    })),
+    statusHistory: (order.statusHistory ?? []).map((entry) => ({
+      status: entry.status,
+      note: entry.note,
+      changedAt: entry.changedAt ?? entry.createdAt ?? order.placedAt,
+      changedBy: entry.changedBy,
+    })),
+    tracking: order.tracking ?? (order.awbCode
+      ? {
+          awbCode: order.awbCode,
+          trackingUrl: order.trackingUrl ?? undefined,
+          updatedAt: order.updatedAt ?? order.placedAt,
+        }
+      : undefined),
+  }
+}
+
+function toProductPayload(data: Partial<ProductFormData>) {
+  const { imageUrls: _imageUrls, seoTitle, seoDescription, variants, priceTiers, ...rest } = data
+  return {
+    ...rest,
+    ...(seoTitle !== undefined ? { metaTitle: seoTitle } : {}),
+    ...(seoDescription !== undefined ? { metaDescription: seoDescription } : {}),
+    ...(variants ? {
+      variants: variants.map(({ imageUrl: _imageUrl, ...variant }) => variant),
+    } : {}),
+    ...(priceTiers ? {
+      priceTiers: priceTiers.map(({ maxQty: _maxQty, ...tier }) => tier),
+    } : {}),
+  }
+}
+
 // ─── API ───────────────────────────────────────────────────────────────────────
 
 export const api = {
@@ -201,7 +331,7 @@ export const api = {
     ),
 
     getOrderById: (id: string) =>
-      unwrap<AdminOrderDetail>(instance.get(`/admin/orders/${id}`)),
+      unwrap<AdminOrderApiShape>(instance.get(`/admin/orders/${id}`)).then(normalizeAdminOrder),
 
     updateOrderStatus: (id: string, status: OrderStatus, note?: string) =>
       unwrap<AdminOrderDetail>(
@@ -240,13 +370,13 @@ export const api = {
     }) => unwrapPaginated<AdminProductListItem>(instance.get('/products', { params })),
 
     getProductById: (id: string) =>
-      unwrap<AdminProductDetail>(instance.get(`/products/${id}`)),
+      unwrap<ProductApiShape>(instance.get(`/products/${id}`)).then(normalizeProduct),
 
     createProduct: (data: ProductFormData) =>
-      unwrap<AdminProductDetail>(instance.post('/products', data)),
+      unwrap<ProductApiShape>(instance.post('/products', toProductPayload(data))).then(normalizeProduct),
 
     updateProduct: (id: string, data: Partial<ProductFormData>) =>
-      unwrap<AdminProductDetail>(instance.patch(`/products/${id}`, data)),
+      unwrap<ProductApiShape>(instance.patch(`/products/${id}`, toProductPayload(data))).then(normalizeProduct),
 
     deleteProduct: (id: string) =>
       unwrap<{ message: string }>(instance.delete(`/products/${id}`)),

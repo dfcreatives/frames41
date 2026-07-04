@@ -42,6 +42,7 @@ export interface RelatedProduct {
 
 export interface ProductData {
   readonly id: string
+  readonly categorySlug: string
   readonly name: string
   readonly priceInr: number
   readonly inStock: boolean

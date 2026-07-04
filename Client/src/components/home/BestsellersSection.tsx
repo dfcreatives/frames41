@@ -14,13 +14,17 @@ function BestsellerCard({ product, onAddToCart }: BestsellerCardProps) {
   return (
     <article className="min-w-[280px] sm:min-w-[400px] snap-start group">
       <a href={`/shop/${product.slug}`} className="block">
-        <div className="relative overflow-hidden aspect-video mb-6">
-          <img
-            src={product.imageUrl}
-            alt={product.imageAlt}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
+        <div className="relative overflow-hidden aspect-video mb-6 rounded-2xl">
+          {product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.imageAlt}
+              loading="lazy"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+          ) : (
+            <div className="w-full h-full bg-neutral-200" />
+          )}
         </div>
         <h3 className="font-headline text-xl sm:text-headline-md italic mb-1 sm:mb-2">{product.name}</h3>
         {product.description && (

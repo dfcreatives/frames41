@@ -13,14 +13,14 @@ export default function ReviewCard({ review, onEdit, onRemove }: ReviewCardProps
   return (
     <article
       aria-label={`Review for ${review.productName}${isPending ? ', pending approval' : ''}`}
-      className={`border p-md flex flex-col md:flex-row gap-md transition-opacity ${
+      className={`border p-md flex flex-col md:flex-row gap-md transition-opacity rounded-2xl ${
         isPending
           ? 'bg-surface-variant border-dashed border-outline-variant opacity-70'
           : 'bg-surface border-outline-variant'
       }`}
     >
       <div
-        className={`w-full md:w-32 h-32 flex-shrink-0 overflow-hidden bg-[#E9E8E2] ${
+        className={`w-full md:w-32 h-32 flex-shrink-0 overflow-hidden bg-[#E9E8E2] rounded-xl ${
           isPending ? 'grayscale' : ''
         }`}
       >

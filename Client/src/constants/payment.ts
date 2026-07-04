@@ -27,6 +27,12 @@ export const PAYMENT_METHODS: ReadonlyArray<PaymentMethod> = [
     description: 'Mobikwik, Freecharge & more',
     icon: 'wallet',
   },
+  {
+    id: 'cod',
+    label: 'Cash on Delivery',
+    description: 'Pay in cash when your order arrives',
+    icon: 'payments',
+  },
 ] as const
 
 export const ORDER_SUMMARY: PaymentOrderSummary = {

@@ -21,9 +21,9 @@ export default function WishlistCard({
   return (
     <article
       aria-label={`${name} – ${material}, ${formattedPrice}`}
-      className="group relative bg-surface border border-outline-variant flex flex-col transition-all duration-300 hover:border-on-surface-variant overflow-hidden"
+      className="group relative bg-surface border border-outline-variant flex flex-col transition-all duration-300 hover:border-on-surface-variant overflow-hidden rounded-2xl"
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-surface-container-low">
+      <div className="relative aspect-[4/5] overflow-hidden bg-surface-container-low rounded-t-2xl">
         <img
           src={imageUrl}
           alt={imageAlt}

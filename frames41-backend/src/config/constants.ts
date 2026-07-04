@@ -59,7 +59,10 @@ export const RATE_LIMITS = {
   },
   DEFAULT: {
     WINDOW_MS: 15 * 60 * 1000, // 15 minutes
-    MAX_REQUESTS: 100,
+    // The global limiter and several route limiters both run for catalog calls.
+    // Keep this high enough for image-heavy storefront navigation; sensitive
+    // auth/search/order endpoints retain their stricter dedicated limits.
+    MAX_REQUESTS: 1000,
   },
 } as const;
 

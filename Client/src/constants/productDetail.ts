@@ -2,6 +2,7 @@ import type { ProductData } from '../types/productDetail'
 
 export const PRODUCT_DATA: ProductData = {
   id: 'sculpted-walnut-vessel',
+  categorySlug: 'photo-frames',
   name: 'Sculpted Walnut Vessel',
   priceInr: 184,
   inStock: true,

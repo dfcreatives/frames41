@@ -13,10 +13,8 @@ export function useProductDetailData(slug: string) {
     setLoading(true)
     setError(null)
 
-    Promise.all([
-      api.products.getBySlug(slug),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ]).then(async ([raw]: any[]) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    api.products.getBySlug(slug).then(async (raw: any) => {
       const detail = adaptProductDetail(raw)
 
       // Fetch review summary

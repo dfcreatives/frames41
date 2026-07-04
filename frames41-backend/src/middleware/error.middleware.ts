@@ -33,7 +33,7 @@ export function errorHandler(
   const requestId = req.headers['x-request-id'] as string || 'unknown';
   
   // Determine status code
-  let statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
+  let statusCode: number = HTTP_STATUS.INTERNAL_SERVER_ERROR;
   let errorCode = 'INTERNAL_ERROR';
   let errorMessage = 'An unexpected error occurred';
   let errorDetails: Array<{ field: string; message: string }> | undefined;
@@ -48,7 +48,7 @@ export function errorHandler(
     }
   } else if (err.name === 'PrismaClientKnownRequestError') {
     // Handle Prisma errors
-    const prismaError = err as { code: string; meta?: { target?: string[] } };
+    const prismaError = err as unknown as { code: string; meta?: { target?: string[] } };
     
     if (prismaError.code === 'P2002') {
       statusCode = HTTP_STATUS.CONFLICT;

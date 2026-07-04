@@ -1,4 +1,4 @@
-export type PaymentMethodId = 'upi' | 'card' | 'netbanking' | 'wallet'
+export type PaymentMethodId = 'upi' | 'card' | 'netbanking' | 'wallet' | 'cod'
 
 export interface PaymentMethod {
   readonly id: PaymentMethodId
@@ -21,6 +21,7 @@ export type PaymentPayload =
   | ({ readonly method: 'card' } & CardFormValues)
   | { readonly method: 'netbanking'; readonly bankId: string }
   | { readonly method: 'wallet'; readonly walletId: string }
+  | { readonly method: 'cod' }
 
 export interface OrderLineItem {
   readonly label: string

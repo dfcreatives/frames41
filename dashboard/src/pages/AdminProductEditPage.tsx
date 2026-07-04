@@ -10,7 +10,7 @@ export default function AdminProductEditPage() {
   const navigate = useNavigate()
   const isNew = !id || id === 'new'
 
-  const { product, loading: productLoading, save } = useAdminProductDetail(isNew ? undefined : id)
+  const { product, loading: productLoading, error, save } = useAdminProductDetail(isNew ? undefined : id)
   const { categories } = useAdminCategories()
   const [saving, setSaving] = useState(false)
 
@@ -30,6 +30,17 @@ export default function AdminProductEditPage() {
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="bg-white rounded-2xl p-5 border border-gray-100 animate-pulse h-32" />
         ))}
+      </div>
+    )
+  }
+
+  if (!isNew && (error || !product)) {
+    return (
+      <div className="bg-white rounded-2xl p-6 border border-red-100">
+        <p className="text-sm text-red-600">{error ?? 'Product could not be loaded.'}</p>
+        <button onClick={() => navigate('/products')} className="mt-3 text-sm text-primary hover:underline">
+          Back to products
+        </button>
       </div>
     )
   }

@@ -1,6 +1,7 @@
 import { hash, verify } from 'argon2';
 import { randomBytes, createHash } from 'crypto';
 import jwt from 'jsonwebtoken';
+import type { SignOptions } from 'jsonwebtoken';
 import { env } from '../../config/env.js';
 import { JWT_CONFIG, EMAIL_VERIFICATION_CONFIG } from '../../config/constants.js';
 import {
@@ -393,7 +394,7 @@ export class AuthService implements IAuthService {
     const accessToken = jwt.sign(
       { userId, role, type: 'access' },
       env.JWT_ACCESS_SECRET,
-      { expiresIn: env.JWT_ACCESS_EXPIRY },
+      { expiresIn: env.JWT_ACCESS_EXPIRY as SignOptions['expiresIn'] },
     );
 
     const refreshToken = randomBytes(32).toString('hex');

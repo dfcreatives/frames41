@@ -3,8 +3,8 @@
  */
 
 import { mkdirSync } from 'fs';
-import pino from 'pino';
-import pinoHttp from 'pino-http';
+import { pino } from 'pino';
+import { pinoHttp } from 'pino-http';
 import { env } from '../../config/env.js';
 
 // Ensure log directory exists

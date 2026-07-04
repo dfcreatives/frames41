@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import type { Prisma } from '@prisma/client';
 import { createHash } from 'crypto';
 import { prisma } from '../infrastructure/database/prisma.client.js';
 import { CACHE_TTL } from '../config/constants.js';
@@ -87,7 +88,7 @@ export function idempotencyMiddleware(
         // Update stored key with response
         prisma.idempotencyKey.update({
           where: { key: compositeKey },
-          data: { response: body },
+          data: { response: body as Prisma.InputJsonValue },
         }).catch((err) => {
           logger.error({ error: err }, 'Failed to cache idempotent response');
         });

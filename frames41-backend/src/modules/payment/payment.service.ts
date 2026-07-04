@@ -8,6 +8,55 @@ import { logger } from '../../infrastructure/logger/pino.logger.js';
  * Payment service
  */
 export class PaymentService {
+  async placeCashOnDelivery(orderId: string, userId: string): Promise<void> {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { payment: true },
+    });
+
+    if (!order) throw new NotFoundError('Order');
+    if (order.userId !== userId) {
+      throw new UnauthorizedError('You do not have permission to place this order');
+    }
+    if (order.status === 'PROCESSING' && order.payment?.method === 'cod') return;
+    if (order.status !== 'PENDING') {
+      throw new BadRequestError('Order is not in pending status');
+    }
+
+    await prisma.$transaction([
+      prisma.payment.upsert({
+        where: { orderId },
+        create: {
+          orderId,
+          razorpayOrderId: `cod-${orderId}`,
+          amount: order.total,
+          status: 'PENDING',
+          method: 'cod',
+        },
+        update: {
+          status: 'PENDING',
+          method: 'cod',
+          razorpayPaymentId: null,
+          razorpaySignature: null,
+          capturedAt: null,
+        },
+      }),
+      prisma.order.update({
+        where: { id: orderId },
+        data: { status: 'PROCESSING' },
+      }),
+      prisma.orderStatusHistory.create({
+        data: {
+          orderId,
+          status: 'PROCESSING',
+          note: 'Cash on delivery order confirmed',
+        },
+      }),
+    ]);
+
+    logger.info({ orderId }, 'Cash on delivery order placed');
+  }
+
   /**
    * Create Razorpay order for our order
    */
@@ -119,36 +168,25 @@ export class PaymentService {
       throw new BadRequestError('Payment not captured');
     }
 
-    // Update payment record
-    await prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        razorpayPaymentId: data.razorpayPaymentId,
-        razorpaySignature: data.razorpaySignature,
-        status: 'CAPTURED',
-        method: razorpayPayment.method,
-        capturedAt: new Date(),
-      },
-    });
-
-    // Update order status
-    await prisma.order.update({
-      where: { id: data.orderId },
-      data: {
-        status: 'PAID',
-        paidAt: new Date(),
-      },
-    });
-
-    // Confirm stock deduction (already reserved)
-    for (const item of payment.order.items) {
-      await prisma.product.update({
-        where: { id: item.productId },
+    await prisma.$transaction([
+      prisma.payment.update({
+        where: { id: payment.id },
         data: {
-          stock: { decrement: item.quantity },
+          razorpayPaymentId: data.razorpayPaymentId,
+          razorpaySignature: data.razorpaySignature,
+          status: 'CAPTURED',
+          method: razorpayPayment.method,
+          capturedAt: new Date(),
         },
-      });
-    }
+      }),
+      prisma.order.update({
+        where: { id: data.orderId },
+        data: {
+          status: 'PAID',
+          paidAt: new Date(),
+        },
+      }),
+    ]);
 
     logger.info({ orderId: data.orderId, paymentId: data.razorpayPaymentId }, 'Payment verified and captured');
   }

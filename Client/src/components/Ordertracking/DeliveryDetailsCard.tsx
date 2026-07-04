@@ -9,7 +9,7 @@ export default function DeliveryDetailsCard({ delivery }: DeliveryDetailsCardPro
   const { address, contact, estimatedDelivery } = delivery
 
   return (
-    <section aria-label="Delivery details" className="bg-white border border-[#E2E2DE] p-8">
+    <section aria-label="Delivery details" className="bg-white border border-[#E2E2DE] p-8 rounded-2xl">
       <h3 className="font-headline-md mb-6 text-[#111110]">Delivery Details</h3>
 
       <div className="space-y-8">

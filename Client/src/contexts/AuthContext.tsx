@@ -1,7 +1,7 @@
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react'
+import { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import { api } from '@/lib/api'
-import { setTokens, getAccessToken, getRefreshToken, clearTokens } from '@/lib/token'
+import { setTokens, getAccessToken, getRefreshToken, clearTokens, isTokenExpiringSoon } from '@/lib/token'
 
 interface AuthUser {
   userId: string
@@ -62,7 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Hydrate user from stored access token on mount
   useEffect(() => {
     const token = getAccessToken()
-    if (!token) {
+    if (!token || isTokenExpiringSoon()) {
+      clearTokens()
       dispatch({ type: 'CLEAR_USER' })
       return
     }
@@ -111,8 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'CLEAR_USER' })
   }, [])
 
-  return (
-    <AuthContext.Provider value={{
+  const value = useMemo<AuthContextValue>(() => ({
       user: state.user,
       isAuthenticated: state.user !== null,
       isLoading: state.isLoading,
@@ -121,7 +121,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       verifyEmail,
       login,
       logout,
-    }}>
+    }), [state.user, state.isLoading, signup, resendVerification, verifyEmail, login, logout])
+
+  return (
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )

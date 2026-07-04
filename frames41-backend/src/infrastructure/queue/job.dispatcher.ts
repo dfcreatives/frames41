@@ -2,7 +2,7 @@
  * Job dispatcher - creates jobs in the database for async processing
  */
 
-import type { PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '@prisma/client';
 import { logger } from '../logger/pino.logger.js';
 
 export type JobType =
@@ -12,7 +12,8 @@ export type JobType =
   | 'coupon-trigger'
   | 'process-refund'
   | 'expire-gift-cards'
-  | 'cleanup-abandoned-cart';
+  | 'cleanup-abandoned-cart'
+  | 'send-abandoned-cart-coupon';
 
 export interface JobPayload {
   [key: string]: unknown;
@@ -43,7 +44,7 @@ export class JobDispatcher {
     const job = await this.prisma.job.create({
       data: {
         type,
-        payload,
+        payload: payload as Prisma.InputJsonObject,
         status: 'PENDING',
         attempts: 0,
         maxAttempts: options?.maxAttempts ?? 3,
@@ -67,7 +68,7 @@ export class JobDispatcher {
         this.prisma.job.create({
           data: {
             type: j.type,
-            payload: j.payload,
+            payload: j.payload as Prisma.InputJsonObject,
             status: 'PENDING',
             attempts: 0,
             maxAttempts: j.options?.maxAttempts ?? 3,

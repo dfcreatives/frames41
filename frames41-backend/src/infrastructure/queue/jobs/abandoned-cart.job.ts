@@ -3,10 +3,10 @@
  * Sends coupons to users who abandoned their cart
  */
 
-import { prisma } from '../../infrastructure/database/prisma.client.js';
-import { logger } from '../../infrastructure/logger/pino.logger.js';
-import { AbandonedCartTriggerRepository } from '../../modules/abandoned-cart/abandoned-cart.repository.js';
-import { AbandonedCartTriggerService } from '../../modules/abandoned-cart/abandoned-cart.service.js';
+import { prisma } from '../../database/prisma.client.js';
+import { logger } from '../../logger/pino.logger.js';
+import { AbandonedCartTriggerRepository } from '../../../modules/abandoned-cart/abandoned-cart.repository.js';
+import { AbandonedCartTriggerService } from '../../../modules/abandoned-cart/abandoned-cart.service.js';
 
 /**
  * Process abandoned carts and send coupons
@@ -62,7 +62,7 @@ export async function cleanupExpiredGiftCardsJob(): Promise<void> {
   logger.info('Starting expired gift cards cleanup job');
 
   try {
-    const { GiftCardRepository } = await import('../../modules/giftcard/giftcard.repository.js');
+    const { GiftCardRepository } = await import('../../../modules/giftcard/giftcard.repository.js');
     const repository = new GiftCardRepository(prisma);
     
     const deactivatedCount = await repository.cleanupExpired();

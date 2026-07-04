@@ -52,7 +52,6 @@ export default function AddressFormInline({ onSave, onCancel }: AddressFormInlin
     if (!form.phone.trim()) e.phone = 'Phone number is required'
     else if (!/^\d{10}$/.test(form.phone.replace(/\D/g, ''))) e.phone = 'Enter a valid 10-digit number'
     if (!form.line1.trim()) e.line1 = 'Street address is required'
-    else if (form.line1.trim().length < 5) e.line1 = 'Street address must be at least 5 characters'
     if (!form.city.trim()) e.city = 'City is required'
     if (!form.state.trim()) e.state = 'State is required'
     if (!form.pincode.trim()) e.pincode = 'Pincode is required'

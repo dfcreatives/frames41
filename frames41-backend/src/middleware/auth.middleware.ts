@@ -5,6 +5,7 @@ import { UnauthorizedError, ForbiddenError } from '../shared/errors/AppError.js'
 import { prisma } from '../infrastructure/database/prisma.client.js';
 import { USER_ROLES } from '../config/constants.js';
 import type { AuthenticatedUser, JwtPayload } from '../shared/types/index.js';
+import { userSessionCache } from '../infrastructure/cache/lru.cache.js';
 
 /**
  * Extend Express Request type to include user
@@ -53,14 +54,20 @@ export async function authenticate(
       throw new UnauthorizedError('Invalid token type');
     }
 
-    // Check if user still exists
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: { id: true, role: true, isVerified: true },
-    });
+    const cached = userSessionCache.get(decoded.userId);
+    const user = cached
+      ? { id: decoded.userId, role: cached.role }
+      : await prisma.user.findUnique({
+          where: { id: decoded.userId },
+          select: { id: true, role: true },
+        });
 
-    if (!user) {
-      throw new UnauthorizedError('User not found');
+    if (!user) throw new UnauthorizedError('User not found');
+    if (!cached) {
+      userSessionCache.set(decoded.userId, {
+        role: user.role,
+        lastActivity: Date.now(),
+      });
     }
 
     // Attach user to request
@@ -103,12 +110,21 @@ export async function optionalAuth(
     const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET) as JwtPayload;
     
     if (decoded.type === 'access') {
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
-        select: { id: true, role: true },
-      });
+      const cached = userSessionCache.get(decoded.userId);
+      const user = cached
+        ? { id: decoded.userId, role: cached.role }
+        : await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: { id: true, role: true },
+          });
 
       if (user) {
+        if (!cached) {
+          userSessionCache.set(decoded.userId, {
+            role: user.role,
+            lastActivity: Date.now(),
+          });
+        }
         req.user = {
           userId: user.id,
           role: user.role,

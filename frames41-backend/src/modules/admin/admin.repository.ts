@@ -226,7 +226,7 @@ export class AdminRepository implements IAdminRepository {
       totalOrders: user._count.orders,
       totalSpent,
       createdAt: user.createdAt,
-      orders: user.orders,
+      orders: user.orders.map((order) => ({ ...order, total: Number(order.total) })),
       addresses: user.addresses,
     };
   }

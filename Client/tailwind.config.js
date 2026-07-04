@@ -37,6 +37,7 @@ export default {
       fontFamily: {
         headline: ['Inter', 'sans-serif'],
         body: ['Inter', 'sans-serif'],
+        swiss: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
       },
       fontSize: {
         'display-xl': ['64px', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '400' }],

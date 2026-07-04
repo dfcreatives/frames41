@@ -7,7 +7,9 @@ module.exports = {
     {
       name: 'frames41-api',
       script: './dist/src/server.js',
-      instances: 'max', // Use all CPUs minus 1
+      // Avoid multiplying Prisma pools until a small database is connection-starved.
+      // Override WEB_CONCURRENCY after measuring the production host.
+      instances: Number(process.env.WEB_CONCURRENCY || 2),
       exec_mode: 'cluster',
       max_memory_restart: '500M',
       env: {

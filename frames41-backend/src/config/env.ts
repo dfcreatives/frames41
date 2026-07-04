@@ -38,9 +38,7 @@ const envSchema = z.object({
     .default('100'),
 
   // CORS
-  CORS_ORIGIN: z
-    .string()
-    .default('http://localhost:5173,https://frames41-production.up.railway.app'),
+  CORS_ORIGIN: z.string().default('http://localhost:5173,https://frames41-production.up.railway.app'),
 
   // Logging
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),

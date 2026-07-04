@@ -144,9 +144,54 @@ export default function AdminOrderDetailPage() {
                 {order.items.map((item) => (
                   <tr key={item.id}>
                     <td className="px-5 py-3">
-                      <p className="font-medium text-gray-800">{item.productName}</p>
-                      {item.variantName && (
-                        <p className="text-xs text-gray-400">{item.variantName}</p>
+                      <div className="flex items-center gap-3">
+                        {item.imageUrl && (
+                          <img
+                            src={item.imageUrl}
+                            alt=""
+                            className="h-11 w-11 rounded-lg border border-gray-100 object-cover"
+                          />
+                        )}
+                        <div>
+                          <p className="font-medium text-gray-800">{item.productName}</p>
+                          {item.variantName && (
+                            <p className="text-xs text-gray-400">{item.variantName}</p>
+                          )}
+                          {item.customText && (
+                            <p className="mt-1 max-w-sm whitespace-pre-wrap text-xs text-gray-600">
+                              <span className="font-semibold text-gray-500">Text: </span>
+                              {item.customText}
+                            </p>
+                          )}
+                          {item.customImageUrl && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <a
+                                href={item.customImageUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-medium text-primary underline"
+                              >
+                                Open custom image
+                              </a>
+                              <a
+                                href={item.customImageUrl}
+                                download
+                                className="text-xs font-medium text-primary underline"
+                              >
+                                Download
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {item.customImageUrl && (
+                        <a href={item.customImageUrl} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={item.customImageUrl}
+                            alt={`Customer upload for ${item.productName}`}
+                            className="mt-3 h-24 w-24 rounded-lg border border-gray-200 object-cover"
+                          />
+                        </a>
                       )}
                     </td>
                     <td className="px-5 py-3 text-center text-gray-600">{item.quantity}</td>

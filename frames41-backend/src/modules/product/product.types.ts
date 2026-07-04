@@ -20,8 +20,11 @@ export interface ProductWithRelations extends Product {
  */
 export interface ProductFilters {
   categoryId?: string;
+  categoryIds?: string[];
   minPrice?: number;
   maxPrice?: number;
+  inStock?: boolean;
+  query?: string;
   isActive?: boolean;
   isBestSeller?: boolean;
   isFeatured?: boolean;
@@ -120,6 +123,7 @@ export interface CreateProductData {
   categoryId: string;
   fontOptions?: string[];
   specifications?: Record<string, string | number>;
+  careInstructions?: string;
   weight?: number;
   dimensions?: { length: number; width: number; height: number };
   metaTitle?: string;

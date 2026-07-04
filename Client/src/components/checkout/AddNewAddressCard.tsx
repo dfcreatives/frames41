@@ -11,7 +11,7 @@ export default function AddNewAddressCard({ onAdd }: AddNewAddressCardProps) {
       onClick={onAdd}
       aria-label="Add a new shipping address"
       className={[
-        'border-2 border-dashed border-[#E2E2DE] p-lg w-full min-h-[220px]',
+        'border-2 border-dashed border-[#E2E2DE] p-lg w-full min-h-[220px] rounded-2xl',
         'flex flex-col items-center justify-center',
         'hover:border-primary group transition-all duration-300',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',

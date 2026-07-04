@@ -1,0 +1,83 @@
+import { Router } from 'express';
+import { prisma } from '../../infrastructure/database/prisma.client.js';
+import { createLRUCache } from '../../infrastructure/cache/lru.cache.js';
+
+const homeCache = createLRUCache<string, {}>({ max: 1, ttl: 30_000 });
+
+const productListInclude = {
+  images: {
+    take: 1,
+    orderBy: { sortOrder: 'asc' as const },
+  },
+  category: {
+    select: { id: true, name: true, slug: true },
+  },
+} as const;
+
+export default function createHomeRoutes(): Router {
+  const router = Router();
+
+  router.get('/', async (_req, res, next) => {
+    try {
+      const cached = homeCache.get('home');
+      if (cached) {
+        res.setHeader('X-Cache', 'HIT');
+        res.status(200).json({ success: true, data: cached });
+        return;
+      }
+
+      const now = new Date();
+      const [categories, budgetProducts, bestsellers, newCollections, banners] =
+        await Promise.all([
+          prisma.category.findMany({
+            where: { isActive: true },
+            orderBy: { sortOrder: 'asc' },
+          }),
+          prisma.product.findMany({
+            where: { isActive: true, basePrice: { lte: 999 } },
+            take: 8,
+            orderBy: { basePrice: 'asc' },
+            include: productListInclude,
+          }),
+          prisma.product.findMany({
+            where: { isActive: true },
+            take: 6,
+            orderBy: [{ isBestSeller: 'desc' }, { createdAt: 'desc' }],
+            include: productListInclude,
+          }),
+          prisma.product.findMany({
+            where: { isActive: true },
+            take: 8,
+            orderBy: { createdAt: 'desc' },
+            include: productListInclude,
+          }),
+          prisma.banner.findMany({
+            where: {
+              type: 'HEADER_SLIDER',
+              isActive: true,
+              AND: [
+                { OR: [{ startDate: null }, { startDate: { lte: now } }] },
+                { OR: [{ endDate: null }, { endDate: { gte: now } }] },
+              ],
+            },
+            orderBy: { sortOrder: 'asc' },
+          }),
+        ]);
+
+      const data = {
+        categories,
+        budgetProducts,
+        bestsellers,
+        newCollections,
+        heroBanner: banners[0] ?? null,
+      };
+      homeCache.set('home', data);
+      res.setHeader('X-Cache', 'MISS');
+      res.status(200).json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  return router;
+}

@@ -10,7 +10,7 @@ export default function OrderItemCard({ item }: OrderItemCardProps) {
 
   return (
     <article className="flex gap-6 items-start">
-      <div className="w-24 h-32 bg-surface-variant overflow-hidden flex-shrink-0">
+      <div className="w-24 h-32 bg-surface-variant overflow-hidden flex-shrink-0 rounded-2xl">
         <img
           src={imageUrl}
           alt={imageAlt}

@@ -31,7 +31,7 @@ export default function CartItemList({
   }
 
   return (
-    <ul className="space-y-lg list-none p-0 m-0" aria-label="Items in cart">
+    <ul className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-5 list-none p-0 m-0" aria-label="Items in cart">
       {items.map((item) => (
         <li key={item.id}>
           <CartItem

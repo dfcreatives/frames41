@@ -43,7 +43,7 @@ export default function ProductListingCard({
         onClick={() => onProductSelect?.(product.slug)}
         className="flex flex-1 flex-col"
       >
-        <div className="relative mb-4 aspect-[4/5] shrink-0 overflow-hidden bg-white">
+        <div className="relative mb-4 aspect-[4/5] shrink-0 overflow-hidden bg-white rounded-2xl">
           <img
             src={product.imageUrl}
             alt={product.imageAlt}

@@ -6,7 +6,9 @@ import type { AbandonedCartTrigger, Product, User, Coupon } from '@prisma/client
 
 export interface AbandonedCartTriggerWithRelations extends AbandonedCartTrigger {
   user: Pick<User, 'id' | 'phone' | 'name'>;
-  product: Pick<Product, 'id' | 'name' | 'slug' | 'basePrice' | 'images'>;
+  product: Pick<Product, 'id' | 'name' | 'slug' | 'basePrice'> & {
+    images: Array<{ url: string }>;
+  };
   coupon?: Coupon | null;
 }
 

@@ -34,7 +34,7 @@ export class UserService implements IUserService {
     }
 
     if (data.email !== undefined) {
-      updateData.email = data.email;
+      updateData.email = data.email ?? '';
     }
 
     if (data.dob !== undefined) {
@@ -82,6 +82,7 @@ export class UserService implements IUserService {
 
     const address = await this.repository.createAddress(userId, {
       ...data,
+      line2: data.line2 ?? null,
       isDefault,
     });
 

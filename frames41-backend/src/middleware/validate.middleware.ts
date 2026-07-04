@@ -57,7 +57,7 @@ export function validateQuery<T>(schema: ZodSchema<T>) {
     try {
       const result = schema.parse(req.query);
       // Replace query with parsed result
-      req.query = result as Record<string, unknown>;
+      req.query = result as Request['query'];
       next();
     } catch (error) {
       if (error instanceof ZodError) {
@@ -126,7 +126,7 @@ export function validate<TBody = unknown, TParams = unknown, TQuery = unknown>(
       if (schemas.query) {
         const queryResult = schemas.query.safeParse(req.query);
         if (queryResult.success) {
-          req.query = queryResult.data as Record<string, unknown>;
+          req.query = queryResult.data as Request['query'];
         } else {
           allErrors.push(
             ...queryResult.error.errors.map((err) => ({

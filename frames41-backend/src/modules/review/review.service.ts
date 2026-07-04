@@ -203,8 +203,10 @@ export class ReviewService implements IReviewService {
       throw new NotFoundError('Product');
     }
 
-    const totalReviews = await this.repository.countByProductId(productId, true);
-    const distribution = await this.repository.getRatingDistribution(productId);
+    const [totalReviews, distribution] = await Promise.all([
+      this.repository.countByProductId(productId, true),
+      this.repository.getRatingDistribution(productId),
+    ]);
 
     // Calculate average
     let totalRating = 0;

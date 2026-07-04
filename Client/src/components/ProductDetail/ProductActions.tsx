@@ -1,6 +1,13 @@
 import Icon from '../ui/Icon'
 
 interface ProductActionsProps {
+  showPhotoCustomization?: boolean
+  photo?: File | null
+  photoPreview?: string
+  wishes?: string
+  customizationError?: string
+  onPhotoChange?: (file: File | null) => void
+  onWishesChange?: (value: string) => void
   quantity: number
   isWishlisted: boolean
   shippingNote: string
@@ -13,6 +20,13 @@ interface ProductActionsProps {
 }
 
 export default function ProductActions({
+  showPhotoCustomization = false,
+  photo,
+  photoPreview,
+  wishes = '',
+  customizationError,
+  onPhotoChange,
+  onWishesChange,
   quantity,
   isWishlisted,
   shippingNote,
@@ -30,6 +44,51 @@ export default function ProductActions({
 
   return (
     <div className="flex flex-col gap-4">
+      {showPhotoCustomization && (
+        <section className="rounded-xl border border-outline-variant bg-white p-4 sm:p-5" aria-labelledby="frame-customization-heading">
+          <h2 id="frame-customization-heading" className="font-bold text-on-background">
+            Personalise your photo frame
+          </h2>
+          <p className="mt-1 text-sm text-on-surface-variant">Upload the photo to be printed in your frame.</p>
+
+          <label className="mt-4 block text-sm font-bold text-on-background" htmlFor="frame-photo">
+            Photo <span className="text-error" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="frame-photo"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            required
+            aria-invalid={Boolean(customizationError)}
+            aria-describedby={customizationError ? 'frame-photo-error' : 'frame-photo-help'}
+            onChange={(event) => onPhotoChange?.(event.target.files?.[0] ?? null)}
+            className="mt-2 block w-full rounded-lg border border-outline-variant p-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:font-bold file:text-primary"
+          />
+          <p id="frame-photo-help" className="mt-1 text-xs text-on-surface-variant">JPEG, PNG or WebP, up to 200 MB.</p>
+          {photo && <p className="mt-2 truncate text-xs font-medium text-primary">Selected: {photo.name}</p>}
+          {photoPreview && (
+            <img
+              src={photoPreview}
+              alt="Preview of your selected frame photo"
+              className="mt-3 h-32 w-32 rounded-lg border border-outline-variant object-cover"
+            />
+          )}
+          {customizationError && <p id="frame-photo-error" role="alert" className="mt-2 text-sm text-error">{customizationError}</p>}
+
+          <label className="mt-4 block text-sm font-bold text-on-background" htmlFor="frame-wishes">
+            Text or wishes <span className="font-normal text-on-surface-variant">(optional)</span>
+          </label>
+          <textarea
+            id="frame-wishes"
+            value={wishes}
+            maxLength={300}
+            rows={3}
+            placeholder="Add a name, date, message or special wishes"
+            onChange={(event) => onWishesChange?.(event.target.value)}
+            className="mt-2 w-full resize-y rounded-lg border border-outline-variant bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+        </section>
+      )}
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <div
           role="group"

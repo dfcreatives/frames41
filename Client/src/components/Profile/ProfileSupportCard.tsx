@@ -4,7 +4,7 @@ interface ProfileSupportCardProps {
 
 export default function ProfileSupportCard({ onContactSupport }: ProfileSupportCardProps) {
   return (
-    <aside className="p-6 bg-white border border-[#E2E2DE] mt-8">
+    <aside className="p-6 bg-white border border-[#E2E2DE] mt-8 rounded-2xl">
       <p className="font-label-bold text-[10px] uppercase text-[#8A8A85] mb-4 tracking-widest">
         Need Help?
       </p>

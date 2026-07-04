@@ -36,8 +36,11 @@ export class ProductController {
       
       const filters: ProductFilters = {
         categoryId: query.categoryId,
+        categoryIds: query.categoryIds,
         minPrice: query.minPrice,
         maxPrice: query.maxPrice,
+        inStock: query.inStock === 'true' ? true : undefined,
+        query: query.q,
         isActive: query.includeInactive === 'true' && req.user?.role === 'ADMIN' 
           ? undefined 
           : true,

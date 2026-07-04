@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { ProductData } from '../../types/productDetail'
 import { useProductDetail } from './hooks/useProductDetail'
 import ProductActions from './ProductActions'
@@ -11,6 +11,8 @@ import ReviewSummary from './ReviewSummary'
 export interface AddToCartPayload {
   readonly productId: string
   readonly quantity: number
+  readonly customization?: { wishes?: string }
+  readonly customImageUrl?: string
 }
 
 interface ProductDetailProps {
@@ -41,18 +43,48 @@ export default function ProductDetail({
   } = useProductDetail(data.id)
 
   const [cartStatus, setCartStatus] = useState<'idle' | 'adding' | 'added'>('idle')
+  const [photo, setPhoto] = useState<File | null>(null)
+  const [wishes, setWishes] = useState('')
+  const [customizationError, setCustomizationError] = useState('')
+  const isPhotoFrame = data.categorySlug === 'photo-frames'
+  const [photoPreview, setPhotoPreview] = useState('')
+
+  useEffect(() => {
+    if (!photo) {
+      setPhotoPreview('')
+      return
+    }
+    const url = URL.createObjectURL(photo)
+    setPhotoPreview(url)
+    return () => URL.revokeObjectURL(url)
+  }, [photo])
 
   const handleAddToCart = useCallback(async () => {
     if (!onAddToCart || cartStatus !== 'idle') return
+    if (isPhotoFrame && !photo) {
+      setCustomizationError('Please upload the photo you want framed.')
+      return
+    }
     setCartStatus('adding')
     try {
-      await onAddToCart({ productId: data.id, quantity })
+      let customImageUrl: string | undefined
+      if (photo) {
+        const { api } = await import('../../lib/api')
+        customImageUrl = (await api.cart.uploadPhoto(photo)).url
+      }
+      await onAddToCart({
+        productId: data.id,
+        quantity,
+        customImageUrl,
+        customization: wishes.trim() ? { wishes: wishes.trim() } : undefined,
+      })
       setCartStatus('added')
       setTimeout(() => setCartStatus('idle'), 2000)
     } catch {
+      if (isPhotoFrame) setCustomizationError('We could not upload this photo. Please try again.')
       setCartStatus('idle')
     }
-  }, [onAddToCart, data.id, quantity, cartStatus])
+  }, [onAddToCart, data.id, quantity, cartStatus, isPhotoFrame, photo, wishes])
 
   const handleWishlistToggle = useCallback(() => {
     const next = !isWishlisted
@@ -61,9 +93,9 @@ export default function ProductDetail({
   }, [isWishlisted, toggleWishlist, onWishlistToggle, data.id])
 
   return (
-    <main id="main-content" className="max-w-container mx-auto px-4 sm:px-6 py-12 sm:py-xl">
+    <main id="main-content" className="max-w-container mx-auto px-4 pb-16 pt-6 sm:px-6 sm:pb-xl sm:pt-8">
       {/* Gallery + product info */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-xl items-start">
+      <div className="grid grid-cols-1 items-start gap-8 rounded-2xl border border-outline-variant/40 bg-background p-4 shadow-sm sm:gap-xl sm:p-6 lg:grid-cols-12 lg:p-8">
         <ProductGallery images={data.images} />
 
         <section aria-label="Product information" className="lg:col-span-5 flex flex-col gap-8">
@@ -77,6 +109,21 @@ export default function ProductDetail({
             features={data.features}
           />
           <ProductActions
+            showPhotoCustomization={isPhotoFrame}
+            photo={photo}
+            photoPreview={photoPreview}
+            wishes={wishes}
+            customizationError={customizationError}
+            onPhotoChange={(file) => {
+              if (file && file.size > 200 * 1024 * 1024) {
+                setPhoto(null)
+                setCustomizationError('Photo must be 200 MB or smaller.')
+                return
+              }
+              setPhoto(file)
+              setCustomizationError('')
+            }}
+            onWishesChange={setWishes}
             quantity={quantity}
             isWishlisted={isWishlisted}
             shippingNote={data.shippingNote}

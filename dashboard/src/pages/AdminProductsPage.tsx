@@ -84,6 +84,20 @@ export default function AdminProductsPage() {
       ),
     },
     {
+      key: 'details',
+      header: 'Details',
+      render: (p: AdminProductListItem) => (
+        <div className="flex flex-wrap gap-1">
+          <span className={`px-2 py-0.5 rounded-full text-xs ${Object.keys(p.specifications ?? {}).length ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-400'}`}>
+            {Object.keys(p.specifications ?? {}).length} specs
+          </span>
+          <span className={`px-2 py-0.5 rounded-full text-xs ${p.careInstructions ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+            {p.careInstructions ? 'Care added' : 'No care'}
+          </span>
+        </div>
+      ),
+    },
+    {
       key: 'active',
       header: 'Active',
       render: (p: AdminProductListItem) => (

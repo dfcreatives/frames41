@@ -73,7 +73,7 @@ export class GiftCardService implements IGiftCardService {
       return { valid: false, message: 'Gift card has expired' };
     }
 
-    if (giftCard.balance <= 0) {
+    if (Number(giftCard.balance) <= 0) {
       return { valid: false, message: 'Gift card has no remaining balance' };
     }
 

@@ -10,9 +10,14 @@ interface CartCalculation {
   total: number
 }
 
-export function useCartData() {
+interface UseCartDataOptions {
+  skipFetch?: boolean
+}
+
+export function useCartData(options?: UseCartDataOptions) {
+  const skipFetch = options?.skipFetch ?? false
   const [cartData, setCartData] = useState<CartData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!skipFetch)
   const [calculation, setCalculation] = useState<CartCalculation | null>(null)
 
   const fetchCart = useCallback(async () => {
@@ -26,7 +31,9 @@ export function useCartData() {
     }
   }, [])
 
-  useEffect(() => { fetchCart() }, [fetchCart])
+  useEffect(() => {
+    if (!skipFetch) fetchCart()
+  }, [fetchCart, skipFetch])
 
   const applyPromo = useCallback(async (couponCode: string) => {
     try {

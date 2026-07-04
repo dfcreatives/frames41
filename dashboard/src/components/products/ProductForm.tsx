@@ -23,6 +23,8 @@ function buildInitial(p?: AdminProductDetail | null): ProductFormData {
     slug: p?.slug ?? '',
     sku: p?.sku ?? '',
     description: p?.description ?? '',
+    specifications: p?.specifications ?? {},
+    careInstructions: p?.careInstructions ?? '',
     basePrice: p?.basePrice ?? 0,
     discountedPrice: p?.discountedPrice,
     stock: p?.stock ?? 0,
@@ -188,6 +190,12 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
       discountedPrice: form.discountedPrice || undefined,
       seoTitle: form.seoTitle || undefined,
       seoDescription: form.seoDescription || undefined,
+      specifications: Object.fromEntries(
+        Object.entries(form.specifications)
+          .map(([key, value]) => [key.trim(), String(value).trim()])
+          .filter(([key, value]) => key && value),
+      ),
+      careInstructions: form.careInstructions.trim(),
       variants: form.variants,
     }
 
@@ -284,6 +292,74 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
             rows={4}
             className={`${inputCls} resize-none ${showError('description') ? inputErrorCls : ''}`}
             placeholder="Product description…"
+          />
+        </Field>
+      </div>
+
+      {/* Specifications & care */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
+        <div className="border-b border-gray-100 pb-3">
+          <h3 className="text-sm font-semibold text-gray-700">Specifications &amp; Care</h3>
+          <p className="text-xs text-gray-400 mt-1">Shown on the product detail page.</p>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-gray-700">Specifications</span>
+            <button
+              type="button"
+              onClick={() => set('specifications', { ...form.specifications, '': '' })}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              + Add specification
+            </button>
+          </div>
+          {Object.entries(form.specifications).map(([key, value], index) => (
+            <div key={`${key}-${index}`} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+              <input
+                value={key}
+                onChange={(e) => {
+                  const entries = Object.entries(form.specifications)
+                  entries[index] = [e.target.value, value]
+                  set('specifications', Object.fromEntries(entries))
+                }}
+                className={inputCls}
+                placeholder="e.g. Material"
+                aria-label={`Specification ${index + 1} name`}
+              />
+              <input
+                value={value}
+                onChange={(e) => {
+                  const entries = Object.entries(form.specifications)
+                  entries[index] = [key, e.target.value]
+                  set('specifications', Object.fromEntries(entries))
+                }}
+                className={inputCls}
+                placeholder="e.g. Premium MDF"
+                aria-label={`Specification ${index + 1} value`}
+              />
+              <button
+                type="button"
+                onClick={() => set('specifications', Object.fromEntries(
+                  Object.entries(form.specifications).filter((_, i) => i !== index),
+                ))}
+                className="px-2 text-gray-400 hover:text-red-500"
+                aria-label={`Remove specification ${index + 1}`}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          {Object.keys(form.specifications).length === 0 && (
+            <p className="text-xs text-gray-400 italic">No specifications added.</p>
+          )}
+        </div>
+        <Field label="Care instructions">
+          <textarea
+            value={form.careInstructions}
+            onChange={(e) => set('careInstructions', e.target.value)}
+            rows={4}
+            className={`${inputCls} resize-none`}
+            placeholder="Explain how to clean, store, and protect this product..."
           />
         </Field>
       </div>

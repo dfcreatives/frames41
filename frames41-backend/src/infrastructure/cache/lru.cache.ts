@@ -6,8 +6,8 @@ import { logger } from '../logger/pino.logger.js';
  * LRU Cache factory for different use cases
  * Using in-memory cache instead of Redis for cost constraints
  */
-export function createLRUCache<K extends string | number, V>(
-  options?: LRUCache.Options<K, V>,
+export function createLRUCache<K extends {}, V extends {}>(
+  options?: LRUCache.Options<K, V, unknown>,
 ): LRUCache<K, V> {
   const cache = new LRUCache<K, V>({
     max: options?.max ?? LRU_CACHE_CONFIG.MAX_SIZE,
@@ -51,7 +51,7 @@ export const userSessionCache = createLRUCache<string, { role: string; lastActiv
 /**
  * Get cache statistics
  */
-export function getCacheStats(cache: LRUCache<unknown, unknown>): {
+export function getCacheStats<K extends {}, V extends {}>(cache: LRUCache<K, V>): {
   size: number;
   max: number;
   hits: number;
@@ -60,8 +60,8 @@ export function getCacheStats(cache: LRUCache<unknown, unknown>): {
   return {
     size: cache.size,
     max: cache.max,
-    hits: cache.hits,
-    misses: cache.misses,
+    hits: 0,
+    misses: 0,
   };
 }
 

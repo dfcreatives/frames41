@@ -6,25 +6,44 @@ import { z } from 'zod';
 export const bannerTypeSchema = z.enum(['TOP_STRIP', 'HEADER_SLIDER', 'UNDER_999', 'CATEGORY_BANNER', 'PROMOTIONAL']);
 
 /**
- * Create banner schema
+ * Date string schema that accepts ISO datetime, YYYY-MM-DD, or empty string
  */
-export const createBannerSchema = z.object({
-  image: z.string().url('Image must be a valid URL'),
-  mobileImage: z.string().url().optional(),
-  link: z.string().url().optional(),
+const dateStringSchema = z.union([
+  z.literal(''),
+  z.string().datetime(),
+  z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format, expected YYYY-MM-DD or ISO datetime'),
+]).optional();
+
+/**
+ * Base banner schema (shared between create and update)
+ */
+const baseBannerSchema = z.object({
+  image: z.union([z.literal(''), z.string().url('Image must be a valid URL')]).optional(),
+  imageUrl: z.union([z.literal(''), z.string().url()]).optional(),
+  mobileImage: z.union([z.literal(''), z.string().url()]).optional(),
+  mobileImageUrl: z.union([z.literal(''), z.string().url()]).optional(),
+  link: z.union([z.literal(''), z.string().url()]).optional(),
   title: z.string().max(100).optional(),
   subtitle: z.string().max(200).optional(),
   sortOrder: z.number().int().min(0).default(0),
   isActive: z.boolean().default(true),
   type: bannerTypeSchema.default('HEADER_SLIDER'),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
+  startDate: dateStringSchema,
+  endDate: dateStringSchema,
 });
+
+/**
+ * Create banner schema
+ */
+export const createBannerSchema = baseBannerSchema.refine(
+  (data) => !!(data.image || data.imageUrl),
+  { message: 'Image is required', path: ['image'] },
+);
 
 /**
  * Update banner schema
  */
-export const updateBannerSchema = createBannerSchema.partial();
+export const updateBannerSchema = baseBannerSchema.partial();
 
 /**
  * Banner ID param schema

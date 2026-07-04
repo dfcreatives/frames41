@@ -43,7 +43,7 @@ export default function OrderSummaryPanel({
 
   return (
     <aside className="lg:col-span-4" aria-label="Order summary">
-      <div className="bg-[#111110] text-white rounded-xl p-lg sticky top-28 shadow-xl">
+      <div className="bg-[#111110] text-white rounded-xl p-4 sm:p-lg lg:sticky lg:top-28 mb-6">
         <h2 className="font-headline text-h3 mb-lg">Order Summary</h2>
 
         <dl className="space-y-md border-b border-white/10 pb-lg mb-lg">
@@ -91,7 +91,7 @@ export default function OrderSummaryPanel({
         </p>
       </div>
 
-      <div className="mt-lg bg-white border border-outline-variant rounded-xl p-lg">
+      <div className="mt-3 sm:mt-lg bg-white border border-outline-variant rounded-xl p-4 sm:p-lg">
         <div className="flex items-start gap-4">
           <Icon
             name="local_shipping"

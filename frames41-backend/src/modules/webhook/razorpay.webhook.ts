@@ -35,12 +35,10 @@ export async function handleRazorpayWebhook(
     const event = req.body;
 
     // Check for duplicate webhook
-    const existingEvent = await prisma.webhookEvent.findUnique({
+    const existingEvent = await prisma.webhookEvent.findFirst({
       where: {
-        provider_eventId: {
-          provider: 'RAZORPAY',
-          eventId: event.id,
-        },
+        provider: 'RAZORPAY',
+        eventId: event.id,
       },
     });
 
@@ -164,15 +162,15 @@ async function handlePaymentFailed(payment: {
     },
   });
 
-  // Release stock
-  for (const item of paymentRecord.order.items) {
-    await prisma.product.update({
+  // Release all reserved stock concurrently.
+  await prisma.$transaction(paymentRecord.order.items.map((item) =>
+    prisma.product.update({
       where: { id: item.productId },
       data: {
         stock: { increment: item.quantity },
       },
-    });
-  }
+    }),
+  ));
 
   // Add status history
   await prisma.orderStatusHistory.create({

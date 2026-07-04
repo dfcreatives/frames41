@@ -22,6 +22,7 @@ export const HERO = {
   imageUrl:
     "https://lh3.googleusercontent.com/aida-public/AB6AXuBCpv_68_IazJtPyLngOChDt9RdimwGCNb2pO4GzM7FjMDidTzP3To2z_hk1ntU2ATxkKkprC0H-1nN9XJEx7eFah5YSGnJxU_XoffThKD3qFTPOICrsh4VTB7jlMrRSWgcNsHppadNIbo7oTwVnlRFm1Zxy1jxT0eIumwAyI5nnA3cPpQvBMftmdj2uq3bNeDCrOPufe_1WIIF-1QSg9Udd-ZBTv6rqnOMq8tWsZx8vYmm3uzkqmeSWvpxRLaZKQukJe0UHKitXWI",
   imageAlt: "Artisan woodworker crafting at a workbench",
+  link: "#collections",
 } as const;
 
 export const CATEGORIES: ReadonlyArray<Category> = [

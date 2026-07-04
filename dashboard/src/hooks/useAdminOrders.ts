@@ -68,18 +68,18 @@ export function useAdminOrderDetail(id: string) {
 
   const updateStatus = useCallback(
     async (status: OrderStatus, note?: string) => {
-      const updated = await api.admin.updateOrderStatus(id, status, note)
-      setOrder(updated)
+      await api.admin.updateOrderStatus(id, status, note)
+      await fetch()
     },
-    [id],
+    [id, fetch],
   )
 
   const addTracking = useCallback(
     async (awbCode: string, trackingUrl?: string) => {
-      const updated = await api.admin.addTracking(id, awbCode, trackingUrl)
-      setOrder(updated)
+      await api.admin.addTracking(id, awbCode, trackingUrl)
+      await fetch()
     },
-    [id],
+    [id, fetch],
   )
 
   return { order, loading, error, refresh: fetch, updateStatus, addTracking }

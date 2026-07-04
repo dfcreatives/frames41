@@ -12,7 +12,8 @@ import {
   isTokenExpiringSoon,
 } from "./token";
 
-const API_BASE = "https://frames41-production.up.railway.app/api/v1";
+// Use relative base so Vite dev-server proxy ("/api" → backend) works
+const API_BASE = "/api/v1";
 
 // ─── Plain instance used only for token refresh (avoids interceptor loops) ───
 const plainAxios = axios.create({ baseURL: API_BASE });
@@ -27,6 +28,38 @@ const instance: AxiosInstance = axios.create({
 let isRefreshing = false;
 let refreshQueue: Array<(token: string) => void> = [];
 let rejectQueue: Array<(err: unknown) => void> = [];
+let proactiveRefresh: Promise<string> | null = null;
+const inFlightGets = new Map<string, Promise<unknown>>();
+
+function dedupeGet<T>(key: string, request: () => Promise<T>): Promise<T> {
+  const existing = inFlightGets.get(key);
+  if (existing) return existing as Promise<T>;
+  const promise = request().finally(() => inFlightGets.delete(key));
+  inFlightGets.set(key, promise);
+  return promise;
+}
+
+function refreshAccessToken(): Promise<string> {
+  if (proactiveRefresh) return proactiveRefresh;
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return Promise.reject(new Error("Refresh token unavailable"));
+
+  proactiveRefresh = plainAxios
+    .post("/auth/refresh", { refreshToken })
+    .then((res) => {
+      const {
+        accessToken,
+        refreshToken: newRefresh,
+        expiresIn,
+      } = res.data.data;
+      setTokens(accessToken, newRefresh, expiresIn);
+      return accessToken as string;
+    })
+    .finally(() => {
+      proactiveRefresh = null;
+    });
+  return proactiveRefresh;
+}
 
 function drainQueue(token: string) {
   refreshQueue.forEach((cb) => cb(token));
@@ -47,20 +80,9 @@ instance.interceptors.request.use(
     if (token) {
       if (isTokenExpiringSoon()) {
         try {
-          const refreshToken = getRefreshToken();
-          if (refreshToken) {
-            const res = await plainAxios.post("/auth/refresh", {
-              refreshToken,
-            });
-            const {
-              accessToken,
-              refreshToken: newRefresh,
-              expiresIn,
-            } = res.data.data;
-            setTokens(accessToken, newRefresh, expiresIn);
-            config.headers["Authorization"] = `Bearer ${accessToken}`;
-            return config;
-          }
+          const accessToken = await refreshAccessToken();
+          config.headers["Authorization"] = `Bearer ${accessToken}`;
+          return config;
         } catch {
           clearTokens();
         }
@@ -97,7 +119,10 @@ instance.interceptors.response.use(
 
     if (!refreshToken) {
       clearTokens();
-      window.location.href = "/login";
+      // Don't redirect on /users/me since unauthenticated users are expected to hit 401 there
+      if (!original.url?.includes("/users/me")) {
+        window.location.href = "/login";
+      }
       return Promise.reject(error);
     }
 
@@ -134,8 +159,33 @@ function unwrap<T>(promise: Promise<AxiosResponse>): Promise<T> {
   });
 }
 
+interface PaginatedResponse<T> {
+  data: T[];
+  products: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+function unwrapPaginated<T>(promise: Promise<AxiosResponse>): Promise<PaginatedResponse<T>> {
+  return promise.then((res) => {
+    if (res.data.success === false)
+      throw new Error(res.data.error?.message ?? "Request failed");
+    const data = res.data.data as T[];
+    const pagination = res.data.meta?.pagination;
+    return {
+      data,
+      products: data,
+      nextCursor: pagination?.nextCursor ?? null,
+      hasMore: pagination?.hasMore ?? false,
+    };
+  });
+}
+
 // ─── API namespace ─────────────────────────────────────────────────────────────
 export const api = {
+  home: {
+    get: () => unwrap<Record<string, unknown>>(instance.get("/home")),
+  },
   auth: {
     signup: (email: string, password: string, name?: string) =>
       unwrap<{ message: string; expiresIn: number }>(
@@ -177,7 +227,8 @@ export const api = {
 
   users: {
     getProfile: () =>
-      unwrap<Record<string, unknown>>(instance.get("/users/me")),
+      dedupeGet("profile", () =>
+        unwrap<Record<string, unknown>>(instance.get("/users/me"))),
     updateProfile: (data: { name?: string; email?: string; dob?: string }) =>
       unwrap<Record<string, unknown>>(instance.patch("/users/me", data)),
     getAddresses: () => unwrap<unknown[]>(instance.get("/users/me/addresses")),
@@ -193,16 +244,16 @@ export const api = {
 
   products: {
     getProducts: (params?: Record<string, unknown>) =>
-      unwrap<unknown>(instance.get("/products", { params })),
+      unwrapPaginated<unknown>(instance.get("/products", { params })),
     getById: (id: string) => unwrap<unknown>(instance.get(`/products/${id}`)),
     getBySlug: (slug: string) =>
       unwrap<unknown>(instance.get(`/products/by-slug/${slug}`)),
     searchProducts: (q: string, params?: Record<string, unknown>) =>
-      unwrap<unknown>(
+      unwrapPaginated<unknown>(
         instance.get("/products/search", { params: { q, ...params } }),
       ),
     getUnderPrice: (amount: number, params?: Record<string, unknown>) =>
-      unwrap<unknown>(
+      unwrapPaginated<unknown>(
         instance.get(`/products/under-price/${amount}`, { params }),
       ),
   },
@@ -221,13 +272,21 @@ export const api = {
   },
 
   cart: {
-    getCart: () => unwrap<unknown>(instance.get("/cart")),
+    getCart: () => dedupeGet("cart", () => unwrap<unknown>(instance.get("/cart"))),
     addItem: (data: {
       productId: string;
       quantity: number;
       variantId?: string;
       customization?: unknown;
+      customImageUrl?: string;
     }) => unwrap<unknown>(instance.post("/cart/items", data)),
+    uploadPhoto: (file: File) => {
+      const form = new FormData();
+      form.append("image", file);
+      return unwrap<{ url: string }>(instance.post("/cart/upload-photo", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      }));
+    },
     updateItem: (
       id: string,
       data: { quantity: number; customization?: unknown },
@@ -270,6 +329,14 @@ export const api = {
       razorpayPaymentId: string;
       razorpaySignature: string;
     }) => unwrap<unknown>(instance.post("/payments/verify", data)),
+    cashOnDelivery: (orderId: string) =>
+      unwrap<unknown>(
+        instance.post(
+          "/payments/cash-on-delivery",
+          { orderId },
+          { headers: { "Idempotency-Key": `cod-${orderId}` } },
+        ),
+      ),
     getByOrderId: (orderId: string) =>
       unwrap<unknown>(instance.get(`/payments/order/${orderId}`)),
   },
@@ -361,6 +428,19 @@ export const api = {
     unsubscribe: (email: string) =>
       unwrap<{ message: string }>(
         instance.post("/newsletter/unsubscribe", { email }),
+      ),
+  },
+  bulkOrders: {
+    create: (data: {
+      name: string;
+      email: string;
+      phone: string;
+      company?: string;
+      quantity: number;
+      message?: string;
+    }) =>
+      unwrap<{ id: string; message: string }>(
+        instance.post("/bulk-orders", data),
       ),
   },
 };

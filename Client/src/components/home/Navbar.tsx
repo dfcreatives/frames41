@@ -163,7 +163,7 @@ export default function Navbar({
           <Link
             to="/"
             aria-label="Frames 41 home"
-            className="text-3xl font-headline italic"
+            className="font-swiss text-3xl font-semibold tracking-tight"
           >
             Frames 41
           </Link>

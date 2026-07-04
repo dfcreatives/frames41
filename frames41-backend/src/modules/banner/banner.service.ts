@@ -46,15 +46,15 @@ export class BannerService implements IBannerService {
   }): Promise<Banner> {
     const banner = await this.repository.create({
       image: data.image,
-      mobileImage: data.mobileImage,
-      link: data.link,
-      title: data.title,
-      subtitle: data.subtitle,
+      ...(data.mobileImage ? { mobileImage: data.mobileImage } : {}),
+      ...(data.link ? { link: data.link } : {}),
+      ...(data.title ? { title: data.title } : {}),
+      ...(data.subtitle ? { subtitle: data.subtitle } : {}),
       sortOrder: data.sortOrder ?? 0,
       isActive: data.isActive ?? true,
       type: data.type ?? 'HEADER_SLIDER',
-      startDate: data.startDate ? new Date(data.startDate) : undefined,
-      endDate: data.endDate ? new Date(data.endDate) : undefined,
+      ...(data.startDate ? { startDate: new Date(data.startDate) } : {}),
+      ...(data.endDate ? { endDate: new Date(data.endDate) } : {}),
     });
 
     logger.info({ bannerId: banner.id }, 'Banner created');

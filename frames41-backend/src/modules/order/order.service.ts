@@ -93,21 +93,21 @@ export class OrderService implements IOrderService {
       true, // Assume serviceable
     );
 
-    // Reserve stock for each item
+    // Validate all stock in one query instead of one query per cart line.
+    const stockRows = await prisma.product.findMany({
+      where: { id: { in: cart.items.map((item) => item.productId) } },
+      select: { id: true, stock: true, name: true },
+    });
+    const stockByProduct = new Map(stockRows.map((product) => [product.id, product]));
     for (const item of cart.items) {
-      // Check stock availability
-      const product = await prisma.product.findUnique({
-        where: { id: item.productId },
-        select: { stock: true, name: true },
-      });
-
+      const product = stockByProduct.get(item.productId);
       if (!product || product.stock < item.quantity) {
         throw new BadRequestError(`Insufficient stock for ${product?.name || 'product'}`);
       }
-
-      // Reserve stock
-      await this.repository.reserveStock(item.productId, item.quantity);
     }
+    await Promise.all(
+      cart.items.map((item) => this.repository.reserveStock(item.productId, item.quantity)),
+    );
 
     try {
       // Create order
@@ -138,7 +138,14 @@ export class OrderService implements IOrderService {
           quantity: item.quantity,
           unitPrice: Number(item.unitPrice),
           totalPrice: Number(item.totalPrice),
-          customization: item.customization ?? undefined,
+          customization: {
+            ...(item.customization &&
+            typeof item.customization === 'object' &&
+            !Array.isArray(item.customization)
+              ? item.customization
+              : {}),
+            ...(item.customImageUrl ? { customImageUrl: item.customImageUrl } : {}),
+          },
         })),
       });
 
@@ -152,9 +159,9 @@ export class OrderService implements IOrderService {
       return this.mapOrderToData(order);
     } catch (error) {
       // Release reserved stock on failure
-      for (const item of cart.items) {
-        await this.repository.releaseStock(item.productId, item.quantity);
-      }
+      await Promise.all(
+        cart.items.map((item) => this.repository.releaseStock(item.productId, item.quantity)),
+      );
       throw error;
     }
   }
@@ -284,9 +291,9 @@ export class OrderService implements IOrderService {
     }
 
     // Release stock for all items
-    for (const item of order.items) {
-      await this.repository.releaseStock(item.productId, item.quantity);
-    }
+    await Promise.all(
+      order.items.map((item) => this.repository.releaseStock(item.productId, item.quantity)),
+    );
 
     await this.repository.updateStatus(orderId, 'CANCELLED', 'Order cancelled by user');
 
@@ -301,16 +308,16 @@ export class OrderService implements IOrderService {
     discount: { toString(): string } | number;
     shippingCharge: { toString(): string } | number;
     total: { toString(): string } | number;
-    addressSnapshot: Record<string, string>;
+    addressSnapshot: unknown;
     couponCode?: string | null;
     items: Array<{
       id: string;
       productId: string;
-      productSnapshot: Record<string, unknown>;
+      productSnapshot: unknown;
       quantity: number;
       unitPrice: { toString(): string } | number;
       totalPrice: { toString(): string } | number;
-      customization?: Record<string, unknown> | null;
+      customization?: unknown;
     }>;
     payment?: {
       status: string;
@@ -322,6 +329,7 @@ export class OrderService implements IOrderService {
     shippedAt?: Date | null;
     deliveredAt?: Date | null;
   }): OrderData {
+    const address = order.addressSnapshot as Record<string, string>;
     return {
       id: order.id,
       orderNumber: order.orderNumber,
@@ -331,22 +339,22 @@ export class OrderService implements IOrderService {
       shippingCharge: Number(order.shippingCharge),
       total: Number(order.total),
       addressSnapshot: {
-        line1: order.addressSnapshot.line1,
-        line2: order.addressSnapshot.line2,
-        city: order.addressSnapshot.city,
-        state: order.addressSnapshot.state,
-        pincode: order.addressSnapshot.pincode,
+        line1: address.line1 ?? '',
+        line2: address.line2,
+        city: address.city ?? '',
+        state: address.state ?? '',
+        pincode: address.pincode ?? '',
       },
       couponCode: order.couponCode ?? undefined,
       items: order.items.map((item) => ({
         id: item.id,
         productId: item.productId,
-        productName: String(item.productSnapshot.name || ''),
-        productImage: String(item.productSnapshot.image || ''),
+        productName: String((item.productSnapshot as Record<string, unknown>)?.name || ''),
+        productImage: String((item.productSnapshot as Record<string, unknown>)?.image || ''),
         quantity: item.quantity,
         unitPrice: Number(item.unitPrice),
         totalPrice: Number(item.totalPrice),
-        customization: item.customization ?? undefined,
+        customization: item.customization as Record<string, unknown> | undefined,
       })),
       payment: order.payment
         ? {

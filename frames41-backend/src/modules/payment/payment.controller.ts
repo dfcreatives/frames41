@@ -91,6 +91,32 @@ export class PaymentController {
     }
   };
 
+  cashOnDelivery = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+        });
+        return;
+      }
+
+      const data = createPaymentSchema.parse(req.body);
+      await this.paymentService.placeCashOnDelivery(data.orderId, req.user.userId);
+
+      res.status(200).json({
+        success: true,
+        data: { message: 'Cash on delivery order placed successfully' },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   /**
    * GET /payments/order/:orderId
    * Get payment by order ID
@@ -113,7 +139,14 @@ export class PaymentController {
         return;
       }
 
-      const { orderId } = req.params;
+      const orderId = req.params.orderId;
+      if (!orderId) {
+        res.status(400).json({
+          success: false,
+          error: { code: 'BAD_REQUEST', message: 'Order ID is required' },
+        });
+        return;
+      }
       const payment = await this.paymentService.getPaymentByOrderId(
         orderId,
         req.user.userId,

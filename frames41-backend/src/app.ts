@@ -22,11 +22,13 @@ import createWebhookRoutes from './modules/webhook/webhook.routes.js';
 import createBlogRoutes from './modules/blog/blog.routes.js';
 import createFAQRoutes from './modules/faq/faq.routes.js';
 import createNewsletterRoutes from './modules/newsletter/newsletter.routes.js';
+import createBulkOrderRoutes from './modules/bulk-order/bulk-order.routes.js';
 import createWishlistRoutes from './modules/wishlist/wishlist.routes.js';
 import createReviewRoutes from './modules/review/review.routes.js';
 import createAbandonedCartRoutes from './modules/abandoned-cart/abandoned-cart.routes.js';
 import createReferralRoutes from './modules/referral/referral.routes.js';
 import createGiftCardRoutes from './modules/giftcard/giftcard.routes.js';
+import createHomeRoutes from './modules/home/home.routes.js';
 import { sanitizeReviewBody, sanitizeBlogContent, sanitizeFaqContent } from './middleware/xss.middleware.js';
 
 /**
@@ -100,6 +102,25 @@ export function createApp(): express.Application {
   // API routes
   const apiPrefix = `/api/${env.API_VERSION}`;
 
+  app.use(apiPrefix, (req, res, next) => {
+    const publicReadPrefixes = [
+      '/products',
+      '/categories',
+      '/banners',
+      '/blog',
+      '/faqs',
+      '/reviews/product',
+    ];
+    if (
+      req.method === 'GET' &&
+      !req.headers.authorization &&
+      publicReadPrefixes.some((prefix) => req.path.startsWith(prefix))
+    ) {
+      res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
+    }
+    next();
+  });
+
   // Auth routes
   app.use(`${apiPrefix}/auth`, createAuthRoutes());
 
@@ -110,6 +131,7 @@ export function createApp(): express.Application {
   app.use(`${apiPrefix}/admin`, createAdminRoutes());
 
   // Catalog routes (Phase 2)
+  app.use(`${apiPrefix}/home`, createHomeRoutes());
   app.use(`${apiPrefix}/categories`, createCategoryRoutes());
   app.use(`${apiPrefix}/products`, createProductRoutes());
   app.use(`${apiPrefix}/banners`, createBannerRoutes());
@@ -135,6 +157,7 @@ export function createApp(): express.Application {
   app.use(`${apiPrefix}/blog`, sanitizeBlogContent, createBlogRoutes());
   app.use(`${apiPrefix}/faqs`, sanitizeFaqContent, createFAQRoutes());
   app.use(`${apiPrefix}/newsletter`, createNewsletterRoutes());
+  app.use(`${apiPrefix}/bulk-orders`, createBulkOrderRoutes());
 
   // API Documentation endpoint (Phase 8)
   app.get('/api/docs', (_req, res) => {

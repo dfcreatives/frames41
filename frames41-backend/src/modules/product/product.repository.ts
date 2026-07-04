@@ -9,6 +9,12 @@ import type {
   UpdateProductData,
 } from './product.types.js';
 import type { PaginationParams, PaginatedResult } from '../../shared/types/index.js';
+import { createLRUCache } from '../../infrastructure/cache/lru.cache.js';
+
+const productCatalogCache = createLRUCache<string, {}>({
+  max: 500,
+  ttl: 30_000,
+});
 
 /**
  * Product repository implementation
@@ -39,7 +45,23 @@ export class ProductRepository implements IProductRepository {
           slug: true,
         },
       },
-    };
+    } as const;
+  }
+
+  private get listRelations() {
+    return {
+      images: {
+        take: 1,
+        orderBy: { sortOrder: 'asc' as const },
+      },
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    } as const;
   }
 
   async findAll(
@@ -47,6 +69,10 @@ export class ProductRepository implements IProductRepository {
     sort: ProductSortOption,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ProductWithRelations>> {
+    const cacheKey = `list:${JSON.stringify({ filters, sort, pagination })}`;
+    const cached = productCatalogCache.get(cacheKey);
+    if (cached) return cached as PaginatedResult<ProductWithRelations>;
+
     const limit = Math.min(pagination.limit, PAGINATION.MAX_PAGE_SIZE);
 
     // Build where clause
@@ -54,6 +80,8 @@ export class ProductRepository implements IProductRepository {
 
     if (filters.categoryId) {
       where.categoryId = filters.categoryId;
+    } else if (filters.categoryIds?.length) {
+      where.categoryId = { in: filters.categoryIds };
     }
 
     if (filters.isActive !== undefined) {
@@ -76,6 +104,17 @@ export class ProductRepository implements IProductRepository {
       if (filters.maxPrice !== undefined) {
         (where.basePrice as Record<string, unknown>).lte = filters.maxPrice;
       }
+    }
+
+    if (filters.inStock) {
+      where.stock = { gt: 0 };
+    }
+
+    if (filters.query) {
+      where.OR = [
+        { name: { contains: filters.query, mode: 'insensitive' } },
+        { shortDescription: { contains: filters.query, mode: 'insensitive' } },
+      ];
     }
 
     // Build order by
@@ -105,50 +144,59 @@ export class ProductRepository implements IProductRepository {
         orderBy = { createdAt: 'desc' };
     }
 
-    // Cursor-based pagination
-    const cursorCondition = pagination.cursor
-      ? { id: { gt: pagination.cursor } }
-      : {};
-
     const products = await this.prisma.product.findMany({
-      where: {
-        ...where,
-        ...cursorCondition,
-      },
+      where,
+      cursor: pagination.cursor ? { id: pagination.cursor } : undefined,
+      skip: pagination.cursor ? 1 : 0,
       take: limit + 1, // Take one extra to check if there's more
       orderBy,
-      include: this.includeRelations,
+      include: this.listRelations,
     });
 
     const hasMore = products.length > limit;
     const data = hasMore ? products.slice(0, limit) : products;
     const nextCursor = hasMore && data.length > 0 ? data[data.length - 1].id : null;
 
-    return {
+    const result = {
       data: data as ProductWithRelations[],
       nextCursor,
       hasMore,
     };
+    productCatalogCache.set(cacheKey, result);
+    return result;
   }
 
   async findById(id: string): Promise<ProductWithRelations | null> {
-    return this.prisma.product.findUnique({
+    const cacheKey = `id:${id}`;
+    const cached = productCatalogCache.get(cacheKey);
+    if (cached) return cached as ProductWithRelations;
+    const product = await this.prisma.product.findUnique({
       where: { id },
       include: this.includeRelations,
-    }) as Promise<ProductWithRelations | null>;
+    }) as ProductWithRelations | null;
+    if (product) productCatalogCache.set(cacheKey, product);
+    return product;
   }
 
   async findBySlug(slug: string): Promise<ProductWithRelations | null> {
-    return this.prisma.product.findUnique({
+    const cacheKey = `slug:${slug}`;
+    const cached = productCatalogCache.get(cacheKey);
+    if (cached) return cached as ProductWithRelations;
+    const product = await this.prisma.product.findUnique({
       where: { slug },
       include: this.includeRelations,
-    }) as Promise<ProductWithRelations | null>;
+    }) as ProductWithRelations | null;
+    if (product) productCatalogCache.set(cacheKey, product);
+    return product;
   }
 
   async search(
     query: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ProductWithRelations>> {
+    const cacheKey = `search:${JSON.stringify({ query, pagination })}`;
+    const cached = productCatalogCache.get(cacheKey);
+    if (cached) return cached as PaginatedResult<ProductWithRelations>;
     const limit = Math.min(pagination.limit, PAGINATION.MAX_PAGE_SIZE);
 
     // Split query into words for broader matching
@@ -172,52 +220,58 @@ export class ProductRepository implements IProductRepository {
           })),
         ],
       },
+      cursor: pagination.cursor ? { id: pagination.cursor } : undefined,
+      skip: pagination.cursor ? 1 : 0,
       take: limit + 1,
       orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
-      include: this.includeRelations,
+      include: this.listRelations,
     });
 
     const hasMore = products.length > limit;
     const data = hasMore ? products.slice(0, limit) : products;
     const nextCursor = hasMore && data.length > 0 ? data[data.length - 1].id : null;
 
-    return {
+    const result = {
       data: data as ProductWithRelations[],
       nextCursor,
       hasMore,
     };
+    productCatalogCache.set(cacheKey, result);
+    return result;
   }
 
   async findUnderPrice(
     amount: number,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ProductWithRelations>> {
+    const cacheKey = `under:${JSON.stringify({ amount, pagination })}`;
+    const cached = productCatalogCache.get(cacheKey);
+    if (cached) return cached as PaginatedResult<ProductWithRelations>;
     const limit = Math.min(pagination.limit, PAGINATION.MAX_PAGE_SIZE);
-
-    const cursorCondition = pagination.cursor
-      ? { id: { gt: pagination.cursor } }
-      : {};
 
     const products = await this.prisma.product.findMany({
       where: {
         isActive: true,
         basePrice: { lte: amount },
-        ...cursorCondition,
       },
+      cursor: pagination.cursor ? { id: pagination.cursor } : undefined,
+      skip: pagination.cursor ? 1 : 0,
       take: limit + 1,
       orderBy: { basePrice: 'asc' },
-      include: this.includeRelations,
+      include: this.listRelations,
     });
 
     const hasMore = products.length > limit;
     const data = hasMore ? products.slice(0, limit) : products;
     const nextCursor = hasMore && data.length > 0 ? data[data.length - 1].id : null;
 
-    return {
+    const result = {
       data: data as ProductWithRelations[],
       nextCursor,
       hasMore,
     };
+    productCatalogCache.set(cacheKey, result);
+    return result;
   }
 
   async create(data: CreateProductData): Promise<ProductWithRelations> {
@@ -237,6 +291,7 @@ export class ProductRepository implements IProductRepository {
         categoryId: data.categoryId,
         fontOptions: data.fontOptions,
         specifications: data.specifications,
+        careInstructions: data.careInstructions,
         weight: data.weight,
         dimensions: data.dimensions,
         metaTitle: data.metaTitle,
@@ -254,6 +309,7 @@ export class ProductRepository implements IProductRepository {
       include: this.includeRelations,
     });
 
+    productCatalogCache.clear();
     return product as ProductWithRelations;
   }
 
@@ -264,7 +320,7 @@ export class ProductRepository implements IProductRepository {
     const simpleFields = [
       'slug', 'name', 'description', 'shortDescription', 'basePrice',
       'discountedPrice', 'sku', 'stock', 'isActive', 'isBestSeller',
-      'isFeatured', 'categoryId', 'fontOptions', 'specifications',
+      'isFeatured', 'categoryId', 'fontOptions', 'specifications', 'careInstructions',
       'weight', 'dimensions', 'metaTitle', 'metaDescription',
     ];
 
@@ -310,6 +366,7 @@ export class ProductRepository implements IProductRepository {
       include: this.includeRelations,
     });
 
+    productCatalogCache.clear();
     return product as ProductWithRelations;
   }
 
@@ -317,6 +374,7 @@ export class ProductRepository implements IProductRepository {
     await this.prisma.product.delete({
       where: { id },
     });
+    productCatalogCache.clear();
   }
 
   async slugExists(slug: string, excludeId?: string): Promise<boolean> {

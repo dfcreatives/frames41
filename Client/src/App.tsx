@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -5,28 +6,28 @@ import { CartProvider } from '@/contexts/CartContext'
 import ProtectedRoute from '@/components/ui/ProtectedRoute'
 
 // Public pages
-import HomePage from '@/pages/HomePage'
-import LoginPage from '@/pages/LoginPage'
-import ProductListingPage from '@/pages/ProductListingPage'
-import ProductDetailPage from '@/pages/ProductDetailPage'
-import SearchPage from '@/pages/SearchPage'
-import BlogPage from '@/pages/BlogPage'
-import FAQPage from '@/pages/FAQPage'
-import GiftCardsPage from '@/pages/GiftCardsPage'
-import ShippingInfoPage from '@/pages/ShippingInfoPage'
-import BulkOrdersPage from '@/pages/BulkOrdersPage'
+const HomePage = lazy(() => import('@/pages/HomePage'))
+const LoginPage = lazy(() => import('@/pages/LoginPage'))
+const ProductListingPage = lazy(() => import('@/pages/ProductListingPage'))
+const ProductDetailPage = lazy(() => import('@/pages/ProductDetailPage'))
+const SearchPage = lazy(() => import('@/pages/SearchPage'))
+const BlogPage = lazy(() => import('@/pages/BlogPage'))
+const FAQPage = lazy(() => import('@/pages/FAQPage'))
+const GiftCardsPage = lazy(() => import('@/pages/GiftCardsPage'))
+const ShippingInfoPage = lazy(() => import('@/pages/ShippingInfoPage'))
+const BulkOrdersPage = lazy(() => import('@/pages/BulkOrdersPage'))
 
 // Protected pages
-import CartPage from '@/pages/CartPage'
-import CheckoutPage from '@/pages/CheckoutPage'
-import PaymentPage from '@/pages/PaymentPage'
-import OrderConfirmPage from '@/pages/OrderConfirmPage'
-import OrdersPage from '@/pages/OrdersPage'
-import OrderTrackingPage from '@/pages/OrderTrackingPage'
-import ProfilePage from '@/pages/ProfilePage'
-import WishlistPage from '@/pages/WishlistPage'
-import ReviewPage from '@/pages/ReviewPage'
-import ReferPage from '@/pages/ReferPage'
+const CartPage = lazy(() => import('@/pages/CartPage'))
+const CheckoutPage = lazy(() => import('@/pages/CheckoutPage'))
+const PaymentPage = lazy(() => import('@/pages/PaymentPage'))
+const OrderConfirmPage = lazy(() => import('@/pages/OrderConfirmPage'))
+const OrdersPage = lazy(() => import('@/pages/OrdersPage'))
+const OrderTrackingPage = lazy(() => import('@/pages/OrderTrackingPage'))
+const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
+const WishlistPage = lazy(() => import('@/pages/WishlistPage'))
+const ReviewPage = lazy(() => import('@/pages/ReviewPage'))
+const ReferPage = lazy(() => import('@/pages/ReferPage'))
 
 function P({ children }: { children: React.ReactNode }) {
   return <ProtectedRoute>{children}</ProtectedRoute>
@@ -38,6 +39,7 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <Toaster position="top-right" richColors />
+          <Suspense fallback={<div className="min-h-screen bg-[#f8f7f2]" aria-busy="true" />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -62,6 +64,7 @@ export default function App() {
             <Route path="/reviews" element={<P><ReviewPage /></P>} />
             <Route path="/refer" element={<P><ReferPage /></P>} />
           </Routes>
+          </Suspense>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

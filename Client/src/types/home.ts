@@ -40,3 +40,17 @@ export interface SocialLink {
   readonly href: string
   readonly label: string
 }
+
+export interface Banner {
+  readonly id: string
+  readonly type: string
+  readonly title?: string
+  readonly subtitle?: string
+  readonly imageUrl: string
+  readonly mobileImageUrl?: string
+  readonly link?: string
+  readonly sortOrder: number
+  readonly isActive: boolean
+  readonly startDate?: string
+  readonly endDate?: string
+}

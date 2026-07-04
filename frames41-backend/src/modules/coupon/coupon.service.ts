@@ -1,4 +1,4 @@
-import type { Coupon } from '@prisma/client';
+import type { Coupon, CouponType } from '@prisma/client';
 import { prisma } from '../../infrastructure/database/prisma.client.js';
 
 /**
@@ -142,7 +142,7 @@ export class CouponService {
     return prisma.coupon.create({
       data: {
         code: data.code.toUpperCase(),
-        type: data.type,
+        type: data.type as CouponType,
         value: data.value,
         minOrderValue: data.minOrderValue,
         maxDiscount: data.maxDiscount,

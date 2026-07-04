@@ -9,13 +9,17 @@ function ProductCard({ product }: ProductCardProps) {
   return (
     <article className="group">
       <a href={`/shop/${product.slug}`} className="block">
-        <div className="aspect-[4/5] bg-white overflow-hidden relative mb-4">
-          <img
-            src={product.imageUrl}
-            alt={product.imageAlt}
-            loading="lazy"
-            className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-          />
+        <div className="aspect-[4/5] bg-white overflow-hidden relative mb-4 rounded-2xl">
+          {product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.imageAlt}
+              loading="lazy"
+              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+            />
+          ) : (
+            <div className="w-full h-full bg-neutral-200" />
+          )}
           {product.badge && (
             <span className="absolute top-4 left-4 bg-primary text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-widest">
               {product.badge}
@@ -41,6 +45,7 @@ interface BudgetSectionProps {
 export default function BudgetSection({ products, priceLimit = 999 }: BudgetSectionProps) {
   return (
     <section
+      id="budget"
       aria-labelledby="budget-heading"
       className="bg-on-background text-background py-16 sm:py-xl"
     >
@@ -55,8 +60,13 @@ export default function BudgetSection({ products, priceLimit = 999 }: BudgetSect
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+          {products.slice(0, 8).map((product, index) => (
+            <div
+              key={product.id}
+              className={index >= 4 ? 'hidden md:block' : ''}
+            >
+              <ProductCard product={product} />
+            </div>
           ))}
         </div>
       </div>

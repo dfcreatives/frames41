@@ -2,7 +2,7 @@
  * Review repository implementation
  */
 
-import type { PrismaClient, Review } from '@prisma/client';
+import type { Prisma, PrismaClient, Review } from '@prisma/client';
 import type { IReviewRepository, ReviewWithUser, CreateReviewInput, UpdateReviewInput } from './review.types.js';
 import { OrderStatus } from '@prisma/client';
 
@@ -136,7 +136,7 @@ export class ReviewRepository implements IReviewRepository {
         rating: data.rating,
         title: data.title,
         body: data.body,
-        images: data.images,
+        images: data.images as Prisma.InputJsonValue | undefined,
         isVerified: data.isVerified,
         isApproved: data.isApproved,
       },
@@ -150,7 +150,7 @@ export class ReviewRepository implements IReviewRepository {
         ...(data.rating && { rating: data.rating }),
         ...(data.title !== undefined && { title: data.title }),
         ...(data.body && { body: data.body }),
-        ...(data.images && { images: data.images }),
+        ...(data.images && { images: data.images as unknown as Prisma.InputJsonValue }),
       },
     });
   }

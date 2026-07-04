@@ -15,7 +15,7 @@ export default function OrderTotalsCard({
   const { subtotalInr, shippingInr, taxInr, totalInr } = totals
 
   return (
-    <section aria-label="Order total" className="bg-white border border-[#E2E2DE] p-8">
+    <section aria-label="Order total" className="bg-white border border-[#E2E2DE] p-8 rounded-2xl">
       <h3 className="font-headline-md mb-6 text-[#111110]">Order Total</h3>
 
       <dl className="space-y-4">

@@ -1,11 +1,11 @@
-import type { Cart, CartItem, Product, ProductVariant } from '@prisma/client';
+import type { Cart, CartItem, Prisma } from '@prisma/client';
 
 /**
  * Cart item with product details
  */
 export interface CartItemWithProduct extends CartItem {
-  product: Product;
-  variant?: ProductVariant | null;
+  product: Prisma.ProductGetPayload<{ include: { images: true; priceTiers: true } }>;
+  variant?: Prisma.ProductVariantGetPayload<object> | null;
 }
 
 /**
@@ -123,6 +123,7 @@ export interface ICartRepository {
     data: {
       quantity?: number;
       customization?: Record<string, unknown>;
+      customImageUrl?: string;
       unitPrice?: number;
       totalPrice?: number;
     },

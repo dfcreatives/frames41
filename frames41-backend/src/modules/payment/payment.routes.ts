@@ -21,6 +21,7 @@ export function createPaymentRoutes(): Router {
   // Payment operations
   router.post('/create', orderRateLimiter, controller.createPayment);
   router.post('/verify', orderRateLimiter, controller.verifyPayment);
+  router.post('/cash-on-delivery', orderRateLimiter, controller.cashOnDelivery);
   router.get('/order/:orderId', controller.getPaymentByOrderId);
 
   return router;

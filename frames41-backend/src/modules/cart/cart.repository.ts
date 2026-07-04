@@ -1,4 +1,4 @@
-import type { Cart, CartItem, PrismaClient } from '@prisma/client';
+import type { Cart, CartItem, Prisma, PrismaClient } from '@prisma/client';
 import type { ICartRepository, CartWithItems, CartItemWithProduct } from './cart.types.js';
 
 /**
@@ -21,11 +21,12 @@ export class CartRepository implements ICartRepository {
                 where: { isPrimary: true },
                 take: 1,
               },
+              priceTiers: true,
             },
           },
           variant: true,
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'desc' as const },
       },
     };
   }
@@ -106,7 +107,7 @@ export class CartRepository implements ICartRepository {
         productId: data.productId,
         variantId: data.variantId,
         quantity: data.quantity,
-        customization: data.customization,
+        customization: data.customization as Prisma.InputJsonObject | undefined,
         customImageUrl: data.customImageUrl,
         unitPrice: data.unitPrice,
         totalPrice: data.totalPrice,
@@ -119,13 +120,14 @@ export class CartRepository implements ICartRepository {
     data: {
       quantity?: number;
       customization?: Record<string, unknown>;
+      customImageUrl?: string;
       unitPrice?: number;
       totalPrice?: number;
     },
   ): Promise<CartItem> {
     return this.prisma.cartItem.update({
       where: { id: itemId },
-      data,
+      data: data as Prisma.CartItemUncheckedUpdateInput,
     });
   }
 

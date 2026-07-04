@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Navbar from '@/components/home/Navbar'
 import Footer from '@/components/home/Footer'
 import { NAV_LINKS, FOOTER_COLUMNS, SOCIAL_LINKS } from '@/constants/home'
+import { api } from '@/lib/api'
 
 const TIERS = [
   { min: 10, max: 24, discount: '10%', label: 'Starter' },
@@ -20,10 +21,26 @@ const USE_CASES = [
 export default function BulkOrdersPage() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', company: '', quantity: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitted(true)
+    setSubmitting(true)
+    setError('')
+    try {
+      await api.bulkOrders.create({
+        ...form,
+        company: form.company || undefined,
+        message: form.message || undefined,
+        quantity: Number(form.quantity),
+      })
+      setSubmitted(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to submit your request. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -118,10 +135,12 @@ export default function BulkOrdersPage() {
               </div>
               <button
                 type="submit"
-                className="w-full bg-on-background text-white py-4 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-primary transition-colors"
+                disabled={submitting}
+                className="w-full bg-on-background text-white py-4 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-primary transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Submit Request
+                {submitting ? 'Submitting…' : 'Submit Request'}
               </button>
+              {error && <p role="alert" className="text-sm text-red-600 text-center">{error}</p>}
             </form>
           )}
         </div>

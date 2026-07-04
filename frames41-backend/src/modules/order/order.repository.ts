@@ -1,4 +1,4 @@
-import type { Order, PrismaClient } from '@prisma/client';
+import type { Order, Prisma, PrismaClient } from '@prisma/client';
 import type { IOrderRepository, OrderWithRelations } from './order.types.js';
 import type { PaginatedResult, PaginationParams } from '../../shared/types/index.js';
 import { PAGINATION } from '../../config/constants.js';
@@ -13,7 +13,7 @@ export class OrderRepository implements IOrderRepository {
     this.prisma = prisma;
   }
 
-  private get includeRelations() {
+  private get includeRelations(): Prisma.OrderInclude {
     return {
       items: true,
       statusHistory: {
@@ -51,17 +51,17 @@ export class OrderRepository implements IOrderRepository {
         discount: data.discount,
         shippingCharge: data.shippingCharge,
         total: data.total,
-        addressSnapshot: data.addressSnapshot,
+        addressSnapshot: data.addressSnapshot as Prisma.InputJsonObject,
         couponId: data.couponId,
         couponCode: data.couponCode,
         items: {
           create: data.items.map((item) => ({
             productId: item.productId,
-            productSnapshot: item.productSnapshot,
+            productSnapshot: item.productSnapshot as Prisma.InputJsonObject,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             totalPrice: item.totalPrice,
-            customization: item.customization,
+            customization: item.customization as Prisma.InputJsonObject | undefined,
           })),
         },
         statusHistory: {

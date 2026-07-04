@@ -80,7 +80,7 @@ export interface AdminOrderDetail {
   orderNumber: string
   status: OrderStatus
   user: { id: string; name: string | null; phone: string; email: string | null }
-  address: {
+  address?: {
     line1: string
     line2?: string
     city: string
@@ -96,6 +96,8 @@ export interface AdminOrderDetail {
     unitPrice: number
     total: number
     imageUrl?: string
+    customText?: string
+    customImageUrl?: string
   }[]
   subtotal: number
   discount: number
@@ -191,6 +193,8 @@ export interface AdminProductListItem {
   isFeatured: boolean
   categoryName?: string
   imageUrls?: string[]
+  specifications?: Record<string, string | number>
+  careInstructions?: string
 }
 
 export interface AdminProductDetail extends AdminProductListItem {
@@ -214,6 +218,8 @@ export interface ProductFormData {
   slug: string
   sku: string
   description: string
+  specifications: Record<string, string | number>
+  careInstructions: string
   basePrice: number
   discountedPrice?: number
   stock: number

@@ -2,7 +2,7 @@
  * Gift card repository implementation
  */
 
-import type { PrismaClient, GiftCard, GiftCardTransaction } from '@prisma/client';
+import type { PrismaClient, GiftCard, GiftCardTransaction, GiftCardTransactionType } from '@prisma/client';
 import type { IGiftCardRepository, GiftCardWithTransactions, CreateGiftCardInput } from './giftcard.types.js';
 
 export class GiftCardRepository implements IGiftCardRepository {
@@ -121,7 +121,7 @@ export class GiftCardRepository implements IGiftCardRepository {
     return this.prisma.giftCardTransaction.create({
       data: {
         giftCardId: data.giftCardId,
-        type: data.type,
+        type: data.type as GiftCardTransactionType,
         amount: data.amount,
         description: data.description,
         orderId: data.orderId,

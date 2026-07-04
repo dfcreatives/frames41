@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import type { PaymentMethodId, PaymentPayload, PaymentStatus } from '../../types/payment'
-import { ACTIVE_FORM_ID, ORDER_SUMMARY, TRUST_BADGES } from '../../constants/payment'
+import type { PaymentMethodId, PaymentOrderSummary, PaymentPayload, PaymentStatus } from '../../types/payment'
+import { ACTIVE_FORM_ID, TRUST_BADGES } from '../../constants/payment'
 import { NAV_LINKS } from '../../constants/home'
 import Navbar from '../home/Navbar'
 import Footer from '../home/Footer'
@@ -11,18 +11,19 @@ import OrderSummaryPanel from './OrderSummaryPanel'
 const DEFAULT_METHOD: PaymentMethodId = 'upi'
 
 interface PaymentProps {
-  onPaymentSubmit?: () => Promise<void>
+  summary: PaymentOrderSummary
+  onPaymentSubmit?: (method: PaymentMethodId) => Promise<void>
   externalStatus?: PaymentStatus
 }
 
-export default function Payment({ onPaymentSubmit, externalStatus }: PaymentProps = {}) {
+export default function Payment({ summary, onPaymentSubmit, externalStatus }: PaymentProps) {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>(DEFAULT_METHOD)
   const [internalStatus, setInternalStatus] = useState<PaymentStatus>('idle')
   const status = externalStatus ?? internalStatus
 
-  const handleSubmit = async (_payload: PaymentPayload) => {
+  const handleSubmit = async (payload: PaymentPayload) => {
     if (onPaymentSubmit) {
-      await onPaymentSubmit()
+      await onPaymentSubmit(payload.method)
       return
     }
     setInternalStatus('processing')
@@ -45,10 +46,10 @@ export default function Payment({ onPaymentSubmit, externalStatus }: PaymentProp
     <div className="min-h-screen bg-background text-on-background font-sans flex flex-col">
       <Navbar links={NAV_LINKS} />
 
-      <main className="flex-1 pt-32 pb-section max-w-container-max mx-auto w-full px-6">
-        <header className="mb-12">
-          <h1 className="font-headline-lg text-headline-lg mb-4">Payment Method</h1>
-          <p className="font-body-md text-on-surface-variant max-w-md">
+      <main className="flex-1 pt-28 sm:pt-32 pb-section max-w-container-max mx-auto w-full px-4 sm:px-6">
+        <header className="mb-6 sm:mb-12">
+          <h1 className="font-headline-lg text-2xl sm:text-headline-lg mb-2 sm:mb-4">Payment Method</h1>
+          <p className="font-body-md text-on-surface-variant max-w-md text-sm sm:text-body-md">
             Secure checkout powered by Frames41. Select your preferred method of payment to
             complete your order.
           </p>
@@ -87,9 +88,10 @@ export default function Payment({ onPaymentSubmit, externalStatus }: PaymentProp
           <aside className="lg:col-span-5" aria-label="Order summary">
             <OrderSummaryPanel
               formId={ACTIVE_FORM_ID}
-              summary={ORDER_SUMMARY}
+              summary={summary}
               trustBadges={TRUST_BADGES}
               status={status}
+              paymentMethod={selectedMethod}
             />
           </aside>
         </div>

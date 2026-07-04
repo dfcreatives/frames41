@@ -8,11 +8,7 @@ export function useFAQ() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([
-      api.faqs.list(),
-      api.faqs.getCategories(),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ]).then(([faqItems, cats]: any[]) => {
+    api.faqs.list().then((faqItems: any[]) => {
       setItems(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (faqItems ?? []).map((f: any): FaqItem => ({
@@ -23,7 +19,8 @@ export function useFAQ() {
         })),
       )
       const allCat: FaqCategory = { id: 'all', label: 'All' }
-      const mapped: FaqCategory[] = (cats ?? []).map(
+      const cats = [...new Set((faqItems ?? []).map((f: any) => f.category).filter(Boolean))]
+      const mapped: FaqCategory[] = cats.map(
         (c: string): FaqCategory => ({ id: c.toLowerCase() as FaqCategory['id'], label: c }),
       )
       setCategories([allCat, ...mapped])

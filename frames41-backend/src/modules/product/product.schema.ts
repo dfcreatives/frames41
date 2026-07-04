@@ -64,6 +64,7 @@ export const createProductSchema = z.object({
   categoryId: z.string().uuid(),
   fontOptions: z.array(z.string()).optional(),
   specifications: z.record(z.union([z.string(), z.number()])).optional(),
+  careInstructions: z.string().max(5000).optional(),
   weight: decimalSchema.optional(),
   dimensions: z.object({
     length: decimalSchema,
@@ -103,8 +104,13 @@ export const productQuerySchema = z.object({
   cursor: z.string().optional(),
   limit: z.string().regex(/^\d+$/).transform(Number).default('20'),
   categoryId: z.string().uuid().optional(),
+  categoryIds: z.string().transform((value) => value.split(',')).pipe(
+    z.array(z.string().uuid()).max(20),
+  ).optional(),
   minPrice: z.string().regex(/^\d+(\.\d{1,2})?$/).transform(Number).optional(),
   maxPrice: z.string().regex(/^\d+(\.\d{1,2})?$/).transform(Number).optional(),
+  inStock: z.enum(['true', 'false']).optional(),
+  q: z.string().trim().min(2).max(100).optional(),
   sort: z.enum(['newest', 'price-asc', 'price-desc', 'popularity', 'name-asc', 'featured', 'rating-desc']).default('newest'),
   includeInactive: z.enum(['true', 'false']).optional().default('false'),
 });

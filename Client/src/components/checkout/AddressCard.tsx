@@ -26,7 +26,7 @@ export default function AddressCard({ address, isSelected, onSelect, onEdit }: A
       onClick={() => onSelect(id)}
       onKeyDown={handleKeyDown}
       className={[
-        'relative flex flex-col justify-between min-h-[220px] p-lg bg-white',
+        'relative flex flex-col justify-between min-h-[220px] p-lg bg-white rounded-2xl',
         'transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
         isSelected
           ? 'border-2 border-primary'

@@ -6,7 +6,7 @@ export default function BlogRelatedCard({ category, title, image, href }: BlogRe
   return (
     <article className="group cursor-pointer">
       <a href={href} aria-label={`Read article: ${title}`}>
-        <div className="aspect-[4/5] overflow-hidden mb-6 bg-white border border-[#E2E2DE]">
+        <div className="aspect-[4/5] overflow-hidden mb-6 bg-white border border-[#E2E2DE] rounded-2xl">
           <img
             src={image.src}
             alt={image.alt}

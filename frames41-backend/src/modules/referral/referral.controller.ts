@@ -83,7 +83,7 @@ export class ReferralController {
   createReferralCode = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.user?.userId;
-      const referralCode = await this.service.createReferralCode(userId, req.body);
+      const referralCode = await this.service.createReferralCode(userId ?? null, req.body);
 
       res.status(201).json({
         success: true,

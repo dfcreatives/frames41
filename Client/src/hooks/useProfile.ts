@@ -2,12 +2,18 @@ import { useState, useEffect, useCallback } from 'react'
 import { api } from '@/lib/api'
 import { adaptProfileUser, adaptProfileAddress } from '@/lib/adapters'
 import type { ProfileData, ProfileUser, ProfileAddress } from '@/types/profile'
+import { getAccessToken } from '@/lib/token'
 
 export function useProfile() {
   const [profileData, setProfileData] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
 
   const fetchProfile = useCallback(async () => {
+    const token = getAccessToken()
+    if (!token) {
+      setLoading(false)
+      return
+    }
     try {
       const [user, addresses] = await Promise.all([
         api.users.getProfile(),

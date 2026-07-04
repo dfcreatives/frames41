@@ -46,6 +46,7 @@ export class CartService implements ICartService {
     const product = await prisma.product.findUnique({
       where: { id: data.productId },
       include: {
+        category: true,
         priceTiers: true,
         variants: true,
       },
@@ -57,6 +58,10 @@ export class CartService implements ICartService {
 
     if (!product.isActive) {
       throw new BadRequestError('Product is not available');
+    }
+
+    if (product.category.slug === 'photo-frames' && !data.customImageUrl) {
+      throw new BadRequestError('A photo is required for photo frame products');
     }
 
     // Check stock
@@ -112,6 +117,7 @@ export class CartService implements ICartService {
       await this.repository.updateItem(existingItem.id, {
         quantity: newQuantity,
         customization: data.customization,
+        customImageUrl: data.customImageUrl,
         unitPrice: newTierResult.unitPrice,
         totalPrice: newTierResult.unitPrice * newQuantity,
       });
@@ -311,7 +317,7 @@ export class CartService implements ICartService {
     quantity: number;
     unitPrice: { toString(): string } | number;
     totalPrice: { toString(): string } | number;
-    customization?: Record<string, unknown> | null;
+    customization?: unknown;
     customImageUrl?: string | null;
   }>; updatedAt: Date }): CartData {
     const items = cart.items.map((item) => ({
@@ -325,7 +331,7 @@ export class CartService implements ICartService {
       quantity: item.quantity,
       unitPrice: Number(item.unitPrice),
       totalPrice: Number(item.totalPrice),
-      customization: item.customization ?? undefined,
+      customization: item.customization as Record<string, unknown> | undefined,
       customImageUrl: item.customImageUrl ?? undefined,
     }));
 

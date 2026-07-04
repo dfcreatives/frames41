@@ -24,7 +24,7 @@ export default function ProfileAddressCard({
   return (
     <article
       className={[
-        'bg-white p-8 flex flex-col justify-between h-full relative',
+        'bg-white p-8 flex flex-col justify-between h-full relative rounded-2xl',
         isDefault
           ? 'border-2 border-[#111110]'
           : 'border border-[#E2E2DE] hover:border-[#111110] transition-colors group',

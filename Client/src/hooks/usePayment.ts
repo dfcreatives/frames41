@@ -77,5 +77,19 @@ export function usePayment(orderId: string) {
     }
   }, [orderId, user])
 
-  return { status, error, startPayment }
+  const placeCashOnDelivery = useCallback(async (): Promise<boolean> => {
+    setStatus('processing')
+    setError(null)
+    try {
+      await api.payments.cashOnDelivery(orderId)
+      setStatus('success')
+      return true
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to place cash on delivery order')
+      setStatus('error')
+      return false
+    }
+  }, [orderId])
+
+  return { status, error, startPayment, placeCashOnDelivery }
 }

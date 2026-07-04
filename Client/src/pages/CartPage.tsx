@@ -7,8 +7,18 @@ import Navbar from '@/components/home/Navbar'
 
 export default function CartPage() {
   const navigate = useNavigate()
-  const { cartData, loading, applyPromo } = useCartData()
-  useCart()
+  const {
+    cartData: contextCart,
+    isLoading: contextLoading,
+    updateItem,
+    removeItem,
+  } = useCart()
+  const { loading: hookLoading, applyPromo } = useCartData({ skipFetch: true })
+
+  // Use context data (already fetched when app loaded) — this avoids the
+  // dual-fetch bug where useCartData silently failed while context succeeded.
+  const cartData = contextCart
+  const loading = contextLoading || hookLoading
 
   if (loading) {
     return (
@@ -39,8 +49,9 @@ export default function CartPage() {
         data={cartData}
         onCheckout={() => navigate('/checkout')}
         onApplyPromo={applyPromo}
+        onUpdateItem={updateItem}
+        onRemoveItem={removeItem}
       />
     </>
   )
 }
-

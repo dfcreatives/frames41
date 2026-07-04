@@ -2,7 +2,7 @@
  * Background job handlers
  */
 
-import { logger } from '../logger/pino.logger.js';
+import { logger } from '../../logger/pino.logger.js';
 
 /**
  * Shiprocket sync job - creates/update shipping orders

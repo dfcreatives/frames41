@@ -21,7 +21,7 @@ export default function RelatedProductCard({ product, onClick }: RelatedProductC
       }}
       aria-label={`${product.name} — ${formatINR(product.priceInr)}`}
     >
-      <div className="aspect-square rounded overflow-hidden relative mb-4">
+      <div className="aspect-square rounded-2xl overflow-hidden relative mb-4">
         <img
           src={product.imageUrl}
           alt={product.imageAlt}

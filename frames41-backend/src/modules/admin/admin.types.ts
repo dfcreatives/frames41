@@ -37,7 +37,7 @@ export interface TopProduct {
 export interface CustomerListItem {
   id: string;
   name: string | null;
-  phone: string;
+  phone: string | null;
   email: string | null;
   totalOrders: number;
   totalSpent: number;
@@ -66,7 +66,7 @@ export interface OrderListItem {
   orderNumber: string;
   userId: string;
   userName: string | null;
-  userPhone: string;
+  userPhone: string | null;
   status: OrderStatus;
   subtotal: number;
   discount: number;
@@ -92,7 +92,7 @@ export interface RefundListItem {
   orderNumber: string;
   userId: string;
   userName: string | null;
-  userPhone: string;
+  userPhone: string | null;
   reason: string;
   videoUrl: string | null;
   status: RefundStatus;

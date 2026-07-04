@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import type { Banner } from '@prisma/client';
 import type { IBannerService } from './banner.types.js';
 import {
   createBannerSchema,
@@ -16,6 +17,17 @@ export class BannerController {
 
   constructor(bannerService: IBannerService) {
     this.bannerService = bannerService;
+  }
+
+  /**
+   * Normalize banner for API response (adds imageUrl / mobileImageUrl aliases)
+   */
+  private normalizeBannerResponse(banner: Banner) {
+    return {
+      ...banner,
+      imageUrl: banner.image,
+      mobileImageUrl: banner.mobileImage ?? undefined,
+    };
   }
 
   /**
@@ -38,7 +50,7 @@ export class BannerController {
 
       res.status(200).json({
         success: true,
-        data: banners,
+        data: banners.map((b) => this.normalizeBannerResponse(b)),
         meta: {
           requestId: req.headers['x-request-id'] as string,
           timestamp: new Date().toISOString(),
@@ -64,7 +76,7 @@ export class BannerController {
 
       res.status(200).json({
         success: true,
-        data: banners,
+        data: banners.map((b) => this.normalizeBannerResponse(b)),
         meta: {
           requestId: req.headers['x-request-id'] as string,
           timestamp: new Date().toISOString(),
@@ -90,7 +102,7 @@ export class BannerController {
 
       res.status(200).json({
         success: true,
-        data: banner,
+        data: this.normalizeBannerResponse(banner),
         meta: {
           requestId: req.headers['x-request-id'] as string,
           timestamp: new Date().toISOString(),
@@ -111,12 +123,36 @@ export class BannerController {
     next: NextFunction,
   ): Promise<void> => {
     try {
-      const data = createBannerSchema.parse(req.body);
-      const banner = await this.bannerService.createBanner(data);
+      const parsed = createBannerSchema.parse(req.body);
+      const createData: Parameters<IBannerService['createBanner']>[0] = {
+        image: (parsed.image || parsed.imageUrl)!,
+        sortOrder: parsed.sortOrder,
+        isActive: parsed.isActive,
+        type: parsed.type,
+      };
+      if (parsed.mobileImage || parsed.mobileImageUrl) {
+        createData.mobileImage = (parsed.mobileImage || parsed.mobileImageUrl)!;
+      }
+      if (parsed.link) {
+        createData.link = parsed.link;
+      }
+      if (parsed.title) {
+        createData.title = parsed.title;
+      }
+      if (parsed.subtitle) {
+        createData.subtitle = parsed.subtitle;
+      }
+      if (parsed.startDate) {
+        createData.startDate = parsed.startDate;
+      }
+      if (parsed.endDate) {
+        createData.endDate = parsed.endDate;
+      }
+      const banner = await this.bannerService.createBanner(createData);
 
       res.status(201).json({
         success: true,
-        data: banner,
+        data: this.normalizeBannerResponse(banner),
         meta: {
           requestId: req.headers['x-request-id'] as string,
           timestamp: new Date().toISOString(),
@@ -138,12 +174,43 @@ export class BannerController {
   ): Promise<void> => {
     try {
       const { id } = bannerIdParamSchema.parse(req.params);
-      const data = updateBannerSchema.parse(req.body);
-      const banner = await this.bannerService.updateBanner(id, data);
+      const parsed = updateBannerSchema.parse(req.body);
+      const updateData: Parameters<IBannerService['updateBanner']>[1] = {};
+      if (parsed.image !== undefined || parsed.imageUrl !== undefined) {
+        updateData.image = (parsed.image || parsed.imageUrl)!;
+      }
+      if (parsed.mobileImage !== undefined || parsed.mobileImageUrl !== undefined) {
+        updateData.mobileImage = (parsed.mobileImage || parsed.mobileImageUrl)!;
+      }
+      if (parsed.link !== undefined && parsed.link !== '') {
+        updateData.link = parsed.link;
+      }
+      if (parsed.title !== undefined && parsed.title !== '') {
+        updateData.title = parsed.title;
+      }
+      if (parsed.subtitle !== undefined && parsed.subtitle !== '') {
+        updateData.subtitle = parsed.subtitle;
+      }
+      if (parsed.sortOrder !== undefined) {
+        updateData.sortOrder = parsed.sortOrder;
+      }
+      if (parsed.isActive !== undefined) {
+        updateData.isActive = parsed.isActive;
+      }
+      if (parsed.type !== undefined) {
+        updateData.type = parsed.type;
+      }
+      if (parsed.startDate !== undefined && parsed.startDate !== '') {
+        updateData.startDate = parsed.startDate;
+      }
+      if (parsed.endDate !== undefined && parsed.endDate !== '') {
+        updateData.endDate = parsed.endDate;
+      }
+      const banner = await this.bannerService.updateBanner(id, updateData);
 
       res.status(200).json({
         success: true,
-        data: banner,
+        data: this.normalizeBannerResponse(banner),
         meta: {
           requestId: req.headers['x-request-id'] as string,
           timestamp: new Date().toISOString(),

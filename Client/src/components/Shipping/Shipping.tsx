@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer, useState } from 'react'
+import { useCallback, useMemo, useReducer, useRef, useState } from 'react'
 import type { CartData, CartLineItem } from '../../types/shipping'
 import CartItemList from './CartItemList'
 import OrderSummaryPanel from './OrderSummaryPanel'
@@ -8,6 +8,7 @@ import OrderSummaryPanel from './OrderSummaryPanel'
 type CartAction =
   | { type: 'INCREMENT'; id: string }
   | { type: 'DECREMENT'; id: string }
+  | { type: 'SET_QUANTITY'; id: string; quantity: number }
   | { type: 'REMOVE'; id: string }
 
 interface CartState {
@@ -40,6 +41,11 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         quantities: { ...state.quantities, [action.id]: current - 1 },
       }
     }
+    case 'SET_QUANTITY':
+      return {
+        ...state,
+        quantities: { ...state.quantities, [action.id]: action.quantity },
+      }
     case 'REMOVE':
       return { ...state, removedIds: new Set([...state.removedIds, action.id]) }
   }
@@ -56,13 +62,29 @@ interface ShippingProps {
   data: CartData
   onCheckout?: (payload: CartCheckoutPayload) => void
   onApplyPromo?: (code: string) => void
+  onUpdateItem?: (id: string, quantity: number) => Promise<void>
+  onRemoveItem?: (id: string) => Promise<void>
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export default function Shipping({ data, onCheckout, onApplyPromo }: ShippingProps) {
+export default function Shipping({
+  data,
+  onCheckout,
+  onApplyPromo,
+  onUpdateItem,
+  onRemoveItem,
+}: ShippingProps) {
   const [cart, dispatch] = useReducer(cartReducer, data.items, buildInitialState)
   const [promoCode, setPromoCode] = useState('')
+  const latestQuantities = useRef<Record<string, number>>(
+    Object.fromEntries(data.items.map((item) => [item.id, item.quantity])),
+  )
+  const quantitySync = useRef(
+    new Map<string, { confirmed: number; running: boolean }>(
+      data.items.map((item) => [item.id, { confirmed: item.quantity, running: false }]),
+    ),
+  )
 
   const visibleItems = useMemo(
     () => data.items.filter((item) => !cart.removedIds.has(item.id)),
@@ -78,9 +100,52 @@ export default function Shipping({ data, onCheckout, onApplyPromo }: ShippingPro
     [visibleItems, cart.quantities],
   )
 
-  const handleIncrement = useCallback((id: string) => dispatch({ type: 'INCREMENT', id }), [])
-  const handleDecrement = useCallback((id: string) => dispatch({ type: 'DECREMENT', id }), [])
-  const handleRemove = useCallback((id: string) => dispatch({ type: 'REMOVE', id }), [])
+  const syncQuantity = useCallback(async (id: string) => {
+    if (!onUpdateItem) return
+
+    let sync = quantitySync.current.get(id)
+    if (!sync) {
+      sync = { confirmed: latestQuantities.current[id] ?? 1, running: false }
+      quantitySync.current.set(id, sync)
+    }
+    if (sync.running) return
+
+    sync.running = true
+    try {
+      // Serialize writes per item and skip intermediate quantities accumulated
+      // while a request is in flight. This keeps rapid clicks cheap and ordered.
+      while (latestQuantities.current[id] !== sync.confirmed) {
+        const target = latestQuantities.current[id]
+        await onUpdateItem(id, target)
+        sync.confirmed = target
+      }
+    } catch {
+      latestQuantities.current[id] = sync.confirmed
+      dispatch({ type: 'SET_QUANTITY', id, quantity: sync.confirmed })
+    } finally {
+      sync.running = false
+    }
+  }, [onUpdateItem])
+
+  const handleIncrement = useCallback((id: string) => {
+    const quantity = (latestQuantities.current[id] ?? 1) + 1
+    latestQuantities.current[id] = quantity
+    dispatch({ type: 'INCREMENT', id })
+    void syncQuantity(id)
+  }, [syncQuantity])
+
+  const handleDecrement = useCallback((id: string) => {
+    const current = latestQuantities.current[id] ?? 1
+    if (current <= 1) return
+    latestQuantities.current[id] = current - 1
+    dispatch({ type: 'DECREMENT', id })
+    void syncQuantity(id)
+  }, [syncQuantity])
+
+  const handleRemove = useCallback(async (id: string) => {
+    await onRemoveItem?.(id)
+    dispatch({ type: 'REMOVE', id })
+  }, [onRemoveItem])
 
   const handleApplyPromo = useCallback(() => {
     onApplyPromo?.(promoCode.trim())
@@ -97,7 +162,7 @@ export default function Shipping({ data, onCheckout, onApplyPromo }: ShippingPro
   }, [onCheckout, visibleItems, cart.quantities, promoCode])
 
   return (
-    <main className="max-w-[1280px] mx-auto px-6 py-xl">
+    <main className="max-w-[1280px] mx-auto px-4 sm:px-6 py-xl">
       <header className="mb-xl">
         <h1 className="font-headline text-h1 text-on-background mb-sm">Your Creative Workshop</h1>
         <p className="text-body-lg text-on-surface-variant max-w-2xl">

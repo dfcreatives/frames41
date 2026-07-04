@@ -4,9 +4,9 @@
  */
 
 import cron from 'node-cron';
-import { prisma } from '../database/prisma.client.js';
-import { logger } from '../logger/pino.logger.js';
-import { JobDispatcher } from '../queue/job.dispatcher.js';
+import { prisma } from '../infrastructure/database/prisma.client.js';
+import { logger } from '../infrastructure/logger/pino.logger.js';
+import { JobDispatcher } from '../infrastructure/queue/job.dispatcher.js';
 
 /**
  * Initialize cron jobs

@@ -5,6 +5,7 @@ import UpiForm from './UpiForm'
 import CardForm from './CardForm'
 import NetbankingForm from './NetbankingForm'
 import WalletForm from './WalletForm'
+import CashOnDeliveryForm from './CashOnDeliveryForm'
 
 interface PaymentMethodSelectorProps {
   formId: string
@@ -53,6 +54,14 @@ export default function PaymentMethodSelector({
             formId={formId}
             status={status}
             onSubmit={(walletId) => onSubmit({ method: 'wallet', walletId })}
+          />
+        )
+      case 'cod':
+        return (
+          <CashOnDeliveryForm
+            formId={formId}
+            status={status}
+            onSubmit={() => onSubmit({ method: 'cod' })}
           />
         )
     }

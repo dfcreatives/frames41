@@ -32,6 +32,7 @@ export function adaptProduct(p: Raw): Product {
 export function adaptProductDetail(p: Raw): ProductData {
   return {
     id: p.id,
+    categorySlug: p.category?.slug ?? '',
     name: p.name,
     priceInr: Number(p.discountedPrice ?? p.basePrice),
     inStock: (p.stock ?? 0) > 0,
@@ -54,7 +55,7 @@ export function adaptProductDetail(p: Raw): ProductData {
     tabs: [
       { id: 'description', label: 'Description', content: p.description ?? '' },
       { id: 'specifications', label: 'Specifications', content: JSON.stringify(p.specifications ?? {}) },
-      { id: 'care', label: 'Care', content: '' },
+      { id: 'care', label: 'Care', content: p.careInstructions ?? '' },
     ],
     relatedProducts: [],
     shippingNote: 'Free shipping on orders above ₹999',
@@ -105,8 +106,8 @@ export function adaptCartItem(item: Raw): CartLineItem {
     name: item.productName ?? item.product?.name ?? '',
     variant: item.variantName ?? '',
     priceInr: Number(item.unitPrice),
-    imageUrl: item.product?.images?.[0]?.url ?? '',
-    imageAlt: item.product?.images?.[0]?.alt ?? item.productName ?? '',
+    imageUrl: item.productImage ?? item.product?.images?.[0]?.url ?? '',
+    imageAlt: item.productName ?? item.product?.name ?? '',
     quantity: item.quantity,
     inStock: true,
   }
@@ -161,8 +162,8 @@ export function adaptCheckoutLineItem(item: Raw): CheckoutLineItem {
     name: item.productName ?? '',
     variant: item.variantName ?? '',
     priceInr: Number(item.unitPrice),
-    imageUrl: item.product?.images?.[0]?.url ?? '',
-    imageAlt: item.product?.images?.[0]?.alt ?? '',
+    imageUrl: item.productImage ?? item.product?.images?.[0]?.url ?? '',
+    imageAlt: item.product?.images?.[0]?.alt ?? item.productName ?? '',
   }
 }
 

@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../infrastructure/database/prisma.client.js';
 import { logger } from '../infrastructure/logger/pino.logger.js';
 
@@ -24,7 +25,7 @@ export function createAuditMiddleware(
       if (chunk) {
         chunks.push(Buffer.from(chunk as string));
       }
-      return originalEnd(chunk, ...args);
+      return originalEnd(chunk as string, ...(args as [() => void]));
     };
 
     // Process after response is sent
@@ -55,7 +56,7 @@ export function createAuditMiddleware(
             action,
             resource: resourceInfo.resource,
             resourceId: resourceInfo.resourceId,
-            metadata,
+            metadata: metadata as Prisma.InputJsonObject,
             ipAddress: req.ip || 'unknown',
             userAgent: req.headers['user-agent'] || 'unknown',
             requestId,
