@@ -14,6 +14,7 @@ import AdminProductEditPage from '@/pages/AdminProductEditPage'
 import AdminCategoriesPage from '@/pages/AdminCategoriesPage'
 import AdminBannersPage from '@/pages/AdminBannersPage'
 import AdminReviewsPage from '@/pages/AdminReviewsPage'
+import AdminCouponsPage from '@/pages/AdminCouponsPage'
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/categories" element={<AdminCategoriesPage />} />
             <Route path="/banners" element={<AdminBannersPage />} />
             <Route path="/reviews" element={<AdminReviewsPage />} />
+            <Route path="/coupons" element={<AdminCouponsPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

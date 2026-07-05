@@ -29,6 +29,8 @@ import type {
   AdminPendingReview,
   PaginatedMeta,
   OrderStatus,
+  AdminCoupon,
+  CouponFormData,
 } from '@/types/admin'
 
 const plainAxios = axios.create({ baseURL: '/api/v1' })
@@ -410,6 +412,18 @@ export const api = {
 
     deleteBanner: (id: string) =>
       unwrap<{ message: string }>(instance.delete(`/banners/${id}`)),
+
+    getCoupons: () =>
+      unwrap<AdminCoupon[]>(instance.get('/admin/coupons')),
+
+    createCoupon: (data: CouponFormData) =>
+      unwrap<AdminCoupon>(instance.post('/admin/coupons', data)),
+
+    updateCoupon: (id: string, data: Partial<CouponFormData>) =>
+      unwrap<AdminCoupon>(instance.patch(`/admin/coupons/${id}`, data)),
+
+    archiveCoupon: (id: string) =>
+      unwrap<{ message: string }>(instance.delete(`/admin/coupons/${id}`)),
 
     // ── Reviews ──────────────────────────────────────────────────────────────
     getPendingReviews: (params: { page?: number; limit?: number }) =>

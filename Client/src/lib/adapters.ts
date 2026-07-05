@@ -168,9 +168,15 @@ export function adaptCheckoutLineItem(item: Raw): CheckoutLineItem {
 }
 
 export function adaptCheckoutTotals(cart: Raw): CheckoutTotals {
+  const subtotalInr = Number(cart.subtotal ?? 0)
+  const shippingInr = Number(cart.shippingCharge ?? 0)
+  const discountInr = Number(cart.couponDiscount ?? 0)
   return {
-    subtotalInr: Number(cart.subtotal ?? 0),
+    subtotalInr,
     taxInr: 0,
+    shippingInr,
+    discountInr,
+    totalInr: Number(cart.total ?? subtotalInr + shippingInr - discountInr),
   }
 }
 

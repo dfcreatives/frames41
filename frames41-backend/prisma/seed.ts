@@ -2,7 +2,6 @@ import {
   PrismaClient,
   UserRole,
   BannerType,
-  CouponType,
 } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -410,7 +409,7 @@ async function main(): Promise<void> {
     {
       image: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=1200&q=80',
       title: 'Free shipping on orders above ₹999',
-      subtitle: 'Use code FIRST10 for 10% off your first order',
+      subtitle: 'Discover our latest personalised collections',
       link: '/shop',
       type: BannerType.TOP_STRIP,
       sortOrder: 1,
@@ -440,66 +439,6 @@ async function main(): Promise<void> {
     }
   }
   console.log(`✅ Banners: ${banners.length}`)
-
-  // ─── Coupons ──────────────────────────────────────────────────────────────────
-  const futureDate = new Date('2026-12-31T23:59:59Z')
-  const pastDate = new Date('2024-01-01T00:00:00Z')
-
-  const coupons = [
-    {
-      code: 'FIRST10',
-      type: CouponType.PERCENT,
-      value: 10,
-      minOrderValue: 499,
-      maxDiscount: 200,
-      usageLimit: 1000,
-      perUserLimit: 1,
-      validFrom: pastDate,
-      validTo: futureDate,
-    },
-    {
-      code: 'WELCOME20',
-      type: CouponType.PERCENT,
-      value: 20,
-      minOrderValue: 999,
-      maxDiscount: 500,
-      usageLimit: 500,
-      perUserLimit: 1,
-      validFrom: pastDate,
-      validTo: futureDate,
-    },
-    {
-      code: 'FLAT100',
-      type: CouponType.FLAT,
-      value: 100,
-      minOrderValue: 799,
-      maxDiscount: null,
-      usageLimit: 2000,
-      perUserLimit: 3,
-      validFrom: pastDate,
-      validTo: futureDate,
-    },
-    {
-      code: 'FRAMES200',
-      type: CouponType.FLAT,
-      value: 200,
-      minOrderValue: 1499,
-      maxDiscount: null,
-      usageLimit: 1000,
-      perUserLimit: 2,
-      validFrom: pastDate,
-      validTo: futureDate,
-    },
-  ]
-
-  for (const coupon of coupons) {
-    await prisma.coupon.upsert({
-      where: { code: coupon.code },
-      update: {},
-      create: coupon,
-    })
-  }
-  console.log(`✅ Coupons: ${coupons.length}`)
 
   // ─── Shipping Rates ───────────────────────────────────────────────────────────
   const states = [
@@ -711,7 +650,6 @@ Summary:
   • ${cats.length} Categories
   • ${createdProducts} Products (with images, variants, price tiers)
   • ${banners.length} Banners
-  • ${coupons.length} Coupons (FIRST10, WELCOME20, FLAT100, FRAMES200)
   • ${states.length * 2} Shipping rates (all Indian states)
   • ${pincodes.length} Pincode serviceability records
   • ${faqs.length} FAQs

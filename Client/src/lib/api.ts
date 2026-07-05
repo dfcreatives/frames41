@@ -31,6 +31,14 @@ let rejectQueue: Array<(err: unknown) => void> = [];
 let proactiveRefresh: Promise<string> | null = null;
 const inFlightGets = new Map<string, Promise<unknown>>();
 
+function redirectToLogin() {
+  if (window.location.pathname === "/login") return;
+
+  const returnTo =
+    window.location.pathname + window.location.search + window.location.hash;
+  window.location.assign(`/login?redirect=${encodeURIComponent(returnTo)}`);
+}
+
 function dedupeGet<T>(key: string, request: () => Promise<T>): Promise<T> {
   const existing = inFlightGets.get(key);
   if (existing) return existing as Promise<T>;
@@ -121,7 +129,7 @@ instance.interceptors.response.use(
       clearTokens();
       // Don't redirect on /users/me since unauthenticated users are expected to hit 401 there
       if (!original.url?.includes("/users/me")) {
-        window.location.href = "/login";
+        redirectToLogin();
       }
       return Promise.reject(error);
     }
@@ -142,7 +150,7 @@ instance.interceptors.response.use(
     } catch (refreshError) {
       rejectAll(refreshError);
       clearTokens();
-      window.location.href = "/login";
+      redirectToLogin();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

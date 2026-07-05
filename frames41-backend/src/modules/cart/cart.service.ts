@@ -258,30 +258,31 @@ export class CartService implements ICartService {
       productName: item.product.name,
       quantity: item.quantity,
       basePrice: Number(item.unitPrice),
-      priceTiers: item.product.priceTiers,
+      priceTiers: [],
     }));
 
     // Get coupon if provided
     let coupon = null;
-    if (couponCode && this.couponService) {
-      try {
-        const couponData = await this.couponService.validateCoupon(
-          couponCode,
-          userId,
-          pricingItems.reduce((sum, item) => sum + item.basePrice * item.quantity, 0),
-        );
-        if (couponData.valid) {
-          coupon = {
-            code: couponCode,
-            type: couponData.type,
-            value: couponData.value,
-            minOrderValue: couponData.minOrderValue,
-            maxDiscount: couponData.maxDiscount,
-          };
-        }
-      } catch {
-        // Invalid coupon, continue without it
+    if (couponCode) {
+      if (!this.couponService) {
+        throw new BadRequestError('Coupon validation is unavailable');
       }
+      const subtotal = PricingEngine.calculateSubtotal(PricingEngine.calculateItems(pricingItems));
+      const couponData = await this.couponService.validateCoupon(
+        couponCode,
+        userId,
+        subtotal,
+      );
+      if (!couponData.valid) {
+        throw new BadRequestError(couponData.message ?? 'Invalid coupon code');
+      }
+      coupon = {
+        code: couponData.code,
+        type: couponData.type,
+        value: couponData.value,
+        minOrderValue: couponData.minOrderValue,
+        maxDiscount: couponData.maxDiscount,
+      };
     }
 
     // Get shipping info if pincode provided

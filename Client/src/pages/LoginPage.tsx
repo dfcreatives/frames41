@@ -8,7 +8,17 @@ export default function LoginPage() {
   const { login, signup, verifyEmail, resendVerification, isAuthenticated } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/'
+  const stateFrom = (location.state as {
+    from?: { pathname?: string; search?: string; hash?: string }
+  } | null)?.from
+  const stateRedirect = stateFrom?.pathname
+    ? `${stateFrom.pathname}${stateFrom.search ?? ''}${stateFrom.hash ?? ''}`
+    : null
+  const queryRedirect = new URLSearchParams(location.search).get('redirect')
+  const requestedRedirect = stateRedirect ?? queryRedirect
+  const from = requestedRedirect?.startsWith('/') && !requestedRedirect.startsWith('//')
+    ? requestedRedirect
+    : '/'
 
   const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')

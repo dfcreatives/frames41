@@ -153,7 +153,7 @@ export class PricingEngine {
       discount = subtotal;
     }
 
-    return { valid: true, discount };
+    return { valid: true, discount: Number(discount.toFixed(2)) };
   }
 
   /**

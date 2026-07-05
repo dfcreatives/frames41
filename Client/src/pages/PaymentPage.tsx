@@ -30,9 +30,10 @@ export default function PaymentPage() {
         const item = order.items?.[0]
         const snapshot = item?.productSnapshot ?? {}
         const subtotal = Number(order.subtotal ?? 0)
+        const discount = Number(order.discount ?? 0)
         const shipping = Number(order.shippingCharge ?? 0)
         const total = Number(order.total ?? subtotal + shipping)
-        const tax = Math.max(0, total - subtotal - shipping)
+        const tax = Math.max(0, total - subtotal - shipping + discount)
         const formatInr = (value: number) =>
           new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value)
 
@@ -48,6 +49,10 @@ export default function PaymentPage() {
           },
           lineItems: [
             { label: 'Subtotal', value: formatInr(subtotal) },
+            ...(discount > 0 ? [{
+              label: order.couponCode ? `Promo (${order.couponCode})` : 'Promo discount',
+              value: `−${formatInr(discount)}`,
+            }] : []),
             { label: 'Shipping', value: shipping === 0 ? 'Free' : formatInr(shipping), isFree: shipping === 0 },
             ...(tax > 0 ? [{ label: 'Taxes', value: formatInr(tax) }] : []),
           ],

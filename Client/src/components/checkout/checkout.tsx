@@ -17,6 +17,10 @@ interface CheckoutProps {
   onProceedToPayment?: (params: CheckoutSubmitParams) => void
   onEditAddress?: (id: string) => void
   onSaveAddress?: (data: AddressFormData) => Promise<unknown>
+  couponCode?: string | null
+  applyingCoupon?: boolean
+  onApplyCoupon?: (code: string) => Promise<number>
+  onRemoveCoupon?: () => Promise<void>
 }
 
 export default function Checkout({
@@ -26,6 +30,10 @@ export default function Checkout({
   onProceedToPayment,
   onEditAddress,
   onSaveAddress,
+  couponCode,
+  applyingCoupon,
+  onApplyCoupon,
+  onRemoveCoupon,
 }: CheckoutProps) {
   const [selectedAddressId, setSelectedAddressId] = useState(defaultAddressId)
   const [selectedDeliveryId, setSelectedDeliveryId] = useState(defaultDeliveryId)
@@ -80,6 +88,10 @@ export default function Checkout({
           selectedDelivery={selectedDelivery}
           onProceed={handleProceed}
           canProceed={!!selectedAddressId}
+          couponCode={couponCode}
+          applyingCoupon={applyingCoupon}
+          onApplyCoupon={onApplyCoupon}
+          onRemoveCoupon={onRemoveCoupon}
         />
       </div>
     </main>

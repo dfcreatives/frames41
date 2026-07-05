@@ -303,6 +303,38 @@ export interface BannerFormData {
   endDate?: string
 }
 
+export type CouponType = 'PERCENT' | 'FLAT' | 'FIRST_ORDER'
+
+export interface AdminCoupon {
+  id: string
+  code: string
+  type: CouponType
+  value: number
+  minOrderValue: number | null
+  maxDiscount: number | null
+  usageLimit: number | null
+  perUserLimit: number | null
+  redemptionCount: number
+  validFrom: string
+  validTo: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CouponFormData {
+  code: string
+  type: CouponType
+  value: number
+  minOrderValue?: number
+  maxDiscount?: number
+  usageLimit?: number
+  perUserLimit?: number
+  validFrom: string
+  validTo: string
+  isActive: boolean
+}
+
 // ─── Reviews ───────────────────────────────────────────────────────────────────
 
 export interface AdminPendingReview {

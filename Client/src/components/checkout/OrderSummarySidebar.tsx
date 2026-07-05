@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { CheckoutLineItem, CheckoutTotals, DeliveryMethod } from '../../types/checkout'
 import { formatINR } from '../../utils/format'
 
@@ -37,12 +38,9 @@ function OrderTotals({ totals, selectedDelivery }: OrderTotalsProps) {
   const shippingDisplay: string =
     selectedDelivery === undefined
       ? 'Calculated at next step'
-      : selectedDelivery.priceInr === null
+      : totals.shippingInr === 0
         ? 'Complimentary'
-        : formatINR(selectedDelivery.priceInr)
-
-  const shippingAmount = selectedDelivery?.priceInr ?? 0
-  const grandTotal = totals.subtotalInr + totals.taxInr + shippingAmount
+        : formatINR(totals.shippingInr)
 
   return (
     <dl className="space-y-4 pt-6 border-t border-[#E2E2DE]">
@@ -58,9 +56,15 @@ function OrderTotals({ totals, selectedDelivery }: OrderTotalsProps) {
         <dt className="text-secondary">Tax</dt>
         <dd>{formatINR(totals.taxInr)}</dd>
       </div>
+      {totals.discountInr > 0 && (
+        <div className="flex justify-between font-body-md text-body-md text-green-700">
+          <dt>Promo discount</dt>
+          <dd>−{formatINR(totals.discountInr)}</dd>
+        </div>
+      )}
       <div className="flex justify-between font-label-bold text-[20px] pt-4 border-t border-[#E2E2DE]">
         <dt>Total</dt>
-        <dd>{formatINR(grandTotal)}</dd>
+        <dd>{formatINR(totals.totalInr)}</dd>
       </div>
     </dl>
   )
@@ -72,6 +76,10 @@ interface OrderSummarySidebarProps {
   selectedDelivery: DeliveryMethod | undefined
   onProceed: () => void
   canProceed: boolean
+  couponCode?: string | null
+  applyingCoupon?: boolean
+  onApplyCoupon?: (code: string) => Promise<number>
+  onRemoveCoupon?: () => Promise<void>
 }
 
 export default function OrderSummarySidebar({
@@ -80,7 +88,35 @@ export default function OrderSummarySidebar({
   selectedDelivery,
   onProceed,
   canProceed,
+  couponCode,
+  applyingCoupon = false,
+  onApplyCoupon,
+  onRemoveCoupon,
 }: OrderSummarySidebarProps) {
+  const [code, setCode] = useState(couponCode ?? '')
+  const [couponError, setCouponError] = useState<string | null>(null)
+
+  async function handleApplyCoupon() {
+    if (!onApplyCoupon) return
+    setCouponError(null)
+    try {
+      await onApplyCoupon(code)
+    } catch (error: unknown) {
+      setCouponError(error instanceof Error ? error.message : 'Unable to apply promo code')
+    }
+  }
+
+  async function handleRemoveCoupon() {
+    if (!onRemoveCoupon) return
+    setCouponError(null)
+    try {
+      await onRemoveCoupon()
+      setCode('')
+    } catch (error: unknown) {
+      setCouponError(error instanceof Error ? error.message : 'Unable to remove promo code')
+    }
+  }
+
   return (
     <aside className="w-full lg:w-[400px] shrink-0" aria-label="Order summary">
       <div className="bg-white border border-[#E2E2DE] p-lg sticky top-28">
@@ -95,6 +131,57 @@ export default function OrderSummarySidebar({
             </li>
           ))}
         </ul>
+
+        <div className="mb-6 border-t border-[#E2E2DE] pt-6">
+          <label htmlFor="promo-code" className="block text-xs font-semibold uppercase tracking-widest mb-2">
+            Promo code
+          </label>
+          {couponCode ? (
+            <div className="flex items-center justify-between bg-green-50 border border-green-200 px-3 py-3">
+              <div>
+                <p className="text-sm font-semibold text-green-800">{couponCode} applied</p>
+                <p className="text-xs text-green-700">You save {formatINR(totals.discountInr)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleRemoveCoupon}
+                disabled={applyingCoupon}
+                className="text-xs font-semibold uppercase text-green-800 underline disabled:opacity-50"
+              >
+                Remove
+              </button>
+            </div>
+          ) : (
+            <div className="flex">
+              <input
+                id="promo-code"
+                value={code}
+                onChange={(event) => setCode(event.target.value.toUpperCase())}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    void handleApplyCoupon()
+                  }
+                }}
+                maxLength={20}
+                autoComplete="off"
+                placeholder="Enter code"
+                className="min-w-0 flex-1 border border-[#C9C9C3] px-3 py-3 text-sm uppercase outline-none focus:border-primary"
+              />
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={applyingCoupon || !code.trim()}
+                className="bg-primary px-4 text-xs font-semibold uppercase text-white disabled:opacity-50"
+              >
+                {applyingCoupon ? 'Applying…' : 'Apply'}
+              </button>
+            </div>
+          )}
+          {couponError && (
+            <p role="alert" className="mt-2 text-xs text-red-600">{couponError}</p>
+          )}
+        </div>
 
         <OrderTotals totals={totals} selectedDelivery={selectedDelivery} />
 

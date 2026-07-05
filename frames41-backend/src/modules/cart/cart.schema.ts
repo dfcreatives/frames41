@@ -38,7 +38,7 @@ export const cartItemIdParamSchema = z.object({
  * Calculate cart schema
  */
 export const calculateCartSchema = z.object({
-  couponCode: z.string().optional(),
+  couponCode: z.string().trim().min(1).max(20).optional(),
   pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits').optional(),
 });
 

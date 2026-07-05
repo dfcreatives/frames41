@@ -29,6 +29,7 @@ import createAbandonedCartRoutes from './modules/abandoned-cart/abandoned-cart.r
 import createReferralRoutes from './modules/referral/referral.routes.js';
 import createGiftCardRoutes from './modules/giftcard/giftcard.routes.js';
 import createHomeRoutes from './modules/home/home.routes.js';
+import createCouponRoutes from './modules/coupon/coupon.routes.js';
 import { sanitizeReviewBody, sanitizeBlogContent, sanitizeFaqContent } from './middleware/xss.middleware.js';
 
 /**
@@ -138,6 +139,7 @@ export function createApp(): express.Application {
 
   // Commerce routes (Phase 3)
   app.use(`${apiPrefix}/cart`, createCartRoutes());
+  app.use(`${apiPrefix}/admin/coupons`, createCouponRoutes());
 
   // Checkout routes (Phase 4)
   app.use(`${apiPrefix}/orders`, createOrderRoutes());

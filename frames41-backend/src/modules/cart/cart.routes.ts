@@ -6,6 +6,8 @@ import { prisma } from '../../infrastructure/database/prisma.client.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
 import { generalRateLimiter } from '../../middleware/rateLimit.middleware.js';
 import { UploadController } from '../upload/upload.controller.js';
+import { CouponService } from '../coupon/coupon.service.js';
+import { ShippingService } from '../shipping/shipping.service.js';
 
 /**
  * Create cart routes
@@ -15,7 +17,11 @@ export function createCartRoutes(): Router {
 
   // Dependency injection
   const repository = new CartRepository(prisma);
-  const service = new CartService(repository);
+  const service = new CartService(
+    repository,
+    new CouponService(),
+    new ShippingService(),
+  );
   const controller = new CartController(service);
   const uploadController = new UploadController();
 

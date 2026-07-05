@@ -15,6 +15,7 @@ const NAV: NavItem[] = [
   { to: '/categories', label: 'Categories', icon: '🗂' },
   { to: '/banners', label: 'Banners', icon: '🖼' },
   { to: '/reviews', label: 'Reviews', icon: '⭐' },
+  { to: '/coupons', label: 'Coupons', icon: '🏷' },
 ]
 
 export default function AdminSidebar({ collapsed }: { collapsed: boolean }) {

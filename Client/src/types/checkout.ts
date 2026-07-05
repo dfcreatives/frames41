@@ -29,6 +29,9 @@ export interface CheckoutLineItem {
 export interface CheckoutTotals {
   readonly subtotalInr: number
   readonly taxInr: number
+  readonly shippingInr: number
+  readonly discountInr: number
+  readonly totalInr: number
 }
 
 export interface CheckoutData {

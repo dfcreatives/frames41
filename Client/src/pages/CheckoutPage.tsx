@@ -9,7 +9,10 @@ import Navbar from '@/components/home/Navbar'
 
 export default function CheckoutPage() {
   const navigate = useNavigate()
-  const { checkoutData, loading, ordering, error, createOrder, refresh } = useCheckout()
+  const {
+    checkoutData, loading, ordering, applyingCoupon, couponCode, error,
+    createOrder, applyCoupon, removeCoupon, refresh,
+  } = useCheckout()
 
   if (loading) {
     return (
@@ -53,11 +56,15 @@ export default function CheckoutPage() {
         defaultAddressId={defaultAddress}
         defaultDeliveryId="standard"
         onProceedToPayment={async ({ addressId }) => {
-          const orderId = await createOrder(addressId)
+          const orderId = await createOrder(addressId, couponCode ?? undefined)
           if (orderId) navigate(`/payment/${orderId}`)
         }}
         onEditAddress={() => navigate('/profile')}
         onSaveAddress={handleSaveAddress}
+        couponCode={couponCode}
+        applyingCoupon={applyingCoupon}
+        onApplyCoupon={applyCoupon}
+        onRemoveCoupon={removeCoupon}
       />
       {ordering && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">

@@ -22,6 +22,8 @@ interface ProfileProps {
   onContactSupport?: () => void
   onAddAddress?: () => void
   onEditAddress?: (id: string) => void
+  onLogout?: () => void
+  isLoggingOut?: boolean
 }
 
 export default function Profile({
@@ -31,6 +33,8 @@ export default function Profile({
   onContactSupport,
   onAddAddress,
   onEditAddress,
+  onLogout,
+  isLoggingOut = false,
 }: ProfileProps) {
   const [activeSection, setActiveSection] = useState<ProfileSection>('personal')
   const [addresses, setAddresses] = useState<ReadonlyArray<ProfileAddress>>(data.addresses)
@@ -63,13 +67,23 @@ export default function Profile({
             Manage your account preferences and delivery locations.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleSaveAll}
-          className="bg-[#800020] text-white px-8 py-3 font-label-bold text-label-bold uppercase tracking-widest hover:opacity-90 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
-          Save All Changes
-        </button>
+        <div className="flex flex-wrap justify-end gap-3">
+          <button
+            type="button"
+            onClick={onLogout}
+            disabled={isLoggingOut}
+            className="border border-[#800020] text-[#800020] px-8 py-3 font-label-bold text-label-bold uppercase tracking-widest hover:bg-[#800020] hover:text-white transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isLoggingOut ? 'Logging Out...' : 'Logout'}
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveAll}
+            className="bg-[#800020] text-white px-8 py-3 font-label-bold text-label-bold uppercase tracking-widest hover:opacity-90 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          >
+            Save All Changes
+          </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">

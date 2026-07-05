@@ -21,7 +21,7 @@ const addressSnapshotSchema = z.object({
  */
 export const createOrderSchema = z.object({
   addressId: z.string().uuid('Invalid address ID'),
-  couponCode: z.string().optional(),
+  couponCode: z.string().trim().min(1).max(20).optional(),
 });
 
 /**

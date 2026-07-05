@@ -1,10 +1,17 @@
 import { customAlphabet } from 'nanoid';
+import { Prisma } from '@prisma/client';
 import type { OrderData, IOrderRepository, IOrderService } from './order.types.js';
-import { NotFoundError, BadRequestError, ForbiddenError } from '../../shared/errors/AppError.js';
+import {
+  NotFoundError,
+  BadRequestError,
+  ForbiddenError,
+  ConflictError,
+} from '../../shared/errors/AppError.js';
 import { logger } from '../../infrastructure/logger/pino.logger.js';
 import { prisma } from '../../infrastructure/database/prisma.client.js';
 import type { PricingEngine } from '../cart/pricing.engine.js';
 import type { PaginatedResult } from '../../shared/types/index.js';
+import { CouponService } from '../coupon/coupon.service.js';
 
 // Generate order number: F41-XXXXXX (alphanumeric)
 const generateOrderNumber = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 8);
@@ -15,155 +22,171 @@ const generateOrderNumber = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
 export class OrderService implements IOrderService {
   private readonly repository: IOrderRepository;
   private readonly pricingEngine: typeof PricingEngine;
+  private readonly couponService: CouponService;
 
-  constructor(repository: IOrderRepository, pricingEngine: typeof PricingEngine) {
+  constructor(
+    repository: IOrderRepository,
+    pricingEngine: typeof PricingEngine,
+    couponService = new CouponService(),
+  ) {
     this.repository = repository;
     this.pricingEngine = pricingEngine;
+    this.couponService = couponService;
   }
 
   async createOrder(
     userId: string,
     data: { addressId: string; couponCode?: string },
   ): Promise<OrderData> {
-    // Get cart with items
-    const cart = await prisma.cart.findUnique({
-      where: { userId },
-      include: {
-        items: {
-          include: {
-            product: {
-              include: {
-                images: {
-                  where: { isPrimary: true },
-                  take: 1,
+    const order = await prisma.$transaction(async (tx) => {
+      const cart = await tx.cart.findUnique({
+        where: { userId },
+        include: {
+          items: {
+            include: {
+              product: {
+                include: {
+                  images: { where: { isPrimary: true }, take: 1 },
                 },
-                priceTiers: true,
               },
+              variant: true,
             },
-            variant: true,
           },
         },
-      },
-    });
-
-    if (!cart || cart.items.length === 0) {
-      throw new BadRequestError('Cart is empty');
-    }
-
-    // Get address
-    const address = await prisma.address.findFirst({
-      where: { id: data.addressId, userId },
-    });
-
-    if (!address) {
-      throw new NotFoundError('Address');
-    }
-
-    // Calculate pricing
-    const pricingItems = cart.items.map((item) => ({
-      productId: item.productId,
-      productName: item.product.name,
-      quantity: item.quantity,
-      basePrice: Number(item.unitPrice),
-      priceTiers: item.product.priceTiers,
-    }));
-
-    // Get coupon if provided
-    let coupon = null;
-    if (data.couponCode) {
-      const couponData = await prisma.coupon.findUnique({
-        where: { code: data.couponCode.toUpperCase() },
       });
-      if (couponData) {
+      if (!cart || cart.items.length === 0) throw new BadRequestError('Cart is empty');
+
+      const address = await tx.address.findFirst({ where: { id: data.addressId, userId } });
+      if (!address) throw new NotFoundError('Address');
+
+      const pricingItems = cart.items.map((item) => ({
+        productId: item.productId,
+        productName: item.product.name,
+        quantity: item.quantity,
+        basePrice: Number(item.unitPrice),
+        priceTiers: [],
+      }));
+      const subtotal = this.pricingEngine.calculateSubtotal(
+        this.pricingEngine.calculateItems(pricingItems),
+      );
+
+      let couponId: string | undefined;
+      let coupon = null;
+      if (data.couponCode?.trim()) {
+        const validation = await this.couponService.validateCoupon(
+          data.couponCode,
+          userId,
+          subtotal,
+          tx,
+        );
+        if (!validation.valid || !validation.couponId) {
+          throw new BadRequestError(validation.message ?? 'Invalid coupon code');
+        }
+        couponId = validation.couponId;
         coupon = {
-          code: couponData.code,
-          type: couponData.type,
-          value: Number(couponData.value),
-          minOrderValue: couponData.minOrderValue ? Number(couponData.minOrderValue) : null,
-          maxDiscount: couponData.maxDiscount ? Number(couponData.maxDiscount) : null,
+          code: validation.code,
+          type: validation.type,
+          value: validation.value,
+          minOrderValue: validation.minOrderValue,
+          maxDiscount: validation.maxDiscount,
         };
       }
-    }
 
-    // Calculate totals
-    const calculation = this.pricingEngine.calculateCart(
-      pricingItems,
-      coupon,
-      address.state,
-      true, // Assume serviceable
-    );
-
-    // Validate all stock in one query instead of one query per cart line.
-    const stockRows = await prisma.product.findMany({
-      where: { id: { in: cart.items.map((item) => item.productId) } },
-      select: { id: true, stock: true, name: true },
-    });
-    const stockByProduct = new Map(stockRows.map((product) => [product.id, product]));
-    for (const item of cart.items) {
-      const product = stockByProduct.get(item.productId);
-      if (!product || product.stock < item.quantity) {
-        throw new BadRequestError(`Insufficient stock for ${product?.name || 'product'}`);
-      }
-    }
-    await Promise.all(
-      cart.items.map((item) => this.repository.reserveStock(item.productId, item.quantity)),
-    );
-
-    try {
-      // Create order
-      const orderNumber = `F41-${generateOrderNumber()}`;
-      const order = await this.repository.create({
-        orderNumber,
-        userId,
-        subtotal: calculation.subtotal,
-        discount: calculation.couponDiscount,
-        shippingCharge: calculation.shippingCharge,
-        total: calculation.total,
-        addressSnapshot: {
-          line1: address.line1,
-          line2: address.line2,
-          city: address.city,
-          state: address.state,
-          pincode: address.pincode,
-        },
-        couponCode: calculation.couponCode,
-        items: cart.items.map((item) => ({
-          productId: item.productId,
-          productSnapshot: {
-            name: item.product.name,
-            slug: item.product.slug,
-            image: item.product.images[0]?.url,
-            sku: item.product.sku,
-          },
-          quantity: item.quantity,
-          unitPrice: Number(item.unitPrice),
-          totalPrice: Number(item.totalPrice),
-          customization: {
-            ...(item.customization &&
-            typeof item.customization === 'object' &&
-            !Array.isArray(item.customization)
-              ? item.customization
-              : {}),
-            ...(item.customImageUrl ? { customImageUrl: item.customImageUrl } : {}),
-          },
-        })),
-      });
-
-      // Clear cart
-      await prisma.cartItem.deleteMany({
-        where: { cartId: cart.id },
-      });
-
-      logger.info({ orderId: order.id, orderNumber }, 'Order created');
-
-      return this.mapOrderToData(order);
-    } catch (error) {
-      // Release reserved stock on failure
-      await Promise.all(
-        cart.items.map((item) => this.repository.releaseStock(item.productId, item.quantity)),
+      const calculation = this.pricingEngine.calculateCart(
+        pricingItems,
+        coupon,
+        address.state,
+        true,
       );
+
+      const quantityByProduct = new Map<string, number>();
+      for (const item of cart.items) {
+        quantityByProduct.set(
+          item.productId,
+          (quantityByProduct.get(item.productId) ?? 0) + item.quantity,
+        );
+      }
+      for (const [productId, quantity] of quantityByProduct) {
+        const updated = await tx.$executeRaw`
+          UPDATE products
+          SET stock = stock - ${quantity}
+          WHERE id = ${productId}::uuid AND stock >= ${quantity}
+        `;
+        if (updated !== 1) {
+          const item = cart.items.find((candidate) => candidate.productId === productId);
+          throw new BadRequestError(`Insufficient stock for ${item?.product.name ?? 'product'}`);
+        }
+      }
+
+      const orderNumber = `F41-${generateOrderNumber()}`;
+      const createdOrder = await tx.order.create({
+        data: {
+          orderNumber,
+          userId,
+          subtotal: calculation.subtotal,
+          discount: calculation.couponDiscount,
+          shippingCharge: calculation.shippingCharge,
+          total: calculation.total,
+          addressSnapshot: {
+            line1: address.line1,
+            line2: address.line2,
+            city: address.city,
+            state: address.state,
+            pincode: address.pincode,
+          },
+          couponId,
+          couponCode: calculation.couponCode,
+          items: {
+            create: cart.items.map((item) => ({
+              productId: item.productId,
+              productSnapshot: {
+                name: item.product.name,
+                slug: item.product.slug,
+                image: item.product.images[0]?.url,
+                sku: item.product.sku,
+              },
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              totalPrice: item.totalPrice,
+              customization: {
+                ...(item.customization &&
+                typeof item.customization === 'object' &&
+                !Array.isArray(item.customization)
+                  ? item.customization
+                  : {}),
+                ...(item.customImageUrl ? { customImageUrl: item.customImageUrl } : {}),
+              },
+            })),
+          },
+          statusHistory: { create: { status: 'PENDING', note: 'Order placed' } },
+        },
+        include: {
+          items: true,
+          statusHistory: { orderBy: { createdAt: 'desc' } },
+          payment: true,
+          refundRequest: true,
+        },
+      });
+
+      if (couponId) {
+        await tx.couponRedemption.create({
+          data: { couponId, userId, orderId: createdOrder.id },
+        });
+      }
+      await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+      return createdOrder;
+    }, { isolationLevel: 'Serializable' }).catch((error: unknown) => {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
+        throw new ConflictError(
+          'Checkout changed while your order was being placed. Please review and try again.',
+          'CHECKOUT_CONFLICT',
+        );
+      }
       throw error;
-    }
+    });
+
+    logger.info({ orderId: order.id, orderNumber: order.orderNumber }, 'Order created');
+    return this.mapOrderToData(order);
   }
 
   async getOrderById(orderId: string, userId: string, userRole: string): Promise<OrderData> {
