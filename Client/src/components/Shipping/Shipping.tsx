@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer, useRef, useState } from 'react'
+import { useCallback, useMemo, useReducer, useRef } from 'react'
 import type { CartData, CartLineItem } from '../../types/shipping'
 import CartItemList from './CartItemList'
 import OrderSummaryPanel from './OrderSummaryPanel'
@@ -61,7 +61,6 @@ export interface CartCheckoutPayload {
 interface ShippingProps {
   data: CartData
   onCheckout?: (payload: CartCheckoutPayload) => void
-  onApplyPromo?: (code: string) => void
   onUpdateItem?: (id: string, quantity: number) => Promise<void>
   onRemoveItem?: (id: string) => Promise<void>
 }
@@ -71,12 +70,10 @@ interface ShippingProps {
 export default function Shipping({
   data,
   onCheckout,
-  onApplyPromo,
   onUpdateItem,
   onRemoveItem,
 }: ShippingProps) {
   const [cart, dispatch] = useReducer(cartReducer, data.items, buildInitialState)
-  const [promoCode, setPromoCode] = useState('')
   const latestQuantities = useRef<Record<string, number>>(
     Object.fromEntries(data.items.map((item) => [item.id, item.quantity])),
   )
@@ -147,19 +144,15 @@ export default function Shipping({
     dispatch({ type: 'REMOVE', id })
   }, [onRemoveItem])
 
-  const handleApplyPromo = useCallback(() => {
-    onApplyPromo?.(promoCode.trim())
-  }, [onApplyPromo, promoCode])
-
   const handleCheckout = useCallback(() => {
     onCheckout?.({
       items: visibleItems.map((item) => ({
         id: item.id,
         quantity: cart.quantities[item.id] ?? item.quantity,
       })),
-      promoCode: promoCode.trim(),
+      promoCode: '',
     })
-  }, [onCheckout, visibleItems, cart.quantities, promoCode])
+  }, [onCheckout, visibleItems, cart.quantities])
 
   return (
     <main className="max-w-[1280px] mx-auto px-4 sm:px-6 py-xl">
@@ -184,9 +177,6 @@ export default function Shipping({
         <OrderSummaryPanel
           charges={data.charges}
           subtotalInr={subtotalInr}
-          promoCode={promoCode}
-          onPromoCodeChange={setPromoCode}
-          onApplyPromo={handleApplyPromo}
           onCheckout={handleCheckout}
         />
       </div>

@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom'
-import { useCartData } from '@/hooks/useCartData'
 import { useCart } from '@/contexts/CartContext'
 import Shipping from '@/components/Shipping/Shipping'
 import { NAV_LINKS } from '@/constants/home'
@@ -13,12 +12,10 @@ export default function CartPage() {
     updateItem,
     removeItem,
   } = useCart()
-  const { loading: hookLoading, applyPromo } = useCartData({ skipFetch: true })
-
   // Use context data (already fetched when app loaded) — this avoids the
   // dual-fetch bug where useCartData silently failed while context succeeded.
   const cartData = contextCart
-  const loading = contextLoading || hookLoading
+  const loading = contextLoading
 
   if (loading) {
     return (
@@ -48,7 +45,6 @@ export default function CartPage() {
       <Shipping
         data={cartData}
         onCheckout={() => navigate('/checkout')}
-        onApplyPromo={applyPromo}
         onUpdateItem={updateItem}
         onRemoveItem={removeItem}
       />

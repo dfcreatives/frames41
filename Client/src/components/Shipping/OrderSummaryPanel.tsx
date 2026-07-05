@@ -1,7 +1,6 @@
 import type { CartCharges } from '../../types/shipping'
 import { formatINR } from '../../utils/format'
 import Icon from '../ui/Icon'
-import PromoCodeForm from './PromoCodeForm'
 
 interface SummaryRowProps {
   label: string
@@ -25,18 +24,12 @@ function SummaryRow({ label, value, highlight = false }: SummaryRowProps) {
 interface OrderSummaryPanelProps {
   charges: CartCharges
   subtotalInr: number
-  promoCode: string
-  onPromoCodeChange: (value: string) => void
-  onApplyPromo: () => void
   onCheckout: () => void
 }
 
 export default function OrderSummaryPanel({
   charges,
   subtotalInr,
-  promoCode,
-  onPromoCodeChange,
-  onApplyPromo,
   onCheckout,
 }: OrderSummaryPanelProps) {
   const grandTotal = subtotalInr + charges.shippingInr + charges.taxInr - charges.discountInr
@@ -70,12 +63,6 @@ export default function OrderSummaryPanel({
             {formatINR(grandTotal)}
           </span>
         </div>
-
-        <PromoCodeForm
-          value={promoCode}
-          onChange={onPromoCodeChange}
-          onApply={onApplyPromo}
-        />
 
         <button
           type="button"
