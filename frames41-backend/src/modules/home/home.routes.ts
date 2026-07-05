@@ -69,7 +69,15 @@ export default function createHomeRoutes(): Router {
         budgetProducts,
         bestsellers,
         newCollections,
-        heroBanner: banners[0] ?? null,
+        heroBanners: banners.map((banner: {
+          image: string;
+          mobileImage: string | null;
+          [key: string]: unknown;
+        }) => ({
+          ...banner,
+          imageUrl: banner.image,
+          mobileImageUrl: banner.mobileImage ?? undefined,
+        })),
       };
       homeCache.set('home', data);
       res.setHeader('X-Cache', 'MISS');

@@ -19,7 +19,7 @@ import {
 } from '../constants/home'
 
 export default function HomePage() {
-  const { categories, budgetProducts, bestsellers, newCollections, heroBanner, loading } = useHomePage()
+  const { categories, budgetProducts, bestsellers, newCollections, heroBanners, loading } = useHomePage()
   const { addItem } = useCart()
 
   return (
@@ -29,7 +29,7 @@ export default function HomePage() {
       <main id="main-content">
         <HeroSection
           data={HERO}
-          banner={heroBanner}
+          banners={heroBanners}
           onExploreCta={() => {
             const el = document.getElementById('collections')
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })

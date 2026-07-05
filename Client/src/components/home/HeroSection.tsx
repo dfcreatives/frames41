@@ -7,7 +7,7 @@ type HeroData = typeof HERO
 
 interface HeroSectionProps {
   data: HeroData
-  banner?: Banner | null
+  banners?: Banner[]
   onExploreCta?: () => void
 }
 
@@ -35,7 +35,7 @@ const SLIDES = [
 
 const AUTO_INTERVAL_MS = 5000
 
-export default function HeroSection({ data, banner, onExploreCta }: HeroSectionProps) {
+export default function HeroSection({ data, banners = [] }: HeroSectionProps) {
   const [current, setCurrent] = useState(0)
   const [mounted, setMounted] = useState(false)
 
@@ -44,33 +44,23 @@ export default function HeroSection({ data, banner, onExploreCta }: HeroSectionP
     return () => cancelAnimationFrame(raf)
   }, [])
 
-  const hero = useMemo(() => {
-    if (!banner) return data
-    return {
-      badge: data.badge,
-      headline: banner.title || data.headline,
-      subheadline: banner.subtitle || data.subheadline,
-      primaryCta: data.primaryCta,
-      secondaryCta: data.secondaryCta,
-      imageUrl: banner.imageUrl || data.imageUrl,
-      imageAlt: banner.title || data.imageAlt,
-      link: banner.link,
-    }
-  }, [banner, data])
-
-  /* override first slide with DB banner if available */
   const slides = useMemo(() => {
-    const copy = [...SLIDES] as Array<{
-      img: string
-      alt: string
-      headline: string
-      sub: string
-    }>
-    if (hero.imageUrl) {
-      copy[0] = { ...copy[0], img: hero.imageUrl, alt: hero.imageAlt }
-    }
-    return copy
-  }, [hero.imageUrl, hero.imageAlt])
+    if (!banners.length) return [...SLIDES]
+
+    return banners.map((banner) => ({
+      id: banner.id,
+      img: banner.imageUrl,
+      mobileImg: banner.mobileImageUrl,
+      alt: banner.title || data.imageAlt,
+      headline: banner.title || data.headline,
+      sub: banner.subtitle || data.subheadline,
+      link: banner.link,
+    }))
+  }, [banners, data])
+
+  useEffect(() => {
+    setCurrent((index) => Math.min(index, slides.length - 1))
+  }, [slides.length])
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const touchStartX = useRef<number | null>(null)
@@ -135,12 +125,10 @@ export default function HeroSection({ data, banner, onExploreCta }: HeroSectionP
   const handleNext = useCallback(() => handleManual(next), [handleManual, next])
   const handleDot = useCallback((i: number) => handleManual(() => goTo(i)), [handleManual, goTo])
 
-  const slide = slides[current]
-
   return (
     <section
-      aria-labelledby="hero-heading"
-      className="group relative w-full overflow-hidden aspect-[17/6] md:aspect-[16/9] md:min-h-[420px] max-h-[600px]"
+      aria-label="Hero banners"
+      className="group relative w-full overflow-hidden aspect-[17/6] md:aspect-[16/9]"
       style={{ touchAction: 'pan-y' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
@@ -148,7 +136,7 @@ export default function HeroSection({ data, banner, onExploreCta }: HeroSectionP
       {/* Slides */}
       {slides.map((s, i) => (
         <div
-          key={i}
+          key={'id' in s ? s.id : i}
           className={`absolute inset-0 ${mounted ? 'transition-opacity duration-700 ease-in-out' : ''} ${
             i === current ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'
           }`}
@@ -158,63 +146,22 @@ export default function HeroSection({ data, banner, onExploreCta }: HeroSectionP
             pointerEvents: i === current ? 'auto' : 'none',
           }}
         >
-          <img
-            src={s.img}
-            alt={s.alt}
-            loading={i === 0 ? 'eager' : 'lazy'}
-            className="h-full w-full object-cover"
-          />
+          <picture className="block h-full w-full">
+            {'mobileImg' in s && s.mobileImg && (
+              <source media="(max-width: 639px)" srcSet={s.mobileImg} />
+            )}
+            <img
+              src={s.img}
+              alt={s.alt}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              className="h-full w-full object-cover"
+            />
+          </picture>
           {/* overlay: light on mobile (no text), darker on desktop */}
-          <div className="absolute inset-0 bg-black/10 md:bg-black/40" />
         </div>
       ))}
 
       {/* Text content — hidden on mobile */}
-      <div className="hidden sm:flex absolute inset-0 z-20 items-center justify-center text-center">
-        <div className="max-w-3xl px-4 sm:px-6">
-          <span className="mb-0.5 sm:mb-2 md:mb-4 inline-block rounded-full border border-white/25 bg-white/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.2em] text-white backdrop-blur-sm sm:text-[10px] md:text-[11px]">
-            {hero.badge}
-          </span>
-
-          <h1
-            id="hero-heading"
-            className="mb-0.5 sm:mb-2 md:mb-4 font-headline text-[14px] font-normal leading-[1.1] tracking-[-0.02em] text-white sm:text-[32px] md:text-[48px] lg:text-[64px]"
-          >
-            {slide.headline.split('\n').map((line, i) => (
-              <span key={i}>
-                {line}
-                {i < slide.headline.split('\n').length - 1 && <br />}
-              </span>
-            ))}
-          </h1>
-
-          <p className="hidden sm:block mx-auto mb-2 sm:mb-4 md:mb-6 max-w-lg text-xs leading-snug text-white/80 sm:text-sm md:text-base">
-            {slide.sub}
-          </p>
-
-          <a
-            href={hero.link || '#shop'}
-            onClick={(e) => {
-              if (!hero.link) {
-                e.preventDefault()
-                onExploreCta?.()
-                return
-              }
-              if (hero.link.startsWith('#')) {
-                e.preventDefault()
-                const el = document.querySelector(hero.link)
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }
-              }
-            }}
-            className="inline-flex min-h-[24px] items-center justify-center rounded-full bg-primary px-3 py-0.5 text-[8px] font-bold uppercase tracking-[0.12em] text-white shadow-lg transition-all hover:scale-105 hover:shadow-primary/40 sm:min-h-[40px] sm:px-6 sm:py-2 sm:text-[10px] md:min-h-[48px] md:px-8 md:py-3 md:text-xs lg:px-10 lg:text-sm"
-          >
-            {hero.primaryCta}
-          </a>
-        </div>
-      </div>
-
       {/* Arrows */}
       <button
         type="button"

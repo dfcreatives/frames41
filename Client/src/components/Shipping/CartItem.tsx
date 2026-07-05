@@ -18,7 +18,7 @@ export default function CartItem({ item, quantity, onIncrement, onDecrement, onR
         <img
           src={item.imageUrl}
           alt={item.imageAlt}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           loading="lazy"
           decoding="async"
         />
