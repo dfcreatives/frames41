@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { NavLink } from '../../types/home'
 import Icon from '../ui/Icon'
 import { useCart } from '../../contexts/CartContext'
@@ -39,6 +39,7 @@ export default function Navbar({
   const [isSearching, setIsSearching] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const { itemCount } = useCart()
   const { isAuthenticated } = useAuth()
   const searchRef = useRef<HTMLDivElement>(null)
@@ -152,6 +153,8 @@ export default function Navbar({
   }
 
   const dropdownVisible = showDropdown && query.trim().length >= 2
+  const isLinkActive = (href: string) =>
+    pathname === href || (href !== '/' && pathname.startsWith(`${href}/`))
 
   return (
     <nav
@@ -169,21 +172,25 @@ export default function Navbar({
           </Link>
 
           <ul className="hidden md:flex gap-8 list-none m-0 p-0" role="list">
-            {links.map(({ label, href, active }) => (
-              <li key={href}>
-                <Link
-                  to={href}
-                  aria-current={active ? 'page' : undefined}
-                  className={`text-label-bold uppercase tracking-widest transition-colors ${
-                    active
-                      ? 'text-primary'
-                      : 'text-on-background/60 hover:text-on-background'
-                  }`}
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
+            {links.map(({ label, href }) => {
+              const active = isLinkActive(href)
+
+              return (
+                <li key={href}>
+                  <Link
+                    to={href}
+                    aria-current={active ? 'page' : undefined}
+                    className={`text-label-bold uppercase tracking-widest transition-colors ${
+                      active
+                        ? 'text-primary'
+                        : 'text-on-background/60 hover:text-primary'
+                    }`}
+                  >
+                    {label}
+                  </Link>
+                </li>
+              )
+            })}
           </ul>
         </div>
 

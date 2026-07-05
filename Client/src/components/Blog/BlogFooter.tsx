@@ -17,7 +17,7 @@ export default function BlogFooter({ links }: BlogFooterProps) {
             <ul className="flex gap-4 justify-center md:justify-start list-none m-0 p-0">
               <li>
                 <a
-                  href="https://instagram.com/frames41"
+                  href="https://www.instagram.com/frames41_by_jk_fotoz/"
                   aria-label="Instagram"
                   rel="noopener noreferrer"
                   target="_blank"
@@ -44,7 +44,7 @@ export default function BlogFooter({ links }: BlogFooterProps) {
               </li>
               <li>
                 <a
-                  href="https://wa.me/"
+                  href="https://wa.me/919489736237"
                   aria-label="WhatsApp"
                   rel="noopener noreferrer"
                   target="_blank"

@@ -7,7 +7,7 @@ import type {
 } from "../types/home";
 
 export const NAV_LINKS: ReadonlyArray<NavLink> = [
-  { label: "Shop", href: "/shop", active: true },
+  { label: "Shop", href: "/shop" },
   { label: "Gifts", href: "/gifts" },
   { label: "Our Story", href: "/about" },
 ];
@@ -162,7 +162,7 @@ export const FOOTER_COLUMNS: ReadonlyArray<FooterColumn> = [
 export const SOCIAL_LINKS: ReadonlyArray<SocialLink> = [
   {
     icon: "instagram",
-    href: "https://instagram.com/frames41",
+    href: "https://www.instagram.com/frames41_by_jk_fotoz/",
     label: "Instagram",
   },
   {
@@ -172,7 +172,7 @@ export const SOCIAL_LINKS: ReadonlyArray<SocialLink> = [
   },
   {
     icon: "whatsapp",
-    href: "https://wa.me/",
+    href: "https://wa.me/919489736237",
     label: "WhatsApp",
   },
 ];

@@ -16,6 +16,7 @@ const FAQPage = lazy(() => import('@/pages/FAQPage'))
 const GiftCardsPage = lazy(() => import('@/pages/GiftCardsPage'))
 const ShippingInfoPage = lazy(() => import('@/pages/ShippingInfoPage'))
 const BulkOrdersPage = lazy(() => import('@/pages/BulkOrdersPage'))
+const AboutPage = lazy(() => import('@/pages/AboutPage'))
 
 // Protected pages
 const CartPage = lazy(() => import('@/pages/CartPage'))
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="/gift-cards" element={<GiftCardsPage />} />
             <Route path="/shipping" element={<ShippingInfoPage />} />
             <Route path="/contact/bulk" element={<BulkOrdersPage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/shop/bestsellers" element={<ProductListingPage />} />
 
             <Route path="/cart" element={<P><CartPage /></P>} />
