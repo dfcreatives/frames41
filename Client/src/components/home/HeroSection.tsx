@@ -128,7 +128,7 @@ export default function HeroSection({ data, banners = [] }: HeroSectionProps) {
   return (
     <section
       aria-label="Hero banners"
-      className="group relative w-full overflow-hidden aspect-[17/6] md:aspect-[16/9]"
+      className="group relative w-full overflow-hidden aspect-[17/6] md:aspect-[16/9] md:min-h-[420px] max-h-[600px]"
       style={{ touchAction: 'pan-y' }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
