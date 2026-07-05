@@ -8,7 +8,6 @@ import type {
 
 export const NAV_LINKS: ReadonlyArray<NavLink> = [
   { label: "Shop", href: "/shop" },
-  { label: "Gifts", href: "/gifts" },
   { label: "Our Story", href: "/about" },
 ];
 
