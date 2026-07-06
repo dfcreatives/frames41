@@ -42,7 +42,14 @@ export default function createHomeRoutes(): Router {
       const [categories, budgetProducts, bestsellers, newCollections, banners] =
         await Promise.all([
           prisma.category.findMany({
-            where: { isActive: true },
+            // Imported products can belong to category records that are not marked
+            // active yet. The homepage must follow the product catalogue's actual
+            // category assignments or valid categories silently disappear.
+            where: {
+              products: {
+                some: { isActive: true },
+              },
+            },
             orderBy: { sortOrder: 'asc' },
             include: {
               products: {

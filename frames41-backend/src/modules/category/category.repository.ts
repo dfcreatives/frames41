@@ -14,7 +14,14 @@ export class CategoryRepository implements ICategoryRepository {
   async findAll(includeInactive = false, onlyWithProducts = false): Promise<Category[]> {
     return this.prisma.category.findMany({
       where: {
-        ...(includeInactive ? {} : { isActive: true }),
+        ...(includeInactive
+          ? {}
+          : {
+              OR: [
+                { isActive: true },
+                { products: { some: { isActive: true } } },
+              ],
+            }),
         ...(onlyWithProducts ? { products: { some: { isActive: true } } } : {}),
       },
       orderBy: [{ parentId: 'asc' }, { sortOrder: 'asc' }, { name: 'asc' }],
