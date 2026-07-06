@@ -52,6 +52,7 @@ export function useHomePage() {
         const categoriesMissingProducts = embeddedSections.filter(
           (section: CategoryProductSection) => section.products.length === 0,
         )
+        let resolvedSections: CategoryProductSection[]
 
         if (categoriesMissingProducts.length > 0) {
           const productResults = await Promise.allSettled(
@@ -80,25 +81,23 @@ export function useHomePage() {
             )
           })
 
-          setCategorySections(
-            embeddedSections
-              .map((section: CategoryProductSection) =>
-                section.products.length > 0
-                  ? section
-                  : {
-                      ...section,
-                      products: fallbackProducts.get(section.id) ?? [],
-                    },
-              )
-              .filter((section: CategoryProductSection) => section.products.length > 0),
-          )
+          resolvedSections = embeddedSections
+            .map((section: CategoryProductSection) =>
+              section.products.length > 0
+                ? section
+                : {
+                    ...section,
+                    products: fallbackProducts.get(section.id) ?? [],
+                  },
+            )
+            .filter((section: CategoryProductSection) => section.products.length > 0)
         } else {
-          setCategorySections(
-            embeddedSections.filter(
-              (section: CategoryProductSection) => section.products.length > 0,
-            ),
+          resolvedSections = embeddedSections.filter(
+            (section: CategoryProductSection) => section.products.length > 0,
           )
         }
+
+        setCategorySections(resolvedSections)
         setBudgetProducts((budget?.products ?? budget?.data ?? budget ?? []).map(adaptProduct))
         setBestsellers((best?.products ?? best?.data ?? best ?? []).map(adaptProduct))
         setNewCollections((recent?.products ?? recent?.data ?? recent ?? []).map(adaptProduct).slice(0, 8))
