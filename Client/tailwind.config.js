@@ -35,8 +35,10 @@ export default {
         xl: '80px',
       },
       fontFamily: {
-        headline: ['Inter', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        sans: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+        serif: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+        headline: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+        body: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
         swiss: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
       },
       fontSize: {

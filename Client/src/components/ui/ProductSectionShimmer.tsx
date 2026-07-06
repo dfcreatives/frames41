@@ -30,7 +30,7 @@ export default function ProductSectionShimmer({
   dark = false,
 }: ProductSectionShimmerProps) {
   const isCarousel = layout === 'carousel' || layout === 'wide'
-  const imageClass = layout === 'wide' ? 'aspect-video' : 'aspect-[4/5]'
+  const imageClass = 'aspect-square'
 
   return (
     <section

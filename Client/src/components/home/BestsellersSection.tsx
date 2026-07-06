@@ -14,16 +14,16 @@ function BestsellerCard({ product, onAddToCart }: BestsellerCardProps) {
   return (
     <article className="min-w-[280px] sm:min-w-[400px] snap-start group">
       <a href={`/shop/${product.slug}`} className="block">
-        <div className="mb-6">
+        <div className="mb-6 aspect-square overflow-hidden rounded-2xl">
           {product.imageUrl ? (
             <img
               src={product.imageUrl}
               alt={product.imageAlt}
               loading="lazy"
-              className="block w-full h-auto rounded-2xl"
+              className="block h-full w-full object-cover"
             />
           ) : (
-            <div className="w-full aspect-video rounded-2xl bg-neutral-200" />
+            <div className="h-full w-full bg-neutral-200" />
           )}
         </div>
         <h3 className="font-headline text-xl sm:text-headline-md italic mb-1 sm:mb-2">{product.name}</h3>

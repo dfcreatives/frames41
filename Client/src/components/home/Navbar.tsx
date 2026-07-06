@@ -161,7 +161,7 @@ export default function Navbar({
       aria-label="Main navigation"
       className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-on-background/10"
     >
-      <div className="flex justify-between items-center w-full px-6 py-5 max-w-container mx-auto">
+      <div className="mx-auto flex w-full max-w-container flex-wrap items-center justify-between gap-y-4 px-4 py-4 sm:flex-nowrap sm:gap-y-0 sm:px-6 sm:py-5">
         <div className="flex items-center gap-12">
           <Link
             to="/"
@@ -194,8 +194,10 @@ export default function Navbar({
           </ul>
         </div>
 
-        <div className="flex items-center gap-6">
-          <div ref={searchRef} className="relative hidden sm:block">
+          <div
+            ref={searchRef}
+            className="relative order-3 w-full sm:order-none sm:ml-auto sm:w-auto"
+          >
             <form onSubmit={handleSearchSubmit} role="search">
               <label htmlFor="site-search" className="sr-only">
                 Search products
@@ -215,7 +217,7 @@ export default function Navbar({
                 }}
                 placeholder="Search products..."
                 autoComplete="off"
-                className="pl-10 pr-4 py-2 rounded-full border border-on-background/10 bg-on-background/5 focus:ring-1 focus:ring-primary focus:border-primary text-sm w-64 lg:w-80 transition-all outline-none"
+                className="w-full rounded-full border border-on-background/10 bg-on-background/5 py-2 pl-10 pr-4 text-sm outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary sm:w-64 lg:w-80"
               />
             </form>
 
@@ -275,7 +277,7 @@ export default function Navbar({
             )}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 sm:ml-6">
             <button
               type="button"
               onClick={handleProfileClick}
@@ -301,7 +303,6 @@ export default function Navbar({
                 </span>
               )}
             </button>
-          </div>
         </div>
       </div>
     </nav>

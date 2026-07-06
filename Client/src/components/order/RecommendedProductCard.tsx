@@ -25,7 +25,7 @@ export default function RecommendedProductCard({
         }}
         className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
       >
-        <div className="aspect-[4/5] bg-surface-variant overflow-hidden mb-6 rounded-2xl">
+        <div className="aspect-square bg-surface-variant overflow-hidden mb-6 rounded-2xl">
           <img
             src={imageUrl}
             alt=""

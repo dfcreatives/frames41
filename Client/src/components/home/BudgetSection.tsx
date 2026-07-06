@@ -9,7 +9,7 @@ function ProductCard({ product }: ProductCardProps) {
   return (
     <article className="group">
       <a href={`/shop/${product.slug}`} className="block">
-        <div className="aspect-[4/5] bg-white overflow-hidden relative mb-4 rounded-2xl">
+        <div className="aspect-square bg-white overflow-hidden relative mb-4 rounded-2xl">
           {product.imageUrl ? (
             <img
               src={product.imageUrl}

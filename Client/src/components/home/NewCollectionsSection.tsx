@@ -13,7 +13,7 @@ function ProductCard({ product }: ProductCardProps) {
   return (
     <article className="min-w-[220px] sm:min-w-[300px] snap-start group">
       <a href={`/shop/${product.slug}`} className="block">
-        <div className="aspect-[4/5] bg-white overflow-hidden relative mb-4 rounded-2xl border border-on-background/5">
+        <div className="aspect-square bg-white overflow-hidden relative mb-4 rounded-2xl border border-on-background/5">
           {product.imageUrl ? (
             <img
               src={product.imageUrl}
