@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { adaptProduct, adaptCategory } from '@/lib/adapters'
-import type { Product, Category, Banner } from '@/types/home'
+import { adaptProduct, adaptCategoryProductSection } from '@/lib/adapters'
+import type { Product, CategoryProductSection, Banner } from '@/types/home'
 
 type BannerResponse = Partial<Banner> & {
   image?: string
@@ -28,7 +28,7 @@ function normalizeBanner(banner: BannerResponse): Banner | null {
 }
 
 export function useHomePage() {
-  const [categories, setCategories] = useState<Category[]>([])
+  const [categorySections, setCategorySections] = useState<CategoryProductSection[]>([])
   const [budgetProducts, setBudgetProducts] = useState<Product[]>([])
   const [bestsellers, setBestsellers] = useState<Product[]>([])
   const [newCollections, setNewCollections] = useState<Product[]>([])
@@ -48,7 +48,11 @@ export function useHomePage() {
         const budget = home.budgetProducts ?? []
         const best = home.bestsellers ?? []
         const recent = home.newCollections ?? []
-        setCategories((cats ?? []).map((c: unknown, i: number) => adaptCategory(c, i)))
+        setCategorySections(
+          (cats ?? [])
+            .map(adaptCategoryProductSection)
+            .filter((section: CategoryProductSection) => section.products.length > 0),
+        )
         setBudgetProducts((budget?.products ?? budget?.data ?? budget ?? []).map(adaptProduct))
         setBestsellers((best?.products ?? best?.data ?? best ?? []).map(adaptProduct))
         setNewCollections((recent?.products ?? recent?.data ?? recent ?? []).map(adaptProduct).slice(0, 8))
@@ -73,5 +77,5 @@ export function useHomePage() {
       .finally(() => setLoading(false))
   }, [])
 
-  return { categories, budgetProducts, bestsellers, newCollections, heroBanners, loading }
+  return { categorySections, budgetProducts, bestsellers, newCollections, heroBanners, loading }
 }

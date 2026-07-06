@@ -14,6 +14,18 @@ const productListInclude = {
   },
 } as const;
 
+const categoryProductInclude = {
+  images: {
+    take: 1,
+    orderBy: { sortOrder: 'asc' as const },
+  },
+  variants: {
+    where: { isActive: true },
+    take: 1,
+    select: { id: true },
+  },
+} as const;
+
 export default function createHomeRoutes(): Router {
   const router = Router();
 
@@ -32,6 +44,14 @@ export default function createHomeRoutes(): Router {
           prisma.category.findMany({
             where: { isActive: true },
             orderBy: { sortOrder: 'asc' },
+            include: {
+              products: {
+                where: { isActive: true },
+                take: 4,
+                orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+                include: categoryProductInclude,
+              },
+            },
           }),
           prisma.product.findMany({
             where: { isActive: true, basePrice: { lte: 999 } },

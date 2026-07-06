@@ -18,10 +18,19 @@ export interface Product {
   readonly slug: string
   readonly name: string
   readonly priceInr: number
+  readonly originalPriceInr?: number
   readonly imageUrl: string
   readonly imageAlt: string
   readonly badge?: string
   readonly description?: string
+  readonly hasOptions?: boolean
+}
+
+export interface CategoryProductSection {
+  readonly id: string
+  readonly slug: string
+  readonly title: string
+  readonly products: ReadonlyArray<Product>
 }
 
 export interface FooterLink {

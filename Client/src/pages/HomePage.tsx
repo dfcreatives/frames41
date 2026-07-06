@@ -1,7 +1,7 @@
 import AnnouncementBar from '../components/home/AnnouncementBar'
 import Navbar from '../components/home/Navbar'
 import HeroSection from '../components/home/HeroSection'
-import CategoryGrid from '../components/home/CategoryGrid'
+import CategoryProductsSection from '../components/home/CategoryProductsSection'
 import BudgetSection from '../components/home/BudgetSection'
 import NewCollectionsSection from '../components/home/NewCollectionsSection'
 import BestsellersSection from '../components/home/BestsellersSection'
@@ -19,7 +19,7 @@ import {
 } from '../constants/home'
 
 export default function HomePage() {
-  const { categories, budgetProducts, bestsellers, newCollections, heroBanners, loading } = useHomePage()
+  const { categorySections, budgetProducts, bestsellers, newCollections, heroBanners, loading } = useHomePage()
   const { addItem } = useCart()
 
   return (
@@ -60,7 +60,14 @@ export default function HomePage() {
         ) : (
           <NewCollectionsSection products={newCollections} />
         )}
-        <CategoryGrid categories={categories} />
+        {loading ? (
+          <ProductSectionShimmer title="Categories" count={4} />
+        ) : (
+          <CategoryProductsSection
+            sections={categorySections}
+            onAddToCart={(productId) => addItem(productId, 1)}
+          />
+        )}
         {loading ? (
           <ProductSectionShimmer
             title="Under ₹999"

@@ -1,4 +1,4 @@
-import type { Product, Category } from '@/types/home'
+import type { Product, Category, CategoryProductSection } from '@/types/home'
 import type { ProductData, ProductImage, RelatedProduct } from '@/types/productDetail'
 import type { ProductListingProduct } from '@/types/productListing'
 import type { CartLineItem, CartData, CartCharges } from '@/types/shipping'
@@ -17,15 +17,19 @@ type Raw = any
 
 // ─── Products ─────────────────────────────────────────────────────────────────
 export function adaptProduct(p: Raw): Product {
+  const price = Number(p.discountedPrice ?? p.basePrice)
+  const originalPrice = Number(p.basePrice)
   return {
     id: p.id,
     slug: p.slug ?? p.id,
     name: p.name,
-    priceInr: Number(p.discountedPrice ?? p.basePrice),
+    priceInr: price,
+    originalPriceInr: originalPrice > price ? originalPrice : undefined,
     imageUrl: p.images?.[0]?.url ?? '',
     imageAlt: p.images?.[0]?.alt ?? p.name,
     badge: p.isBestSeller ? 'Bestseller' : p.isFeatured ? 'Featured' : undefined,
     description: p.shortDescription ?? p.description,
+    hasOptions: (p.variants?.length ?? 0) > 0,
   }
 }
 
@@ -96,6 +100,15 @@ export function adaptCategory(c: Raw, index = 0): Category {
     imageUrl: c.image ?? '',
     imageAlt: c.name,
     span: index % 3 === 0 ? 'wide' : 'narrow',
+  }
+}
+
+export function adaptCategoryProductSection(c: Raw): CategoryProductSection {
+  return {
+    id: c.id,
+    slug: c.slug ?? c.id,
+    title: c.name,
+    products: (c.products ?? []).map(adaptProduct),
   }
 }
 
