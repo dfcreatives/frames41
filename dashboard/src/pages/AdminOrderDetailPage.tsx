@@ -182,6 +182,29 @@ export default function AdminOrderDetailPage() {
                               </a>
                             </div>
                           )}
+                          {item.customization && (
+                            <div className="mt-2 space-y-1 text-xs text-gray-600">
+                              {Array.isArray(item.customization.names) && (
+                                <p><span className="font-semibold">Names:</span> {(item.customization.names as string[]).join(', ')}</p>
+                              )}
+                              {typeof item.customization.date === 'string' && (
+                                <p><span className="font-semibold">Date:</span> {item.customization.date}</p>
+                              )}
+                              {typeof item.customization.songName === 'string' && (
+                                <p><span className="font-semibold">Song:</span> {item.customization.songName}</p>
+                              )}
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                {([
+                                  ...(Array.isArray(item.customization.imageUrls) ? item.customization.imageUrls : []),
+                                  ...(Array.isArray(item.customization.qrCodeImageUrls) ? item.customization.qrCodeImageUrls : []),
+                                ] as string[]).map((url, index) => (
+                                  <a key={`${url}-${index}`} href={url} target="_blank" rel="noopener noreferrer">
+                                    <img src={url} alt={`Customer customization ${index + 1}`} className="h-20 w-20 rounded-lg border border-gray-200 object-cover" />
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                       {item.customImageUrl && (

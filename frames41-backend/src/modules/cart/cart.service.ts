@@ -5,6 +5,70 @@ import { prisma } from '../../infrastructure/database/prisma.client.js';
 import { PricingEngine } from './pricing.engine.js';
 import type { CouponService } from '../coupon/coupon.service.js';
 import type { ShippingService } from '../shipping/shipping.service.js';
+import type { ProductCustomizationConfig } from '../product/product.types.js';
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string')
+    ? value
+    : [];
+}
+
+function validateCustomization(
+  rawConfig: unknown,
+  categorySlug: string,
+  customization: Record<string, unknown> | undefined,
+  legacyImageUrl: string | undefined,
+): void {
+  const config = (rawConfig ?? {}) as ProductCustomizationConfig;
+  const values = customization ?? {};
+  const imageUrls = readStringArray(values.imageUrls);
+  const names = readStringArray(values.names);
+  const qrCodeImageUrls = readStringArray(values.qrCodeImageUrls);
+  const legacyPhotoRequired = rawConfig == null && categorySlug === 'photo-frames';
+
+  if (legacyPhotoRequired && imageUrls.length === 0 && !legacyImageUrl) {
+    throw new BadRequestError('A photo is required for photo frame products');
+  }
+  if (config.numberOfImages?.enabled && imageUrls.length !== config.numberOfImages.count) {
+    throw new BadRequestError(`Exactly ${config.numberOfImages.count} customization image(s) are required`);
+  }
+  if (!config.numberOfImages?.enabled && !legacyPhotoRequired && imageUrls.length > 0) {
+    throw new BadRequestError('Customization images are not enabled for this product');
+  }
+  if (
+    config.numberOfNames?.enabled &&
+    (names.length !== config.numberOfNames.count || names.some((name) => !name.trim()))
+  ) {
+    throw new BadRequestError(`Exactly ${config.numberOfNames.count} name(s) are required`);
+  }
+  if (!config.numberOfNames?.enabled && names.length > 0) {
+    throw new BadRequestError('Names are not enabled for this product');
+  }
+  if (config.date?.enabled && (typeof values.date !== 'string' || !values.date)) {
+    throw new BadRequestError('A customization date is required');
+  }
+  if (!config.date?.enabled && values.date !== undefined) {
+    throw new BadRequestError('Date customization is not enabled for this product');
+  }
+  if (config.songName?.enabled && (
+    typeof values.songName !== 'string' ||
+    !values.songName.trim()
+  )) {
+    throw new BadRequestError('A song name is required');
+  }
+  if (!config.songName?.enabled && values.songName !== undefined) {
+    throw new BadRequestError('Song customization is not enabled for this product');
+  }
+  if (
+    config.qrCodeImages?.enabled &&
+    qrCodeImageUrls.length !== config.qrCodeImages.count
+  ) {
+    throw new BadRequestError(`Exactly ${config.qrCodeImages.count} QR code image(s) are required`);
+  }
+  if (!config.qrCodeImages?.enabled && qrCodeImageUrls.length > 0) {
+    throw new BadRequestError('QR code images are not enabled for this product');
+  }
+}
 
 /**
  * Cart service implementation
@@ -60,9 +124,12 @@ export class CartService implements ICartService {
       throw new BadRequestError('Product is not available');
     }
 
-    if (product.category.slug === 'photo-frames' && !data.customImageUrl) {
-      throw new BadRequestError('A photo is required for photo frame products');
-    }
+    validateCustomization(
+      product.customizationConfig,
+      product.category.slug,
+      data.customization,
+      data.customImageUrl,
+    );
 
     // Check stock
     if (product.stock < data.quantity) {
@@ -95,11 +162,16 @@ export class CartService implements ICartService {
     unitPrice = tierResult.unitPrice;
 
     // Check if item already exists in cart
-    const existingItem = await this.repository.findCartItem(
-      cart.id,
-      data.productId,
-      data.variantId,
-    );
+    const hasCustomization =
+      Boolean(data.customImageUrl) ||
+      Boolean(data.customization && Object.keys(data.customization).length > 0);
+    const existingItem = hasCustomization
+      ? null
+      : await this.repository.findCartItem(
+          cart.id,
+          data.productId,
+          data.variantId,
+        );
 
     if (existingItem) {
       // Update existing item

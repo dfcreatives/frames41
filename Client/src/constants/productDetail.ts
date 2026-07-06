@@ -120,4 +120,13 @@ export const PRODUCT_DATA: ProductData = {
   ],
   shippingNote: 'Free Shipping Worldwide',
   shippingDuration: '3–5 Business Days',
+  customizationConfig: {
+    numberOfImages: { enabled: false, count: 1 },
+    numberOfNames: { enabled: false, count: 1 },
+    date: { enabled: false },
+    songName: { enabled: false },
+    qrCodeImages: { enabled: false, count: 1 },
+    contactShop: { enabled: false, value: '' },
+    startingFrom: { enabled: false },
+  },
 }

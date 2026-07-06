@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import type { ProductData } from '../../types/productDetail'
 import { useProductDetail } from './hooks/useProductDetail'
 import ProductActions from './ProductActions'
@@ -7,11 +7,12 @@ import ProductInfo from './ProductInfo'
 import ProductTabs from './ProductTabs'
 import RelatedProducts from './RelatedProducts'
 import ReviewSummary from './ReviewSummary'
+import CustomerCustomizationForm from './CustomerCustomizationForm'
 
 export interface AddToCartPayload {
   readonly productId: string
   readonly quantity: number
-  readonly customization?: { wishes?: string }
+  readonly customization?: Record<string, unknown>
   readonly customImageUrl?: string
 }
 
@@ -43,48 +44,74 @@ export default function ProductDetail({
   } = useProductDetail(data.id)
 
   const [cartStatus, setCartStatus] = useState<'idle' | 'adding' | 'added'>('idle')
-  const [photo, setPhoto] = useState<File | null>(null)
-  const [wishes, setWishes] = useState('')
+  const [images, setImages] = useState<File[]>([])
+  const [names, setNames] = useState<string[]>([])
+  const [date, setDate] = useState('')
+  const [songName, setSongName] = useState('')
+  const [qrCodeImages, setQrCodeImages] = useState<File[]>([])
   const [customizationError, setCustomizationError] = useState('')
-  const isPhotoFrame = data.categorySlug === 'photo-frames'
-  const [photoPreview, setPhotoPreview] = useState('')
-
-  useEffect(() => {
-    if (!photo) {
-      setPhotoPreview('')
-      return
-    }
-    const url = URL.createObjectURL(photo)
-    setPhotoPreview(url)
-    return () => URL.revokeObjectURL(url)
-  }, [photo])
+  const config = data.customizationConfig
 
   const handleAddToCart = useCallback(async () => {
     if (!onAddToCart || cartStatus !== 'idle') return
-    if (isPhotoFrame && !photo) {
-      setCustomizationError('Please upload the photo you want framed.')
+    if (config.numberOfImages.enabled && images.length !== config.numberOfImages.count) {
+      setCustomizationError(`Please upload exactly ${config.numberOfImages.count} image(s).`)
+      return
+    }
+    if (config.numberOfNames.enabled && (
+      names.length !== config.numberOfNames.count ||
+      names.some((name) => !name.trim())
+    )) {
+      setCustomizationError(`Please enter all ${config.numberOfNames.count} name(s).`)
+      return
+    }
+    if (config.date.enabled && !date) {
+      setCustomizationError('Please select a date.')
+      return
+    }
+    if (config.songName.enabled && !songName.trim()) {
+      setCustomizationError('Please enter the song name.')
+      return
+    }
+    if (config.qrCodeImages.enabled && qrCodeImages.length !== config.qrCodeImages.count) {
+      setCustomizationError(`Please upload exactly ${config.qrCodeImages.count} QR code image(s).`)
+      return
+    }
+    const oversizedFile = [...images, ...qrCodeImages].find((file) => file.size > 200 * 1024 * 1024)
+    if (oversizedFile) {
+      setCustomizationError(`${oversizedFile.name} must be 200 MB or smaller.`)
       return
     }
     setCartStatus('adding')
+    setCustomizationError('')
     try {
-      let customImageUrl: string | undefined
-      if (photo) {
-        const { api } = await import('../../lib/api')
-        customImageUrl = (await api.cart.uploadPhoto(photo)).url
-      }
+      const { api } = await import('../../lib/api')
+      const imageUrls = await Promise.all(
+        images.map(async (file) => (await api.cart.uploadPhoto(file)).url),
+      )
+      const qrCodeImageUrls = await Promise.all(
+        qrCodeImages.map(async (file) => (await api.cart.uploadPhoto(file)).url),
+      )
+      const customization: Record<string, unknown> = {}
+      if (imageUrls.length) customization.imageUrls = imageUrls
+      if (config.numberOfNames.enabled) customization.names = names.map((name) => name.trim())
+      if (config.date.enabled) customization.date = date
+      if (config.songName.enabled) customization.songName = songName.trim()
+      if (qrCodeImageUrls.length) customization.qrCodeImageUrls = qrCodeImageUrls
+
       await onAddToCart({
         productId: data.id,
         quantity,
-        customImageUrl,
-        customization: wishes.trim() ? { wishes: wishes.trim() } : undefined,
+        customImageUrl: imageUrls[0],
+        customization: Object.keys(customization).length ? customization : undefined,
       })
       setCartStatus('added')
       setTimeout(() => setCartStatus('idle'), 2000)
     } catch {
-      if (isPhotoFrame) setCustomizationError('We could not upload this photo. Please try again.')
+      setCustomizationError('We could not save your customization. Please try again.')
       setCartStatus('idle')
     }
-  }, [onAddToCart, data.id, quantity, cartStatus, isPhotoFrame, photo, wishes])
+  }, [onAddToCart, data.id, quantity, cartStatus, config, images, names, date, songName, qrCodeImages])
 
   const handleWishlistToggle = useCallback(() => {
     const next = !isWishlisted
@@ -109,21 +136,22 @@ export default function ProductDetail({
             features={data.features}
           />
           <ProductActions
-            showPhotoCustomization={isPhotoFrame}
-            photo={photo}
-            photoPreview={photoPreview}
-            wishes={wishes}
-            customizationError={customizationError}
-            onPhotoChange={(file) => {
-              if (file && file.size > 200 * 1024 * 1024) {
-                setPhoto(null)
-                setCustomizationError('Photo must be 200 MB or smaller.')
-                return
-              }
-              setPhoto(file)
-              setCustomizationError('')
-            }}
-            onWishesChange={setWishes}
+            customizationContent={(
+              <CustomerCustomizationForm
+                config={config}
+                images={images}
+                names={names}
+                date={date}
+                songName={songName}
+                qrCodeImages={qrCodeImages}
+                error={customizationError}
+                onImagesChange={(files) => { setImages(files); setCustomizationError('') }}
+                onNamesChange={(values) => { setNames(values); setCustomizationError('') }}
+                onDateChange={(value) => { setDate(value); setCustomizationError('') }}
+                onSongNameChange={(value) => { setSongName(value); setCustomizationError('') }}
+                onQrCodeImagesChange={(files) => { setQrCodeImages(files); setCustomizationError('') }}
+              />
+            )}
             quantity={quantity}
             isWishlisted={isWishlisted}
             shippingNote={data.shippingNote}

@@ -1,4 +1,4 @@
-import type { Product, PrismaClient } from '@prisma/client';
+import type { Product, Prisma, PrismaClient } from '@prisma/client';
 import { PAGINATION } from '../../config/constants.js';
 import type {
   IProductRepository,
@@ -290,6 +290,7 @@ export class ProductRepository implements IProductRepository {
         isFeatured: data.isFeatured,
         categoryId: data.categoryId,
         fontOptions: data.fontOptions,
+        customizationConfig: data.customizationConfig as Prisma.InputJsonValue | undefined,
         specifications: data.specifications,
         careInstructions: data.careInstructions,
         weight: data.weight,
@@ -320,7 +321,7 @@ export class ProductRepository implements IProductRepository {
     const simpleFields = [
       'slug', 'name', 'description', 'shortDescription', 'basePrice',
       'discountedPrice', 'sku', 'stock', 'isActive', 'isBestSeller',
-      'isFeatured', 'categoryId', 'fontOptions', 'specifications', 'careInstructions',
+      'isFeatured', 'categoryId', 'fontOptions', 'customizationConfig', 'specifications', 'careInstructions',
       'weight', 'dimensions', 'metaTitle', 'metaDescription',
     ];
 

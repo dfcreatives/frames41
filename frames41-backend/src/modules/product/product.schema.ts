@@ -46,6 +46,24 @@ const priceTierSchema = z.object({
   pricePerUnit: decimalSchema,
 });
 
+const customizationToggleSchema = z.object({ enabled: z.boolean() });
+const customizationCountSchema = customizationToggleSchema.extend({
+  count: z.number().int().min(1).max(20),
+});
+const productCustomizationConfigSchema = z.object({
+  numberOfImages: customizationCountSchema.optional(),
+  numberOfNames: customizationCountSchema.optional(),
+  date: customizationToggleSchema.optional(),
+  songName: customizationToggleSchema.optional(),
+  qrCodeImages: customizationCountSchema.optional(),
+  contactShop: customizationToggleSchema.extend({
+    value: z.string().max(300).optional(),
+  }).optional(),
+  startingFrom: customizationToggleSchema.extend({
+    amount: decimalSchema.optional(),
+  }).optional(),
+}).optional();
+
 /**
  * Create product schema
  */
@@ -63,6 +81,7 @@ export const createProductSchema = z.object({
   isFeatured: z.boolean().default(false),
   categoryId: z.string().uuid(),
   fontOptions: z.array(z.string()).optional(),
+  customizationConfig: productCustomizationConfigSchema,
   specifications: z.record(z.union([z.string(), z.number()])).optional(),
   careInstructions: z.string().max(5000).optional(),
   weight: decimalSchema.optional(),

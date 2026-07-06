@@ -9,8 +9,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": "https://frames41-production.up.railway.app",
-      "/webhooks": "https://frames41-production.up.railway.app",
+      "/api": "http://localhost:3000",
+      "/webhooks": "http://localhost:3000",
     },
   },
 });

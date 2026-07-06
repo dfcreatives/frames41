@@ -246,6 +246,7 @@ model Product {
   isFeatured       Boolean  @default(false) @map("is_featured")
   categoryId       String   @map("category_id") @db.Uuid
   fontOptions      Json?    @map("font_options")
+  customizationConfig Json? @map("customization_config")
   specifications   Json?
   careInstructions String?  @map("care_instructions") @db.Text
   weight           Decimal? @db.Decimal(8, 2)

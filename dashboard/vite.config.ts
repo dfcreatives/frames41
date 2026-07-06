@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     port: 5174,
     proxy: {
-      "/api": "https://frames41-production.up.railway.app",
+      "/api": "http://localhost:3000",
     },
   },
 });

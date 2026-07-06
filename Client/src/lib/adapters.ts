@@ -1,5 +1,5 @@
 import type { Product, Category, CategoryProductSection } from '@/types/home'
-import type { ProductData, ProductImage, RelatedProduct } from '@/types/productDetail'
+import type { ProductData, ProductImage, RelatedProduct, ProductCustomizationConfig } from '@/types/productDetail'
 import type { ProductListingProduct } from '@/types/productListing'
 import type { CartLineItem, CartData, CartCharges } from '@/types/shipping'
 import type { ShippingAddress, CheckoutLineItem, CheckoutTotals } from '@/types/checkout'
@@ -19,6 +19,10 @@ type Raw = any
 export function adaptProduct(p: Raw): Product {
   const price = Number(p.discountedPrice ?? p.basePrice)
   const originalPrice = Number(p.basePrice)
+  const customizationConfig = p.customizationConfig ?? {}
+  const hasCustomization = Object.values(customizationConfig).some(
+    (option: Raw) => option?.enabled === true,
+  )
   return {
     id: p.id,
     slug: p.slug ?? p.id,
@@ -29,11 +33,37 @@ export function adaptProduct(p: Raw): Product {
     imageAlt: p.images?.[0]?.alt ?? p.name,
     badge: p.isBestSeller ? 'Bestseller' : p.isFeatured ? 'Featured' : undefined,
     description: p.shortDescription ?? p.description,
-    hasOptions: (p.variants?.length ?? 0) > 0,
+    hasOptions: (p.variants?.length ?? 0) > 0 || hasCustomization,
   }
 }
 
 export function adaptProductDetail(p: Raw): ProductData {
+  const rawConfig = p.customizationConfig ?? {}
+  const legacyPhotoFrame = p.category?.slug === 'photo-frames' && !p.customizationConfig
+  const customizationConfig: ProductCustomizationConfig = {
+    numberOfImages: {
+      enabled: rawConfig.numberOfImages?.enabled ?? legacyPhotoFrame,
+      count: rawConfig.numberOfImages?.count ?? 1,
+    },
+    numberOfNames: {
+      enabled: rawConfig.numberOfNames?.enabled ?? false,
+      count: rawConfig.numberOfNames?.count ?? 1,
+    },
+    date: { enabled: rawConfig.date?.enabled ?? false },
+    songName: { enabled: rawConfig.songName?.enabled ?? false },
+    qrCodeImages: {
+      enabled: rawConfig.qrCodeImages?.enabled ?? false,
+      count: rawConfig.qrCodeImages?.count ?? 1,
+    },
+    contactShop: {
+      enabled: rawConfig.contactShop?.enabled ?? false,
+      value: rawConfig.contactShop?.value ?? '',
+    },
+    startingFrom: {
+      enabled: rawConfig.startingFrom?.enabled ?? false,
+      amount: rawConfig.startingFrom?.amount == null ? undefined : Number(rawConfig.startingFrom.amount),
+    },
+  }
   return {
     id: p.id,
     categorySlug: p.category?.slug ?? '',
@@ -62,6 +92,7 @@ export function adaptProductDetail(p: Raw): ProductData {
       { id: 'care', label: 'Care', content: p.careInstructions ?? '' },
     ],
     relatedProducts: [],
+    customizationConfig,
     shippingNote: 'Free shipping on orders above ₹999',
     shippingDuration: '3–7 business days',
   }

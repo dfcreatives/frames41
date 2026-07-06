@@ -215,6 +215,11 @@ type AdminOrderApiShape = Omit<
       customText?: string
       customImageUrl?: string
       imageUrl?: string
+      imageUrls?: string[]
+      names?: string[]
+      date?: string
+      songName?: string
+      qrCodeImageUrls?: string[]
     } | null
   }>
   statusHistory?: Array<{
@@ -251,6 +256,7 @@ function normalizeAdminOrder(order: AdminOrderApiShape): AdminOrderDetail {
         item.customImageUrl ??
         item.customization?.customImageUrl ??
         item.customization?.imageUrl,
+      customization: item.customization ?? undefined,
     })),
     statusHistory: (order.statusHistory ?? []).map((entry) => ({
       status: entry.status,

@@ -74,7 +74,7 @@ EXPOSE 3000
 
 # Health check (uses the container's own port)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('https://frames41-production.up.railway.app/api/v1/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"
+  CMD node -e "require('http').get('http://localhost:3000/api/v1/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"
 
 # Start application
 CMD ["node", "dist/src/server.js"]

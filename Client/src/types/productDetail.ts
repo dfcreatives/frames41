@@ -40,6 +40,16 @@ export interface RelatedProduct {
   readonly href?: string
 }
 
+export interface ProductCustomizationConfig {
+  readonly numberOfImages: { readonly enabled: boolean; readonly count: number }
+  readonly numberOfNames: { readonly enabled: boolean; readonly count: number }
+  readonly date: { readonly enabled: boolean }
+  readonly songName: { readonly enabled: boolean }
+  readonly qrCodeImages: { readonly enabled: boolean; readonly count: number }
+  readonly contactShop: { readonly enabled: boolean; readonly value: string }
+  readonly startingFrom: { readonly enabled: boolean; readonly amount?: number }
+}
+
 export interface ProductData {
   readonly id: string
   readonly categorySlug: string
@@ -54,4 +64,5 @@ export interface ProductData {
   readonly relatedProducts: ReadonlyArray<RelatedProduct>
   readonly shippingNote: string
   readonly shippingDuration: string
+  readonly customizationConfig: ProductCustomizationConfig
 }

@@ -175,7 +175,11 @@ export class OrderService implements IOrderService {
       }
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
       return createdOrder;
-    }, { isolationLevel: 'Serializable' }).catch((error: unknown) => {
+    }, {
+      isolationLevel: 'Serializable',
+      maxWait: 10_000,
+      timeout: 20_000,
+    }).catch((error: unknown) => {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
         throw new ConflictError(
           'Checkout changed while your order was being placed. Please review and try again.',

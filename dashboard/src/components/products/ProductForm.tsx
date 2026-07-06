@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import type { AdminProductDetail, ProductFormData, AdminCategory } from '@/types/admin'
+import type { AdminProductDetail, ProductFormData, AdminCategory, ProductCustomizationConfig } from '@/types/admin'
 import { api } from '@/lib/api'
 import { useToast } from '@/hooks/useToast'
 import { validateField, type ValidationRule } from '@/lib/validation'
@@ -16,6 +16,16 @@ interface Props {
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
+
+const emptyCustomizationConfig = (): ProductCustomizationConfig => ({
+  numberOfImages: { enabled: false, count: 1 },
+  numberOfNames: { enabled: false, count: 1 },
+  date: { enabled: false },
+  songName: { enabled: false },
+  qrCodeImages: { enabled: false, count: 1 },
+  contactShop: { enabled: false, value: '' },
+  startingFrom: { enabled: false, amount: undefined },
+})
 
 function buildInitial(p?: AdminProductDetail | null): ProductFormData {
   return {
@@ -37,6 +47,7 @@ function buildInitial(p?: AdminProductDetail | null): ProductFormData {
     priceTiers: p?.priceTiers?.map(({ minQty, maxQty, pricePerUnit }) => ({ minQty, maxQty, pricePerUnit })) ?? [],
     seoTitle: p?.seoTitle ?? '',
     seoDescription: p?.seoDescription ?? '',
+    customizationConfig: p?.customizationConfig ?? emptyCustomizationConfig(),
   }
 }
 
@@ -124,6 +135,23 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
 
     if (data.imageUrls.filter(Boolean).length === 0) {
       errs.images = 'At least one image is required'
+    }
+
+    const config = data.customizationConfig
+    if (config.numberOfImages.enabled && (config.numberOfImages.count < 1 || config.numberOfImages.count > 20)) {
+      errs.customizationImages = 'Number of images must be between 1 and 20'
+    }
+    if (config.numberOfNames.enabled && (config.numberOfNames.count < 1 || config.numberOfNames.count > 20)) {
+      errs.customizationNames = 'Number of names must be between 1 and 20'
+    }
+    if (config.qrCodeImages.enabled && (config.qrCodeImages.count < 1 || config.qrCodeImages.count > 20)) {
+      errs.customizationQrCodes = 'Number of QR code images must be between 1 and 20'
+    }
+    if (config.contactShop.enabled && !config.contactShop.value.trim()) {
+      errs.customizationContact = 'Contact details are required'
+    }
+    if (config.startingFrom.enabled && (!config.startingFrom.amount || config.startingFrom.amount < 0)) {
+      errs.customizationStartingFrom = 'Starting From amount is required'
     }
 
     if (data.variants.length > 0) {
@@ -231,6 +259,13 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
   const inputCls = 'w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
   const inputErrorCls = 'border-red-300 focus:border-red-400 focus:ring-red-100'
   const checkboxCls = 'w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary'
+
+  const updateCustomization = <K extends keyof ProductCustomizationConfig>(
+    key: K,
+    value: ProductCustomizationConfig[K],
+  ) => {
+    set('customizationConfig', { ...form.customizationConfig, [key]: value })
+  }
 
   const flatCats = flattenCategories(categories)
 
@@ -475,6 +510,129 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
             ))}
           </div>
         )}
+      </div>
+
+      {/* Customer input requirements */}
+      <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="border-b border-gray-100 pb-3">
+          <h3 className="text-sm font-semibold text-gray-700">Customer Input Requirements</h3>
+          <p className="mt-1 text-xs text-gray-500">Only checked fields will appear on the product page.</p>
+        </div>
+
+        {([
+          ['numberOfImages', 'No. of Images'],
+          ['numberOfNames', 'No. of Names'],
+          ['qrCodeImages', 'QR Code Images'],
+        ] as const).map(([key, label]) => {
+          const option = form.customizationConfig[key]
+          const errorKey = key === 'numberOfImages'
+            ? 'customizationImages'
+            : key === 'numberOfNames'
+              ? 'customizationNames'
+              : 'customizationQrCodes'
+          return (
+            <div key={key} className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px] sm:items-center">
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={option.enabled}
+                  onChange={(e) => updateCustomization(key, { ...option, enabled: e.target.checked })}
+                  className={checkboxCls}
+                />
+                <span className="text-sm text-gray-700">{label}</span>
+              </label>
+              {option.enabled && (
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={option.count}
+                  aria-label={`${label} required`}
+                  onChange={(e) => updateCustomization(key, { ...option, count: Number(e.target.value) })}
+                  className={`${inputCls} ${errors[errorKey] ? inputErrorCls : ''}`}
+                />
+              )}
+              {option.enabled && errors[errorKey] && (
+                <p className="text-xs text-red-500 sm:col-start-2">{errors[errorKey]}</p>
+              )}
+            </div>
+          )
+        })}
+
+        {([
+          ['date', 'Date'],
+          ['songName', 'Name of the Song'],
+        ] as const).map(([key, label]) => {
+          const option = form.customizationConfig[key]
+          return (
+            <label key={key} className="flex cursor-pointer items-center gap-3">
+              <input
+                type="checkbox"
+                checked={option.enabled}
+                onChange={(e) => updateCustomization(key, { enabled: e.target.checked })}
+                className={checkboxCls}
+              />
+              <span className="text-sm text-gray-700">{label}</span>
+            </label>
+          )
+        })}
+
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(240px,1fr)] sm:items-center">
+          <label className="flex cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              checked={form.customizationConfig.contactShop.enabled}
+              onChange={(e) => updateCustomization('contactShop', {
+                ...form.customizationConfig.contactShop,
+                enabled: e.target.checked,
+              })}
+              className={checkboxCls}
+            />
+            <span className="text-sm text-gray-700">Contact Shop</span>
+          </label>
+          {form.customizationConfig.contactShop.enabled && (
+            <input
+              value={form.customizationConfig.contactShop.value}
+              onChange={(e) => updateCustomization('contactShop', {
+                ...form.customizationConfig.contactShop,
+                value: e.target.value,
+              })}
+              placeholder="Phone, WhatsApp link, or instructions"
+              className={`${inputCls} ${errors.customizationContact ? inputErrorCls : ''}`}
+            />
+          )}
+          {errors.customizationContact && <p className="text-xs text-red-500 sm:col-start-2">{errors.customizationContact}</p>}
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px] sm:items-center">
+          <label className="flex cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              checked={form.customizationConfig.startingFrom.enabled}
+              onChange={(e) => updateCustomization('startingFrom', {
+                ...form.customizationConfig.startingFrom,
+                enabled: e.target.checked,
+              })}
+              className={checkboxCls}
+            />
+            <span className="text-sm text-gray-700">Starting From</span>
+          </label>
+          {form.customizationConfig.startingFrom.enabled && (
+            <input
+              type="number"
+              min={0}
+              step="0.01"
+              value={form.customizationConfig.startingFrom.amount ?? ''}
+              onChange={(e) => updateCustomization('startingFrom', {
+                ...form.customizationConfig.startingFrom,
+                amount: e.target.value === '' ? undefined : Number(e.target.value),
+              })}
+              placeholder="Amount"
+              className={`${inputCls} ${errors.customizationStartingFrom ? inputErrorCls : ''}`}
+            />
+          )}
+          {errors.customizationStartingFrom && <p className="text-xs text-red-500 sm:col-start-2">{errors.customizationStartingFrom}</p>}
+        </div>
       </div>
 
       {/* Flags */}

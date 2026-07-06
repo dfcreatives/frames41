@@ -1,6 +1,16 @@
 import type { Product, ProductImage, ProductVariant, ProductPriceTier, Prisma } from '@prisma/client';
 import type { PaginatedResult, PaginationParams } from '../../shared/types/index.js';
 
+export interface ProductCustomizationConfig {
+  numberOfImages?: { enabled: boolean; count: number };
+  numberOfNames?: { enabled: boolean; count: number };
+  date?: { enabled: boolean };
+  songName?: { enabled: boolean };
+  qrCodeImages?: { enabled: boolean; count: number };
+  contactShop?: { enabled: boolean; value?: string };
+  startingFrom?: { enabled: boolean; amount?: number };
+}
+
 /**
  * Product with relations
  */
@@ -122,6 +132,7 @@ export interface CreateProductData {
   isFeatured: boolean;
   categoryId: string;
   fontOptions?: string[];
+  customizationConfig?: ProductCustomizationConfig;
   specifications?: Record<string, string | number>;
   careInstructions?: string;
   weight?: number;

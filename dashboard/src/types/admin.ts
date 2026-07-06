@@ -98,6 +98,7 @@ export interface AdminOrderDetail {
     imageUrl?: string
     customText?: string
     customImageUrl?: string
+    customization?: Record<string, unknown>
   }[]
   subtotal: number
   discount: number
@@ -195,6 +196,17 @@ export interface AdminProductListItem {
   imageUrls?: string[]
   specifications?: Record<string, string | number>
   careInstructions?: string
+  customizationConfig?: ProductCustomizationConfig
+}
+
+export interface ProductCustomizationConfig {
+  numberOfImages: { enabled: boolean; count: number }
+  numberOfNames: { enabled: boolean; count: number }
+  date: { enabled: boolean }
+  songName: { enabled: boolean }
+  qrCodeImages: { enabled: boolean; count: number }
+  contactShop: { enabled: boolean; value: string }
+  startingFrom: { enabled: boolean; amount?: number }
 }
 
 export interface AdminProductDetail extends AdminProductListItem {
@@ -204,6 +216,7 @@ export interface AdminProductDetail extends AdminProductListItem {
   priceTiers: PriceTier[]
   seoTitle?: string
   seoDescription?: string
+  customizationConfig: ProductCustomizationConfig
 }
 
 export interface ProductImageInput {
@@ -233,6 +246,7 @@ export interface ProductFormData {
   priceTiers: Omit<PriceTier, 'id'>[]
   seoTitle?: string
   seoDescription?: string
+  customizationConfig: ProductCustomizationConfig
 }
 
 // ─── Categories ────────────────────────────────────────────────────────────────
