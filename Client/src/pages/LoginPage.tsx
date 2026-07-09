@@ -3,6 +3,60 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 
 type Mode = 'login' | 'signup' | 'verify'
+type FieldErrors = Partial<Record<'name' | 'email' | 'password' | 'code' | 'form', string>>
+
+const defaultAuthError = 'Something went wrong. Please try again.'
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (typeof err === 'object' && err !== null && 'response' in err) {
+    const response = (err as { response?: { data?: { error?: { message?: string } } } }).response
+    const message = response?.data?.error?.message
+
+    if (message) {
+      return humanizeAuthError(message)
+    }
+  }
+
+  if (err instanceof Error) {
+    return humanizeAuthError(err.message)
+  }
+
+  return fallback
+}
+
+function humanizeAuthError(message: string): string {
+  const normalized = message.toLowerCase()
+
+  if (normalized.includes('invalid email or password') || normalized.includes('status code 401')) {
+    return 'Email or password is incorrect. Please check your details and try again.'
+  }
+
+  if (normalized.includes('verify your email')) {
+    return 'Please verify your email before signing in. Check your inbox for the 6-digit code.'
+  }
+
+  if (normalized.includes('already exists')) {
+    return 'An account with this email already exists. Please sign in instead.'
+  }
+
+  if (normalized.includes('already verified')) {
+    return 'This email is already verified. Please sign in instead.'
+  }
+
+  if (normalized.includes('verification code')) {
+    return 'The verification code is incorrect or has expired. Please check the code or request a new one.'
+  }
+
+  if (normalized.includes('network')) {
+    return 'We could not reach the server. Please check your connection and try again.'
+  }
+
+  if (normalized.includes('timeout')) {
+    return 'The request took too long. Please try again.'
+  }
+
+  return message || defaultAuthError
+}
 
 export default function LoginPage() {
   const { login, signup, verifyEmail, resendVerification, isAuthenticated } = useAuth()
@@ -25,7 +79,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState<FieldErrors>({})
   const [loading, setLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
 
@@ -43,17 +97,68 @@ export default function LoginPage() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
   }
 
+  function validateLogin(): FieldErrors {
+    const nextErrors: FieldErrors = {}
+    const cleanEmail = email.trim()
+
+    if (!cleanEmail) {
+      nextErrors.email = 'Please enter your email address.'
+    } else if (!validateEmail(cleanEmail)) {
+      nextErrors.email = 'Please enter a valid email address, like name@example.com.'
+    }
+
+    if (!password) {
+      nextErrors.password = 'Please enter your password.'
+    }
+
+    return nextErrors
+  }
+
+  function validateSignup(): FieldErrors {
+    const nextErrors = validateLogin()
+
+    if (name.length > 100) {
+      nextErrors.name = 'Name must be 100 characters or less.'
+    }
+
+    if (!password) {
+      nextErrors.password = 'Please create a password.'
+    } else if (password.length < 8) {
+      nextErrors.password = 'Password must be at least 8 characters.'
+    } else if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+      nextErrors.password = 'Password must include at least one letter and one number.'
+    }
+
+    return nextErrors
+  }
+
+  function validateCode(): FieldErrors {
+    if (!code) return { code: 'Please enter the 6-digit verification code.' }
+    if (!/^\d{6}$/.test(code)) return { code: 'Verification code must be exactly 6 digits.' }
+    return {}
+  }
+
+  function hasErrors(nextErrors: FieldErrors): boolean {
+    return Object.keys(nextErrors).length > 0
+  }
+
+  function updateField(field: keyof FieldErrors, value: string, setter: (value: string) => void) {
+    setter(value)
+    setErrors((current) => ({ ...current, [field]: undefined, form: undefined }))
+  }
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
-    if (!validateEmail(email)) { setError('Enter a valid email'); return }
-    if (password.length < 8) { setError('Password must be at least 8 characters'); return }
+    const nextErrors = validateLogin()
+    setErrors(nextErrors)
+    if (hasErrors(nextErrors)) return
+
     setLoading(true)
     try {
-      await login(email, password)
+      await login(email.trim(), password)
       // Navigation is handled by the useEffect below once isAuthenticated flips to true
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      setErrors({ form: getErrorMessage(err, 'We could not sign you in. Please try again.') })
     } finally {
       setLoading(false)
     }
@@ -61,16 +166,17 @@ export default function LoginPage() {
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
-    if (!validateEmail(email)) { setError('Enter a valid email'); return }
-    if (password.length < 8) { setError('Password must be at least 8 characters'); return }
+    const nextErrors = validateSignup()
+    setErrors(nextErrors)
+    if (hasErrors(nextErrors)) return
+
     setLoading(true)
     try {
-      const { expiresIn } = await signup(email, password, name || undefined)
+      const { expiresIn } = await signup(email.trim(), password, name.trim() || undefined)
       setCountdown(expiresIn)
       setMode('verify')
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Signup failed')
+      setErrors({ form: getErrorMessage(err, 'We could not create your account. Please try again.') })
     } finally {
       setLoading(false)
     }
@@ -78,28 +184,30 @@ export default function LoginPage() {
 
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
-    if (!/^\d{6}$/.test(code)) { setError('Enter the 6-digit code'); return }
+    const nextErrors = validateCode()
+    setErrors(nextErrors)
+    if (hasErrors(nextErrors)) return
+
     setLoading(true)
     try {
-      await verifyEmail(email, code)
+      await verifyEmail(email.trim(), code)
       // Navigation is handled by the useEffect below once isAuthenticated flips to true
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Invalid verification code')
+      setErrors({ form: getErrorMessage(err, 'We could not verify this code. Please try again.') })
     } finally {
       setLoading(false)
     }
   }
 
   async function handleResend() {
-    setError('')
+    setErrors({})
     setCode('')
     setLoading(true)
     try {
-      const { expiresIn } = await resendVerification(email)
+      const { expiresIn } = await resendVerification(email.trim())
       setCountdown(expiresIn)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to resend code')
+      setErrors({ form: getErrorMessage(err, 'We could not resend the code. Please try again.') })
     } finally {
       setLoading(false)
     }
@@ -125,15 +233,19 @@ export default function LoginPage() {
             <div>
               <label className="block text-sm font-medium text-[#1A1A1A] mb-1">Verification Code</label>
               <input
+                id="verification-code"
                 type="text"
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(e) => updateField('code', e.target.value.replace(/\D/g, '').slice(0, 6), setCode)}
                 placeholder="Enter 6-digit code"
-                className="w-full border border-[#E0E0E0] rounded-lg px-3 py-3 text-sm outline-none focus:border-[#800020] tracking-widest"
+                className={`w-full border rounded-lg px-3 py-3 text-sm outline-none focus:border-[#800020] tracking-widest ${errors.code ? 'border-red-500' : 'border-[#E0E0E0]'}`}
+                aria-invalid={Boolean(errors.code)}
+                aria-describedby={errors.code ? 'verification-code-error' : undefined}
                 autoFocus
               />
+              {errors.code && <p id="verification-code-error" className="text-xs text-red-600 mt-1">{errors.code}</p>}
             </div>
-            {error && <p className="text-xs text-red-600">{error}</p>}
+            {errors.form && <p className="text-xs text-red-600">{errors.form}</p>}
             <button
               type="submit"
               disabled={loading}
@@ -157,7 +269,7 @@ export default function LoginPage() {
             </div>
             <button
               type="button"
-              onClick={() => { setMode('signup'); setCode(''); setError('') }}
+              onClick={() => { setMode('signup'); setCode(''); setErrors({}) }}
               className="w-full text-xs text-[#6B6B6B] text-center"
             >
               ← Use a different email
@@ -169,36 +281,48 @@ export default function LoginPage() {
               <div>
                 <label className="block text-sm font-medium text-[#1A1A1A] mb-1">Name (optional)</label>
                 <input
+                  id="name"
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => updateField('name', e.target.value, setName)}
                   placeholder="Your name"
-                  className="w-full border border-[#E0E0E0] rounded-lg px-3 py-3 text-sm outline-none focus:border-[#800020]"
+                  className={`w-full border rounded-lg px-3 py-3 text-sm outline-none focus:border-[#800020] ${errors.name ? 'border-red-500' : 'border-[#E0E0E0]'}`}
+                  aria-invalid={Boolean(errors.name)}
+                  aria-describedby={errors.name ? 'name-error' : undefined}
                 />
+                {errors.name && <p id="name-error" className="text-xs text-red-600 mt-1">{errors.name}</p>}
               </div>
             )}
             <div>
               <label className="block text-sm font-medium text-[#1A1A1A] mb-1">Email</label>
               <input
+                id="email"
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => updateField('email', e.target.value, setEmail)}
                 placeholder="you@example.com"
-                className="w-full border border-[#E0E0E0] rounded-lg px-3 py-3 text-sm outline-none focus:border-[#800020]"
+                className={`w-full border rounded-lg px-3 py-3 text-sm outline-none focus:border-[#800020] ${errors.email ? 'border-red-500' : 'border-[#E0E0E0]'}`}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? 'email-error' : undefined}
                 autoFocus
               />
+              {errors.email && <p id="email-error" className="text-xs text-red-600 mt-1">{errors.email}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-[#1A1A1A] mb-1">Password</label>
               <input
+                id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 8 characters"
-                className="w-full border border-[#E0E0E0] rounded-lg px-3 py-3 text-sm outline-none focus:border-[#800020]"
+                onChange={(e) => updateField('password', e.target.value, setPassword)}
+                placeholder={mode === 'login' ? 'Enter your password' : 'At least 8 characters'}
+                className={`w-full border rounded-lg px-3 py-3 text-sm outline-none focus:border-[#800020] ${errors.password ? 'border-red-500' : 'border-[#E0E0E0]'}`}
+                aria-invalid={Boolean(errors.password)}
+                aria-describedby={errors.password ? 'password-error' : undefined}
               />
+              {errors.password && <p id="password-error" className="text-xs text-red-600 mt-1">{errors.password}</p>}
             </div>
-            {error && <p className="text-xs text-red-600">{error}</p>}
+            {errors.form && <p className="text-xs text-red-600">{errors.form}</p>}
             <button
               type="submit"
               disabled={loading}
@@ -211,13 +335,13 @@ export default function LoginPage() {
             <p className="text-center text-xs text-[#6B6B6B]">
               {mode === 'login' ? (
                 <>Don't have an account?{' '}
-                  <button type="button" onClick={() => { setMode('signup'); setError('') }} className="text-[#800020] font-medium">
+                  <button type="button" onClick={() => { setMode('signup'); setErrors({}) }} className="text-[#800020] font-medium">
                     Sign up
                   </button>
                 </>
               ) : (
                 <>Already have an account?{' '}
-                  <button type="button" onClick={() => { setMode('login'); setError('') }} className="text-[#800020] font-medium">
+                  <button type="button" onClick={() => { setMode('login'); setErrors({}) }} className="text-[#800020] font-medium">
                     Sign in
                   </button>
                 </>

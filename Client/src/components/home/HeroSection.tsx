@@ -154,7 +154,7 @@ export default function HeroSection({ data, banners = [] }: HeroSectionProps) {
               src={s.img}
               alt={s.alt}
               loading={i === 0 ? 'eager' : 'lazy'}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
             />
           </picture>
           {/* overlay: light on mobile (no text), darker on desktop */}

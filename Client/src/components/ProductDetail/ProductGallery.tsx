@@ -14,7 +14,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
 
   return (
     <div className="lg:col-span-7 flex flex-col gap-4">
-      <div className="aspect-[4/5] sm:aspect-[4/5] rounded-xl overflow-hidden bg-surface-container-low border border-outline-variant/30">
+      <div className="aspect-square rounded-xl overflow-hidden bg-surface-container-low border border-outline-variant/30">
         {selectedImage?.isVideo ? (
           <div className="w-full h-full flex items-center justify-center bg-surface-container">
             <Icon name="play_circle" className="text-outline text-4xl sm:text-6xl" />
