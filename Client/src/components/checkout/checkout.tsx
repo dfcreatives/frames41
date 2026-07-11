@@ -15,6 +15,7 @@ interface CheckoutProps {
   defaultAddressId: string
   defaultDeliveryId: string
   onProceedToPayment?: (params: CheckoutSubmitParams) => void
+  isProceeding?: boolean
   onEditAddress?: (id: string) => void
   onSaveAddress?: (data: AddressFormData) => Promise<unknown>
   couponCode?: string | null
@@ -28,6 +29,7 @@ export default function Checkout({
   defaultAddressId,
   defaultDeliveryId,
   onProceedToPayment,
+  isProceeding = false,
   onEditAddress,
   onSaveAddress,
   couponCode,
@@ -88,6 +90,7 @@ export default function Checkout({
           selectedDelivery={selectedDelivery}
           onProceed={handleProceed}
           canProceed={!!selectedAddressId}
+          isProceeding={isProceeding}
           couponCode={couponCode}
           applyingCoupon={applyingCoupon}
           onApplyCoupon={onApplyCoupon}

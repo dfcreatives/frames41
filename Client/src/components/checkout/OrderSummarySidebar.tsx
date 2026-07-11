@@ -76,6 +76,7 @@ interface OrderSummarySidebarProps {
   selectedDelivery: DeliveryMethod | undefined
   onProceed: () => void
   canProceed: boolean
+  isProceeding?: boolean
   couponCode?: string | null
   applyingCoupon?: boolean
   onApplyCoupon?: (code: string) => Promise<number>
@@ -88,6 +89,7 @@ export default function OrderSummarySidebar({
   selectedDelivery,
   onProceed,
   canProceed,
+  isProceeding = false,
   couponCode,
   applyingCoupon = false,
   onApplyCoupon,
@@ -188,10 +190,10 @@ export default function OrderSummarySidebar({
         <button
           type="button"
           onClick={onProceed}
-          disabled={!canProceed}
+          disabled={!canProceed || isProceeding}
           className="w-full bg-primary text-white font-label-bold py-5 mt-8 uppercase tracking-widest transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary disabled:opacity-40 disabled:cursor-not-allowed enabled:hover:opacity-90 enabled:active:scale-[0.98]"
         >
-          Proceed to Payment
+          {isProceeding ? 'Placing Order...' : 'Proceed to Payment'}
         </button>
         {!canProceed && (
           <p className="text-center text-[11px] text-secondary mt-2">

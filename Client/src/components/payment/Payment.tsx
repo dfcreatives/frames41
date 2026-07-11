@@ -8,7 +8,7 @@ import { FOOTER_COLUMNS, SOCIAL_LINKS } from '../../constants/home'
 import PaymentMethodSelector from './PaymentMethodSelector'
 import OrderSummaryPanel from './OrderSummaryPanel'
 
-const DEFAULT_METHOD: PaymentMethodId = 'upi'
+const DEFAULT_METHOD: PaymentMethodId = 'razorpay'
 
 interface PaymentProps {
   summary: PaymentOrderSummary

@@ -169,7 +169,7 @@ NODE_ENV="development"
 API_VERSION="v1"
 
 # CORS
-CORS_ORIGIN="http://localhost:3000,http://localhost:5173"
+CORS_ORIGIN="https://frames41-production.up.railway.app,http://localhost:5173"
 ```
 
 ### 3. Database Setup

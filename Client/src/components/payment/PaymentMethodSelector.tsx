@@ -1,6 +1,7 @@
 import type { PaymentMethodId, PaymentPayload, PaymentStatus } from '../../types/payment'
 import { PAYMENT_METHODS } from '../../constants/payment'
 import PaymentMethodOption from './PaymentMethodOption'
+import RazorpayForm from './RazorpayForm'
 import UpiForm from './UpiForm'
 import CardForm from './CardForm'
 import NetbankingForm from './NetbankingForm'
@@ -24,6 +25,14 @@ export default function PaymentMethodSelector({
 }: PaymentMethodSelectorProps) {
   const activeForm = (() => {
     switch (selectedMethod) {
+      case 'razorpay':
+        return (
+          <RazorpayForm
+            formId={formId}
+            status={status}
+            onSubmit={() => onSubmit({ method: 'razorpay' })}
+          />
+        )
       case 'upi':
         return (
           <UpiForm

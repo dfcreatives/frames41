@@ -174,6 +174,15 @@ interface PaginatedResponse<T> {
   hasMore: boolean;
 }
 
+interface PaymentOrderResponse {
+  razorpayOrderId: string;
+  amount: number;
+  amountInPaise: number;
+  currency: string;
+  keyId: string;
+  orderNumber: string;
+}
+
 function unwrapPaginated<T>(promise: Promise<AxiosResponse>): Promise<PaginatedResponse<T>> {
   return promise.then((res) => {
     if (res.data.success === false)
@@ -307,8 +316,12 @@ export const api = {
   },
 
   orders: {
-    create: (data: { addressId: string; couponCode?: string }) =>
-      unwrap<unknown>(instance.post("/orders", data)),
+    create: (data: { addressId: string; couponCode?: string }, idempotencyKey?: string) =>
+      unwrap<unknown>(instance.post(
+        "/orders",
+        data,
+        idempotencyKey ? { headers: { "Idempotency-Key": idempotencyKey } } : undefined,
+      )),
     list: (params?: Record<string, unknown>) =>
       unwrap<unknown>(instance.get("/orders", { params })),
     getById: (id: string) => unwrap<unknown>(instance.get(`/orders/${id}`)),
@@ -322,7 +335,7 @@ export const api = {
 
   payments: {
     create: (orderId: string) =>
-      unwrap<unknown>(
+      unwrap<PaymentOrderResponse>(
         instance.post(
           "/payments/create",
           { orderId },

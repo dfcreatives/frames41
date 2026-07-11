@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import type { Prisma } from '@prisma/client';
 import { razorpayClient } from '../../infrastructure/external/razorpay.client.js';
 import { prisma } from '../../infrastructure/database/prisma.client.js';
 import { logger } from '../../infrastructure/logger/pino.logger.js';
@@ -14,7 +15,9 @@ export async function handleRazorpayWebhook(
   try {
     // Verify webhook signature
     const signature = req.headers['x-razorpay-signature'] as string;
-    const body = JSON.stringify(req.body);
+    const rawBody = Buffer.isBuffer(req.body)
+      ? req.body.toString('utf8')
+      : JSON.stringify(req.body);
 
     if (!signature || !env.RAZORPAY_WEBHOOK_SECRET) {
       res.status(400).json({ error: 'Missing signature or webhook secret' });
@@ -22,7 +25,7 @@ export async function handleRazorpayWebhook(
     }
 
     const isValid = razorpayClient.verifyWebhookSignature(
-      body,
+      rawBody,
       signature,
       env.RAZORPAY_WEBHOOK_SECRET,
     );
@@ -32,13 +35,19 @@ export async function handleRazorpayWebhook(
       return;
     }
 
-    const event = req.body;
+    const event = JSON.parse(rawBody) as RazorpayWebhookEvent;
+    const eventId = (req.headers['x-razorpay-event-id'] as string | undefined) || event.id;
+
+    if (!eventId) {
+      res.status(400).json({ error: 'Missing event id' });
+      return;
+    }
 
     // Check for duplicate webhook
     const existingEvent = await prisma.webhookEvent.findFirst({
       where: {
         provider: 'RAZORPAY',
-        eventId: event.id,
+        eventId,
       },
     });
 
@@ -51,29 +60,36 @@ export async function handleRazorpayWebhook(
     await prisma.webhookEvent.create({
       data: {
         provider: 'RAZORPAY',
-        eventId: event.id,
-        payload: event,
-        processedAt: new Date(),
+        eventId,
+        payload: event as unknown as Prisma.InputJsonValue,
       },
     });
 
     // Handle event
     switch (event.event) {
       case 'payment.captured':
+        if (!event.payload.payment) throw new Error('Missing payment payload');
         await handlePaymentCaptured(event.payload.payment.entity);
         break;
 
       case 'payment.failed':
+        if (!event.payload.payment) throw new Error('Missing payment payload');
         await handlePaymentFailed(event.payload.payment.entity);
         break;
 
       case 'order.paid':
+        if (!event.payload.order) throw new Error('Missing order payload');
         await handleOrderPaid(event.payload.order.entity);
         break;
 
       default:
         logger.info({ event: event.event }, 'Unhandled Razorpay webhook event');
     }
+
+    await prisma.webhookEvent.update({
+      where: { eventId },
+      data: { processedAt: new Date() },
+    });
 
     res.status(200).json({ received: true });
   } catch (error) {
@@ -82,15 +98,30 @@ export async function handleRazorpayWebhook(
   }
 }
 
+interface RazorpayWebhookPayment {
+  [key: string]: unknown;
+  id: string;
+  order_id: string;
+  status?: string;
+  method?: string;
+  amount?: number;
+  error_code?: string;
+  error_description?: string;
+}
+
+interface RazorpayWebhookEvent {
+  id?: string;
+  event: string;
+  payload: {
+    payment?: { entity: RazorpayWebhookPayment };
+    order?: { entity: { id: string; status: string } };
+  };
+}
+
 /**
  * Handle payment captured event
  */
-async function handlePaymentCaptured(payment: {
-  id: string;
-  order_id: string;
-  status: string;
-  method: string;
-}): Promise<void> {
+async function handlePaymentCaptured(payment: RazorpayWebhookPayment): Promise<void> {
   logger.info({ paymentId: payment.id }, 'Payment captured webhook received');
 
   // Find payment record
@@ -103,45 +134,45 @@ async function handlePaymentCaptured(payment: {
     return;
   }
 
-  // Update payment
-  await prisma.payment.update({
-    where: { id: paymentRecord.id },
-    data: {
-      razorpayPaymentId: payment.id,
-      status: 'CAPTURED',
-      method: payment.method,
-      capturedAt: new Date(),
-    },
-  });
+  if (payment.amount && payment.amount !== Math.round(Number(paymentRecord.amount) * 100)) {
+    logger.warn(
+      { paymentId: payment.id, orderId: paymentRecord.orderId },
+      'Ignoring captured webhook with mismatched amount',
+    );
+    return;
+  }
 
-  // Update order
-  await prisma.order.update({
-    where: { id: paymentRecord.orderId },
-    data: {
-      status: 'PAID',
-      paidAt: new Date(),
-    },
-  });
-
-  // Add status history
-  await prisma.orderStatusHistory.create({
-    data: {
-      orderId: paymentRecord.orderId,
-      status: 'PAID',
-      note: 'Payment confirmed via webhook',
-    },
-  });
+  await prisma.$transaction([
+    prisma.payment.update({
+      where: { id: paymentRecord.id },
+      data: {
+        razorpayPaymentId: payment.id,
+        status: 'CAPTURED',
+        method: payment.method ?? null,
+        capturedAt: new Date(),
+      },
+    }),
+    prisma.order.update({
+      where: { id: paymentRecord.orderId },
+      data: {
+        status: 'PAID',
+        paidAt: new Date(),
+      },
+    }),
+    prisma.orderStatusHistory.create({
+      data: {
+        orderId: paymentRecord.orderId,
+        status: 'PAID',
+        note: 'Payment confirmed via webhook',
+      },
+    }),
+  ]);
 }
 
 /**
  * Handle payment failed event
  */
-async function handlePaymentFailed(payment: {
-  id: string;
-  order_id: string;
-  error_code?: string;
-  error_description?: string;
-}): Promise<void> {
+async function handlePaymentFailed(payment: RazorpayWebhookPayment): Promise<void> {
   logger.info({ paymentId: payment.id }, 'Payment failed webhook received');
 
   // Find payment record
@@ -154,32 +185,30 @@ async function handlePaymentFailed(payment: {
     return;
   }
 
-  // Update payment
-  await prisma.payment.update({
-    where: { id: paymentRecord.id },
-    data: {
-      status: 'FAILED',
-    },
-  });
-
-  // Release all reserved stock concurrently.
-  await prisma.$transaction(paymentRecord.order.items.map((item) =>
-    prisma.product.update({
-      where: { id: item.productId },
+  await prisma.$transaction([
+    prisma.payment.update({
+      where: { id: paymentRecord.id },
       data: {
-        stock: { increment: item.quantity },
+        razorpayPaymentId: payment.id,
+        status: 'FAILED',
       },
     }),
-  ));
-
-  // Add status history
-  await prisma.orderStatusHistory.create({
-    data: {
-      orderId: paymentRecord.orderId,
-      status: 'PENDING',
-      note: `Payment failed: ${payment.error_description || 'Unknown error'}`,
-    },
-  });
+    ...paymentRecord.order.items.map((item) =>
+      prisma.product.update({
+        where: { id: item.productId },
+        data: {
+          stock: { increment: item.quantity },
+        },
+      }),
+    ),
+    prisma.orderStatusHistory.create({
+      data: {
+        orderId: paymentRecord.orderId,
+        status: 'PENDING',
+        note: `Payment failed: ${payment.error_description || 'Unknown error'}`,
+      },
+    }),
+  ]);
 }
 
 /**

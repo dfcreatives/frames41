@@ -18,6 +18,11 @@ export default function OrderSummaryPanel({
 }: OrderSummaryPanelProps) {
   const isProcessing = status === 'verifying' || status === 'processing'
   const { product, lineItems, totalLabel, totalValue } = summary
+  const actionLabel = paymentMethod === 'cod'
+    ? 'Place Order'
+    : paymentMethod === 'razorpay'
+      ? 'Pay with Razorpay'
+      : 'Pay Now'
 
   return (
     <div className="bg-surface-container p-4 sm:p-xl rounded-lg sm:sticky sm:top-32">
@@ -60,6 +65,7 @@ export default function OrderSummaryPanel({
         type="submit"
         form={formId}
         disabled={isProcessing}
+        aria-label={isProcessing ? 'Processing payment' : actionLabel}
         className="w-full bg-primary text-white font-label-bold py-3 sm:py-lg text-sm sm:text-body-md uppercase tracking-[0.2em] hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 sm:gap-md disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isProcessing ? 'Processing…' : paymentMethod === 'cod' ? 'Place Order' : 'Pay Now'}

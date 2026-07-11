@@ -60,15 +60,19 @@ export class RazorpayClient {
     body?: Record<string, unknown>,
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    
-    const response = await fetch(url, {
+    const init: RequestInit = {
       method,
       headers: {
         'Authorization': this.getAuthHeader(),
         'Content-Type': 'application/json',
       },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    };
+
+    if (body) {
+      init.body = JSON.stringify(body);
+    }
+    
+    const response = await fetch(url, init);
 
     if (!response.ok) {
       const error = await response.text();
@@ -110,6 +114,10 @@ export class RazorpayClient {
       .update(body)
       .digest('hex');
 
+    if (signature.length !== expectedSignature.length) {
+      return false;
+    }
+
     return crypto.timingSafeEqual(
       Buffer.from(signature),
       Buffer.from(expectedSignature),
@@ -124,6 +132,10 @@ export class RazorpayClient {
       .createHmac('sha256', secret)
       .update(body)
       .digest('hex');
+
+    if (signature.length !== expectedSignature.length) {
+      return false;
+    }
 
     return crypto.timingSafeEqual(
       Buffer.from(signature),

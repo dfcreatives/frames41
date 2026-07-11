@@ -76,7 +76,10 @@ export class PaymentController {
       }
 
       const data = verifyPaymentSchema.parse(req.body);
-      await this.paymentService.verifyPayment(data);
+      await this.paymentService.verifyPayment({
+        ...data,
+        userId: req.user.userId,
+      });
 
       res.status(200).json({
         success: true,

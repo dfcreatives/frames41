@@ -15,7 +15,7 @@ const envSchema = z.object({
     .default('3000'),
   API_VERSION: z.string().default('v1'),
   APP_NAME: z.string().default('Frames41 API'),
-  APP_URL: z.string().url().default('http://localhost:3000'),
+  APP_URL: z.string().url().default('https://frames41-production.up.railway.app'),
 
   // Security
   JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET must be at least 32 characters'),
@@ -38,7 +38,7 @@ const envSchema = z.object({
     .default('100'),
 
   // CORS
-  CORS_ORIGIN: z.string().default('http://localhost:5173,http://localhost:3000'),
+  CORS_ORIGIN: z.string().default('http://localhost:5173,https://frames41-production.up.railway.app'),
 
   // Logging
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),

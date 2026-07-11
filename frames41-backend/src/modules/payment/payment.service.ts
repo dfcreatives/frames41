@@ -63,8 +63,10 @@ export class PaymentService {
   async createRazorpayOrder(orderId: string, userId: string): Promise<{
     razorpayOrderId: string;
     amount: number;
+    amountInPaise: number;
     currency: string;
     keyId: string;
+    orderNumber: string;
   }> {
     // Get order
     const order = await prisma.order.findUnique({
@@ -84,19 +86,28 @@ export class PaymentService {
       throw new BadRequestError('Order is not in pending status');
     }
 
-    // If payment already exists and is pending, return existing
-    if (order.payment && order.payment.status === 'PENDING') {
+    const amount = Number(order.total);
+    const amountInPaise = Math.round(amount * 100);
+
+    // If a Razorpay payment already exists and is pending, return existing.
+    if (
+      order.payment &&
+      order.payment.status === 'PENDING' &&
+      !order.payment.razorpayOrderId.startsWith('cod-')
+    ) {
       return {
         razorpayOrderId: order.payment.razorpayOrderId,
-        amount: Number(order.total),
+        amount,
+        amountInPaise,
         currency: 'INR',
         keyId: process.env.RAZORPAY_KEY_ID || '',
+        orderNumber: order.orderNumber,
       };
     }
 
     // Create Razorpay order
     const razorpayOrder = await razorpayClient.createOrder(
-      Number(order.total),
+      amount,
       order.orderNumber,
       {
         orderId: order.id,
@@ -105,12 +116,22 @@ export class PaymentService {
     );
 
     // Create payment record
-    await prisma.payment.create({
-      data: {
+    await prisma.payment.upsert({
+      where: { orderId: order.id },
+      create: {
         orderId: order.id,
         razorpayOrderId: razorpayOrder.id,
         amount: order.total,
         status: 'PENDING',
+      },
+      update: {
+        razorpayOrderId: razorpayOrder.id,
+        razorpayPaymentId: null,
+        razorpaySignature: null,
+        amount: order.total,
+        status: 'PENDING',
+        method: null,
+        capturedAt: null,
       },
     });
 
@@ -118,9 +139,11 @@ export class PaymentService {
 
     return {
       razorpayOrderId: razorpayOrder.id,
-      amount: Number(order.total),
+      amount,
+      amountInPaise,
       currency: 'INR',
       keyId: process.env.RAZORPAY_KEY_ID || '',
+      orderNumber: order.orderNumber,
     };
   }
 
@@ -132,6 +155,7 @@ export class PaymentService {
     razorpayOrderId: string;
     razorpayPaymentId: string;
     razorpaySignature: string;
+    userId: string;
   }): Promise<void> {
     // Verify signature
     const isValid = razorpayClient.verifySignature(
@@ -157,6 +181,10 @@ export class PaymentService {
       throw new NotFoundError('Payment');
     }
 
+    if (payment.order.userId !== data.userId) {
+      throw new UnauthorizedError('You do not have permission to verify this payment');
+    }
+
     if (payment.status !== 'PENDING') {
       throw new BadRequestError('Payment already processed');
     }
@@ -164,8 +192,17 @@ export class PaymentService {
     // Fetch payment details from Razorpay
     const razorpayPayment = await razorpayClient.fetchPayment(data.razorpayPaymentId);
 
+    if (razorpayPayment.order_id !== data.razorpayOrderId) {
+      throw new BadRequestError('Payment does not belong to this Razorpay order');
+    }
+
     if (razorpayPayment.status !== 'captured') {
       throw new BadRequestError('Payment not captured');
+    }
+
+    const expectedAmountInPaise = Math.round(Number(payment.amount) * 100);
+    if (razorpayPayment.amount !== expectedAmountInPaise) {
+      throw new BadRequestError('Payment amount does not match order total');
     }
 
     await prisma.$transaction([
@@ -184,6 +221,13 @@ export class PaymentService {
         data: {
           status: 'PAID',
           paidAt: new Date(),
+        },
+      }),
+      prisma.orderStatusHistory.create({
+        data: {
+          orderId: data.orderId,
+          status: 'PAID',
+          note: 'Payment verified successfully',
         },
       }),
     ]);

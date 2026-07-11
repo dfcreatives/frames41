@@ -78,6 +78,9 @@ export function createApp(): express.Application {
   // HTTP logging
   app.use(httpLogger);
 
+  // Webhook routes need the raw request body for provider signature validation.
+  app.use('/webhooks', createWebhookRoutes());
+
   // Body parsing
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -144,9 +147,6 @@ export function createApp(): express.Application {
   // Checkout routes (Phase 4)
   app.use(`${apiPrefix}/orders`, createOrderRoutes());
   app.use(`${apiPrefix}/payments`, createPaymentRoutes());
-
-  // Webhook routes (no auth required)
-  app.use('/webhooks', createWebhookRoutes());
 
   // Engagement routes (Phase 5)
   app.use(`${apiPrefix}/wishlist`, createWishlistRoutes());

@@ -1,4 +1,4 @@
-export type PaymentMethodId = 'upi' | 'card' | 'netbanking' | 'wallet' | 'cod'
+export type PaymentMethodId = 'razorpay' | 'upi' | 'card' | 'netbanking' | 'wallet' | 'cod'
 
 export interface PaymentMethod {
   readonly id: PaymentMethodId
@@ -17,6 +17,7 @@ export interface CardFormValues {
 }
 
 export type PaymentPayload =
+  | { readonly method: 'razorpay' }
   | { readonly method: 'upi'; readonly vpaId: string }
   | ({ readonly method: 'card' } & CardFormValues)
   | { readonly method: 'netbanking'; readonly bankId: string }

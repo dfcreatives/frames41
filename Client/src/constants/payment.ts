@@ -4,6 +4,12 @@ export const ACTIVE_FORM_ID = 'active-payment-form'
 
 export const PAYMENT_METHODS: ReadonlyArray<PaymentMethod> = [
   {
+    id: 'razorpay',
+    label: 'Razorpay Secure Checkout',
+    description: 'UPI, cards, netbanking and wallets',
+    icon: 'verified_user',
+  },
+  {
     id: 'upi',
     label: 'UPI / QR',
     description: 'Google Pay, PhonePe, Paytm & more',

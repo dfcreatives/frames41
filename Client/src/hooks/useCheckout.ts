@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { api } from '@/lib/api'
 import { adaptAddress, adaptCheckoutLineItem, adaptCheckoutTotals } from '@/lib/adapters'
 import type { CheckoutData } from '@/types/checkout'
+import { useCart } from '@/contexts/CartContext'
 
 const DELIVERY_METHODS = [
   { id: 'standard', name: 'Standard Delivery', duration: '5–7 business days', priceInr: null },
@@ -16,12 +17,15 @@ interface CartCalculation {
 }
 
 export function useCheckout() {
+  const { refresh: refreshCart } = useCart()
   const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null)
   const [loading, setLoading] = useState(true)
   const [ordering, setOrdering] = useState(false)
   const [applyingCoupon, setApplyingCoupon] = useState(false)
   const [couponCode, setCouponCode] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const orderPromiseRef = useRef<Promise<string | null> | null>(null)
+  const orderKeyRef = useRef(`checkout-${Date.now()}-${Math.random().toString(36).slice(2)}`)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -54,19 +58,46 @@ export function useCheckout() {
   }, [load])
 
   const createOrder = useCallback(async (addressId: string, code?: string) => {
-    setOrdering(true)
-    setError(null)
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const order = await api.orders.create({ addressId, couponCode: code }) as any
-      return order.id as string
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to place order')
-      return null
-    } finally {
-      setOrdering(false)
-    }
-  }, [])
+    if (orderPromiseRef.current) return orderPromiseRef.current
+
+    const promise = (async () => {
+      setOrdering(true)
+      setError(null)
+      try {
+        // Re-read the server cart immediately before order creation. This prevents
+        // stale checkout UI from submitting after an earlier order cleared the cart.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cart = await api.cart.getCart() as any
+        if (!cart?.items?.length) {
+          setCheckoutData((current) => current ? {
+            ...current,
+            lineItems: [],
+            totals: adaptCheckoutTotals(cart ?? {}),
+          } : current)
+          await refreshCart()
+          setError('Your cart is empty. Please add items again before checkout.')
+          return null
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const order = await api.orders.create(
+          { addressId, couponCode: code },
+          orderKeyRef.current,
+        ) as any
+        await refreshCart()
+        return order.id as string
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to place order')
+        return null
+      } finally {
+        setOrdering(false)
+        orderPromiseRef.current = null
+      }
+    })()
+
+    orderPromiseRef.current = promise
+    return promise
+  }, [refreshCart])
 
   const applyCoupon = useCallback(async (code: string) => {
     const normalized = code.trim().toUpperCase()

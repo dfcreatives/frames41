@@ -154,7 +154,7 @@ The frontend loads `checkout.js` at runtime (not npm), opens the Razorpay modal,
 
 ## Backend Base URL & Auth
 
-- All routes: `http://localhost:3000/api/v1/...`
+- All routes: `https://frames41-production.up.railway.app/api/v1/...`
 - Auth header: `Authorization: Bearer <accessToken>`
 - Token lifetime: access = 15 min, refresh = 30 days
 - Standard response wrapper: `{ success, data, error, meta }`

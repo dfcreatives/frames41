@@ -55,6 +55,7 @@ export default function CheckoutPage() {
         data={checkoutData}
         defaultAddressId={defaultAddress}
         defaultDeliveryId="standard"
+        isProceeding={ordering}
         onProceedToPayment={async ({ addressId }) => {
           const orderId = await createOrder(addressId, couponCode ?? undefined)
           if (orderId) navigate(`/payment/${orderId}`)

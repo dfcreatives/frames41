@@ -4,6 +4,15 @@ import { useAuth } from '@/contexts/AuthContext'
 
 type PaymentStatus = 'idle' | 'loading' | 'processing' | 'success' | 'error'
 
+interface RazorpayOrderResponse {
+  razorpayOrderId: string
+  amount: number
+  amountInPaise: number
+  currency: string
+  keyId: string
+  orderNumber?: string
+}
+
 function loadRazorpayScript(): Promise<boolean> {
   return new Promise((resolve) => {
     if (window.Razorpay) { resolve(true); return }
@@ -32,18 +41,22 @@ export function usePayment(orderId: string) {
     }
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const paymentOrder = await api.payments.create(orderId) as any
+      const paymentOrder = await api.payments.create(orderId) as RazorpayOrderResponse
       setStatus('processing')
 
       return await new Promise((resolve) => {
         const rzp = new window.Razorpay({
-          key: paymentOrder.keyId ?? paymentOrder.key_id ?? '',
-          amount: paymentOrder.amount,
+          key: paymentOrder.keyId,
+          amount: paymentOrder.amountInPaise,
           currency: paymentOrder.currency ?? 'INR',
-          order_id: paymentOrder.razorpayOrderId ?? paymentOrder.id,
+          order_id: paymentOrder.razorpayOrderId,
           name: 'Frames41',
-          prefill: { contact: user?.phone ?? '' },
+          description: paymentOrder.orderNumber ? `Order ${paymentOrder.orderNumber}` : 'Frames41 order',
+          prefill: {
+            name: user?.name ?? undefined,
+            email: user?.email ?? undefined,
+            contact: user?.phone ?? undefined,
+          },
           theme: { color: '#800020' },
           modal: {
             ondismiss: () => {
