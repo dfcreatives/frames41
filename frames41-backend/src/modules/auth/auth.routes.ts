@@ -4,7 +4,6 @@ import { AuthService } from './auth.service.js';
 import { AuthRepository } from './auth.repository.js';
 import { prisma } from '../../infrastructure/database/prisma.client.js';
 import { authRateLimiter } from '../../middleware/rateLimit.middleware.js';
-import { authenticate } from '../../middleware/auth.middleware.js';
 
 /**
  * Create auth routes
@@ -17,17 +16,18 @@ export function createAuthRoutes(): Router {
   const service = new AuthService(repository);
   const controller = new AuthController(service);
 
-  // Signup + email verification endpoints
-  router.post('/signup', authRateLimiter, controller.signup);
-  router.post('/resend-verification', authRateLimiter, controller.resendVerification);
-  router.post('/verify-email', authRateLimiter, controller.verifyEmail);
+  // Dashboard auth endpoint
+  router.post('/dashboard-login', authRateLimiter, controller.dashboardLogin);
 
-  // Login + token endpoints
-  router.post('/login', authRateLimiter, controller.login);
+  // Phone auth endpoints
+  router.post('/phone', authRateLimiter, controller.phoneLogin);
+  router.post('/send-otp', authRateLimiter, controller.sendOtp);
+  router.post('/verify-otp', authRateLimiter, controller.verifyOtp);
+
+
+  // Token/session endpoints
   router.post('/refresh', authRateLimiter, controller.refreshToken);
   router.post('/logout', authRateLimiter, controller.logout);
-  router.post('/logout-all', authenticate, controller.logoutAll);
-  router.post('/change-password', authenticate, authRateLimiter, controller.changePassword);
 
   return router;
 }

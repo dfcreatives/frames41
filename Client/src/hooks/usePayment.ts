@@ -42,6 +42,12 @@ export function usePayment(orderId: string) {
 
     try {
       const paymentOrder = await api.payments.create(orderId) as RazorpayOrderResponse
+      if (!paymentOrder.keyId?.trim()) {
+        setStatus('error')
+        setError('Payment gateway is not configured. Please contact support.')
+        return false
+      }
+
       setStatus('processing')
 
       return await new Promise((resolve) => {
@@ -106,3 +112,4 @@ export function usePayment(orderId: string) {
 
   return { status, error, startPayment, placeCashOnDelivery }
 }
+

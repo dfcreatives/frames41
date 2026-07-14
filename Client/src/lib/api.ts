@@ -31,14 +31,6 @@ let rejectQueue: Array<(err: unknown) => void> = [];
 let proactiveRefresh: Promise<string> | null = null;
 const inFlightGets = new Map<string, Promise<unknown>>();
 
-function redirectToLogin() {
-  if (window.location.pathname === "/login") return;
-
-  const returnTo =
-    window.location.pathname + window.location.search + window.location.hash;
-  window.location.assign(`/login?redirect=${encodeURIComponent(returnTo)}`);
-}
-
 function dedupeGet<T>(key: string, request: () => Promise<T>): Promise<T> {
   const existing = inFlightGets.get(key);
   if (existing) return existing as Promise<T>;
@@ -127,10 +119,6 @@ instance.interceptors.response.use(
 
     if (!refreshToken) {
       clearTokens();
-      // Don't redirect on /users/me since unauthenticated users are expected to hit 401 there
-      if (!original.url?.includes("/users/me")) {
-        redirectToLogin();
-      }
       return Promise.reject(error);
     }
 
@@ -150,7 +138,6 @@ instance.interceptors.response.use(
     } catch (refreshError) {
       rejectAll(refreshError);
       clearTokens();
-      redirectToLogin();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
@@ -204,24 +191,17 @@ export const api = {
     get: () => unwrap<Record<string, unknown>>(instance.get("/home")),
   },
   auth: {
-    signup: (email: string, password: string, name?: string) =>
-      unwrap<{ message: string; expiresIn: number }>(
-        instance.post("/auth/signup", { email, password, name }),
+    phoneLogin: (phone: string) =>
+      unwrap<{ accessToken: string; refreshToken: string; expiresIn: number; isNewUser: boolean }>(
+        instance.post("/auth/phone", { phone }),
       ),
-    resendVerification: (email: string) =>
+    sendOtp: (phone: string) =>
       unwrap<{ message: string; expiresIn: number }>(
-        instance.post("/auth/resend-verification", { email }),
+        instance.post("/auth/send-otp", { phone }),
       ),
-    verifyEmail: (email: string, code: string) =>
-      unwrap<{
-        accessToken: string;
-        refreshToken: string;
-        expiresIn: number;
-        isNewUser: boolean;
-      }>(instance.post("/auth/verify-email", { email, code })),
-    login: (email: string, password: string) =>
-      unwrap<{ accessToken: string; refreshToken: string; expiresIn: number }>(
-        instance.post("/auth/login", { email, password }),
+    verifyOtp: (phone: string, code: string) =>
+      unwrap<{ accessToken: string; refreshToken: string; expiresIn: number; isNewUser: boolean }>(
+        instance.post("/auth/verify-otp", { phone, code }),
       ),
     refresh: (refreshToken: string) =>
       unwrap<{ accessToken: string; refreshToken: string; expiresIn: number }>(
@@ -233,13 +213,6 @@ export const api = {
       ),
     logoutAll: () =>
       unwrap<{ message: string }>(instance.post("/auth/logout-all")),
-    changePassword: (currentPassword: string, newPassword: string) =>
-      unwrap<{ message: string }>(
-        instance.post("/auth/change-password", {
-          currentPassword,
-          newPassword,
-        }),
-      ),
   },
 
   users: {

@@ -141,7 +141,7 @@ export default function Navbar({
       onProfileOpen()
       return
     }
-    navigate(isAuthenticated ? '/profile' : '/login')
+    navigate(isAuthenticated ? '/profile' : '/checkout')
   }
 
   const handleCartClick = () => {

@@ -1,13 +1,12 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { IAuthService } from './auth.types.js';
 import {
-  signupSchema,
-  verifyEmailSchema,
-  resendVerificationSchema,
-  loginSchema,
+  phoneLoginSchema,
+  dashboardLoginSchema,
+  sendOtpSchema,
+  verifyOtpSchema,
   refreshTokenSchema,
   logoutSchema,
-  changePasswordSchema,
 } from './auth.schema.js';
 
 /**
@@ -27,76 +26,16 @@ export class AuthController {
       timestamp: new Date().toISOString(),
     };
   }
-
   /**
-   * POST /auth/signup
+   * POST /auth/phone
    */
-  signup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  phoneLogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { email, password, name } = signupSchema.parse(req.body);
-      const ipAddress = req.ip || 'unknown';
-
-      const result = await this.authService.signup(email, password, name, ipAddress);
-
-      res.status(201).json({
-        success: true,
-        data: {
-          message: 'Verification code sent to your email',
-          expiresIn: result.expiresIn,
-        },
-        meta: this.meta(req),
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  /**
-   * POST /auth/resend-verification
-   */
-  resendVerification = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    try {
-      const { email } = resendVerificationSchema.parse(req.body);
-      const ipAddress = req.ip || 'unknown';
-
-      const result = await this.authService.resendVerification(email, ipAddress);
-
-      res.status(200).json({
-        success: true,
-        data: {
-          message: 'If an unverified account exists, a new code was sent',
-          expiresIn: result.expiresIn,
-        },
-        meta: this.meta(req),
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  /**
-   * POST /auth/verify-email
-   */
-  verifyEmail = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    try {
-      const { email, code } = verifyEmailSchema.parse(req.body);
+      const { phone } = phoneLoginSchema.parse(req.body);
       const deviceInfo = req.headers['user-agent'];
       const ipAddress = req.ip;
 
-      const result = await this.authService.verifyEmail(
-        email,
-        code,
-        deviceInfo,
-        ipAddress,
-      );
+      const result = await this.authService.authenticateWithPhone(phone, deviceInfo, ipAddress);
 
       res.status(200).json({
         success: true,
@@ -114,15 +53,15 @@ export class AuthController {
   };
 
   /**
-   * POST /auth/login
+   * POST /auth/dashboard-login
    */
-  login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  dashboardLogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { email, password } = loginSchema.parse(req.body);
+      const { email, password } = dashboardLoginSchema.parse(req.body);
       const deviceInfo = req.headers['user-agent'];
       const ipAddress = req.ip;
 
-      const result = await this.authService.login(
+      const result = await this.authService.authenticateDashboardAdmin(
         email,
         password,
         deviceInfo,
@@ -135,6 +74,55 @@ export class AuthController {
           accessToken: result.accessToken,
           refreshToken: result.refreshToken,
           expiresIn: result.expiresIn,
+        },
+        meta: this.meta(req),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * POST /auth/send-otp
+   */
+  sendOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { phone } = sendOtpSchema.parse(req.body);
+      const ipAddress = req.ip || 'unknown';
+
+      const result = await this.authService.sendOtp(phone, ipAddress);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          message: 'OTP sent to your phone',
+          expiresIn: result.expiresIn,
+        },
+        meta: this.meta(req),
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * POST /auth/verify-otp
+   */
+  verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { phone, code } = verifyOtpSchema.parse(req.body);
+      const deviceInfo = req.headers['user-agent'];
+      const ipAddress = req.ip;
+
+      const result = await this.authService.verifyOtp(phone, code, deviceInfo, ipAddress);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          accessToken: result.accessToken,
+          refreshToken: result.refreshToken,
+          expiresIn: result.expiresIn,
+          isNewUser: result.isNewUser,
         },
         meta: this.meta(req),
       });
@@ -188,67 +176,6 @@ export class AuthController {
       res.status(200).json({
         success: true,
         data: { message: 'Logged out successfully' },
-        meta: this.meta(req),
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  /**
-   * POST /auth/logout-all
-   */
-  logoutAll = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    try {
-      if (!req.user) {
-        res.status(401).json({
-          success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-          meta: this.meta(req),
-        });
-        return;
-      }
-
-      await this.authService.logoutAll(req.user.userId);
-
-      res.status(200).json({
-        success: true,
-        data: { message: 'Logged out from all devices' },
-        meta: this.meta(req),
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  /**
-   * POST /auth/change-password
-   */
-  changePassword = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> => {
-    try {
-      if (!req.user) {
-        res.status(401).json({
-          success: false,
-          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
-          meta: this.meta(req),
-        });
-        return;
-      }
-
-      const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
-      await this.authService.changePassword(req.user.userId, currentPassword, newPassword);
-
-      res.status(200).json({
-        success: true,
-        data: { message: 'Password changed successfully' },
         meta: this.meta(req),
       });
     } catch (error) {

@@ -1,6 +1,8 @@
 import type { ProductPriceTier } from '@prisma/client';
 import { SHIPPING } from '../../config/constants.js';
 
+const TEMP_FREE_SHIPPING_FOR_RAZORPAY_TEST = process.env.FREE_SHIPPING_FOR_RAZORPAY_TEST !== 'false';
+
 /**
  * Cart item for pricing calculation
  */
@@ -164,6 +166,14 @@ export class PricingEngine {
     state?: string,
     pincodeServiceable?: boolean,
   ): ShippingCalculation {
+    if (TEMP_FREE_SHIPPING_FOR_RAZORPAY_TEST) {
+      // Temporary: free shipping for Razorpay testing. Remove after payment flow is verified.
+      return {
+        charge: 0,
+        free: true,
+      };
+    }
+
     // Check if shipping is free
     if (subtotal >= SHIPPING.FREE_SHIPPING_THRESHOLD) {
       return {

@@ -31,6 +31,7 @@ export function useCheckout() {
     setLoading(true)
     setError(null)
     try {
+      await refreshCart()
       const [addresses, cart, calculation] = await Promise.all([
         api.users.getAddresses(),
         api.cart.getCart(),
@@ -49,7 +50,7 @@ export function useCheckout() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [refreshCart])
 
   useEffect(() => {
     // Initial data synchronization is intentionally owned by this checkout hook.
@@ -116,7 +117,7 @@ export function useCheckout() {
     } finally {
       setApplyingCoupon(false)
     }
-  }, [])
+  }, [refreshCart])
 
   const removeCoupon = useCallback(async () => {
     setApplyingCoupon(true)
@@ -130,7 +131,7 @@ export function useCheckout() {
     } finally {
       setApplyingCoupon(false)
     }
-  }, [])
+  }, [refreshCart])
 
   return {
     checkoutData,

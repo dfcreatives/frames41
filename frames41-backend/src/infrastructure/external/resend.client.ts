@@ -5,7 +5,7 @@ import { logger } from '../logger/pino.logger.js';
 /**
  * Lazily-instantiated Resend client.
  * In development without an API key, falls back to logging the email
- * contents so the signup flow still works end-to-end.
+ * contents so the email flow still works end-to-end.
  */
 let client: Resend | null = null;
 
@@ -38,7 +38,7 @@ const fromAddress = () =>
 /**
  * Send a transactional email via Resend.
  * In dev without an API key (or with RESEND_DISABLE_IN_DEV=true), logs the
- * email instead of sending it so the signup flow still works end-to-end.
+ * email instead of sending it so the email flow still works end-to-end.
  */
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
   const resend = getClient();
@@ -88,7 +88,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
           'or verify your domain at https://resend.com/domains to send real mail. ' +
           'The verification code was still generated and logged above.',
       );
-      // Non-fatal: signup already logged the code in dev mode. Return as dev.
+      // Non-fatal: caller already logged the code in dev mode. Return as dev.
       return { dev: true };
     }
 

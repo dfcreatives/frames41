@@ -29,6 +29,7 @@ export default function LoginPage() {
       await login(email, password)
       // Navigation is handled by the useEffect above once isAdmin flips to true
     } catch (err) {
+      console.error('[Frames41 LoginPage] Sign in failed', err)
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
       setLoading(false)

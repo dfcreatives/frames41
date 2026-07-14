@@ -48,7 +48,7 @@ const envSchema = z.object({
     .transform((val) => parseInt(val, 10))
     .default('14'),
 
-  // Email (Resend) — used for signup verification & transactional mail
+  // Email (Resend) - used for transactional mail
   RESEND_API_KEY: z.string().optional(),
   RESEND_FROM_EMAIL: z.string().email().default('noreply@frames41.com'),
   RESEND_FROM_NAME: z.string().default('Frames41'),
@@ -72,6 +72,11 @@ const envSchema = z.object({
   // Shiprocket (Optional for Phase 1)
   SHIPROCKET_EMAIL: z.string().email().optional(),
   SHIPROCKET_PASSWORD: z.string().optional(),
+
+  // Twilio SMS OTP (Optional in development, required for live OTP SMS)
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_FROM_PHONE: z.string().optional(),
 
   // WhatsApp Business API (Optional for Phase 1)
   WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),

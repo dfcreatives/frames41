@@ -1,15 +1,11 @@
 import type {
   User,
   RefreshToken,
-  EmailVerificationToken,
+  SmsOtpToken,
   PrismaClient,
 } from '@prisma/client';
 import type { IAuthRepository } from './auth.types.js';
 
-/**
- * Auth repository implementation
- * Handles all database operations for authentication
- */
 export class AuthRepository implements IAuthRepository {
   private readonly prisma: PrismaClient;
 
@@ -17,23 +13,21 @@ export class AuthRepository implements IAuthRepository {
     this.prisma = prisma;
   }
 
-  // ─── Email verification tokens ──────────────────────────────────────────────
-
-  async createVerificationToken(
-    email: string,
+  async createSmsOtpToken(
+    phone: string,
     codeHash: string,
     ipAddress: string,
     expiresAt: Date,
-  ): Promise<EmailVerificationToken> {
-    return this.prisma.emailVerificationToken.create({
-      data: { email, codeHash, ipAddress, expiresAt },
+  ): Promise<SmsOtpToken> {
+    return this.prisma.smsOtpToken.create({
+      data: { phone, codeHash, ipAddress, expiresAt },
     });
   }
 
-  async findValidVerificationToken(email: string): Promise<EmailVerificationToken | null> {
-    return this.prisma.emailVerificationToken.findFirst({
+  async findValidSmsOtpToken(phone: string): Promise<SmsOtpToken | null> {
+    return this.prisma.smsOtpToken.findFirst({
       where: {
-        email,
+        phone,
         expiresAt: { gt: new Date() },
         consumedAt: null,
       },
@@ -41,33 +35,37 @@ export class AuthRepository implements IAuthRepository {
     });
   }
 
-  async incrementVerifyAttempts(id: string): Promise<void> {
-    await this.prisma.emailVerificationToken.update({
+  async incrementSmsOtpVerifyAttempts(id: string): Promise<void> {
+    await this.prisma.smsOtpToken.update({
       where: { id },
       data: { verifyAttempts: { increment: 1 } },
     });
   }
 
-  async markVerificationConsumed(id: string): Promise<void> {
-    await this.prisma.emailVerificationToken.update({
+  async markSmsOtpConsumed(id: string): Promise<void> {
+    await this.prisma.smsOtpToken.update({
       where: { id },
       data: { consumedAt: new Date() },
     });
   }
 
-  async countVerificationTokensByEmail(email: string, since: Date): Promise<number> {
-    return this.prisma.emailVerificationToken.count({
-      where: { email, createdAt: { gte: since } },
+  async countSmsOtpTokensByPhone(phone: string, since: Date): Promise<number> {
+    return this.prisma.smsOtpToken.count({
+      where: { phone, createdAt: { gte: since } },
     });
   }
 
-  async countVerificationTokensByIp(ipAddress: string, since: Date): Promise<number> {
-    return this.prisma.emailVerificationToken.count({
+  async countSmsOtpTokensByIp(ipAddress: string, since: Date): Promise<number> {
+    return this.prisma.smsOtpToken.count({
       where: { ipAddress, createdAt: { gte: since } },
     });
   }
 
-  // ─── Users ───────────────────────────────────────────────────────────────────
+  async findUserByPhone(phone: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { phone },
+    });
+  }
 
   async findUserByEmail(email: string): Promise<User | null> {
     return this.prisma.user.findUnique({
@@ -81,37 +79,21 @@ export class AuthRepository implements IAuthRepository {
     });
   }
 
-  async createUser(
-    email: string,
-    passwordHash: string,
-    name: string | undefined,
-  ): Promise<User> {
-    const data: { email: string; passwordHash: string; name?: string } = {
-      email,
-      passwordHash,
-    };
-    if (name) data.name = name;
-    return this.prisma.user.create({ data });
-  }
-
-  async setUserVerified(userId: string): Promise<void> {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { isVerified: true },
+  async createPhoneUser(phone: string, email: string): Promise<User> {
+    return this.prisma.user.create({
+      data: {
+        email,
+        phone,
+        isVerified: true,
+        phoneVerifiedAt: new Date(),
+      },
     });
   }
 
-  async updateUserPassword(userId: string, passwordHash: string): Promise<void> {
+  async markPhoneVerified(userId: string, phone: string): Promise<void> {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { passwordHash },
-    });
-  }
-
-  async updateUserName(userId: string, name: string): Promise<void> {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { name },
+      data: { phone, isVerified: true, phoneVerifiedAt: new Date() },
     });
   }
 
@@ -121,8 +103,6 @@ export class AuthRepository implements IAuthRepository {
       data: { lastLoginAt: new Date() },
     });
   }
-
-  // ─── Refresh tokens ──────────────────────────────────────────────────────────
 
   async createRefreshToken(
     userId: string,

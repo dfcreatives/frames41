@@ -69,22 +69,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(async (email: string, password: string) => {
-    const result = await api.auth.login(email, password)
-    setTokens(result.accessToken, result.refreshToken, result.expiresIn)
-    const profile = await api.users.getProfile()
-    if (profile.role !== 'ADMIN') {
-      clearTokens()
-      throw new Error('Access denied: admin role required')
-    }
-    dispatch({
-      type: 'SET_USER',
-      user: {
-        userId: profile.id,
+    try {
+      console.info('[Frames41 Auth] Dashboard login started', { email })
+      const result = await api.auth.login(email, password)
+      console.info('[Frames41 Auth] Dashboard login token received')
+      setTokens(result.accessToken, result.refreshToken, result.expiresIn)
+
+      const profile = await api.users.getProfile()
+      console.info('[Frames41 Auth] Dashboard profile loaded', {
         email: profile.email,
-        name: profile.name,
         role: profile.role,
-      },
-    })
+      })
+
+      if (profile.role !== 'ADMIN') {
+        clearTokens()
+        throw new Error('Access denied: admin role required')
+      }
+
+      dispatch({
+        type: 'SET_USER',
+        user: {
+          userId: profile.id,
+          email: profile.email,
+          name: profile.name,
+          role: profile.role,
+        },
+      })
+    } catch (error) {
+      clearTokens()
+      console.error('[Frames41 Auth] Dashboard login failed', error)
+      throw error
+    }
   }, [])
 
   const logout = useCallback(async () => {

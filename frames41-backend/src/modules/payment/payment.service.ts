@@ -1,6 +1,7 @@
 import type { Payment } from '@prisma/client';
 import { prisma } from '../../infrastructure/database/prisma.client.js';
 import { razorpayClient } from '../../infrastructure/external/razorpay.client.js';
+import { env } from '../../config/env.js';
 import { NotFoundError, BadRequestError, UnauthorizedError } from '../../shared/errors/AppError.js';
 import { logger } from '../../infrastructure/logger/pino.logger.js';
 
@@ -86,6 +87,12 @@ export class PaymentService {
       throw new BadRequestError('Order is not in pending status');
     }
 
+    const keyId = env.RAZORPAY_KEY_ID?.trim();
+    const keySecret = env.RAZORPAY_KEY_SECRET?.trim();
+    if (!keyId || !keySecret) {
+      throw new BadRequestError('Razorpay is not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to the backend .env file.');
+    }
+
     const amount = Number(order.total);
     const amountInPaise = Math.round(amount * 100);
 
@@ -100,7 +107,7 @@ export class PaymentService {
         amount,
         amountInPaise,
         currency: 'INR',
-        keyId: process.env.RAZORPAY_KEY_ID || '',
+        keyId,
         orderNumber: order.orderNumber,
       };
     }
@@ -142,7 +149,7 @@ export class PaymentService {
       amount,
       amountInPaise,
       currency: 'INR',
-      keyId: process.env.RAZORPAY_KEY_ID || '',
+      keyId,
       orderNumber: order.orderNumber,
     };
   }
@@ -256,3 +263,4 @@ export class PaymentService {
     });
   }
 }
+

@@ -89,7 +89,18 @@ instance.interceptors.response.use(
     }
 
     const original = error.config
-    if (error.response?.status !== 401 || original._retry) {
+    const status = error.response?.status
+    const url = original?.url ?? 'unknown'
+
+    console.error('[Frames41 API] Request failed', {
+      method: original?.method,
+      url,
+      status,
+      message: error.message,
+      response: error.response?.data,
+    })
+
+    if (url.startsWith('/auth/') || status !== 401 || original._retry) {
       return Promise.reject(error)
     }
     original._retry = true
@@ -295,7 +306,7 @@ export const api = {
   auth: {
     login: (email: string, password: string) =>
       unwrap<{ accessToken: string; refreshToken: string; expiresIn: number }>(
-        instance.post('/auth/login', { email, password }),
+        instance.post('/auth/dashboard-login', { email, password }),
       ),
     logout: (refreshToken: string) =>
       unwrap<{ message: string }>(instance.post('/auth/logout', { refreshToken })),

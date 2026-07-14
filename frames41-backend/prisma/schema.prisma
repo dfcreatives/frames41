@@ -18,7 +18,8 @@ model User {
   email        String   @unique
   passwordHash String?  @map("password_hash")
   name         String?
-  phone        String?
+  phone        String?  @unique
+  phoneVerifiedAt DateTime? @map("phone_verified_at")
   dob          DateTime? @db.Date
   role         UserRole @default(USER)
   isVerified   Boolean  @default(false)
@@ -86,6 +87,20 @@ model EmailVerificationToken {
   @@map("email_verification_tokens")
 }
 
+model SmsOtpToken {
+  id              String   @id @default(uuid()) @db.Uuid
+  phone           String
+  codeHash        String   @map("code_hash")
+  expiresAt       DateTime @map("expires_at")
+  verifyAttempts  Int      @default(0) @map("verify_attempts")
+  ipAddress       String   @map("ip_address")
+  consumedAt      DateTime? @map("consumed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([phone, createdAt])
+  @@index([ipAddress, createdAt])
+  @@map("sms_otp_tokens")
+}
 model RefreshToken {
   id          String    @id @default(uuid()) @db.Uuid
   userId      String    @map("user_id") @db.Uuid

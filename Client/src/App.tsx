@@ -7,7 +7,6 @@ import ProtectedRoute from '@/components/ui/ProtectedRoute'
 
 // Public pages
 const HomePage = lazy(() => import('@/pages/HomePage'))
-const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const ProductListingPage = lazy(() => import('@/pages/ProductListingPage'))
 const ProductDetailPage = lazy(() => import('@/pages/ProductDetailPage'))
 const SearchPage = lazy(() => import('@/pages/SearchPage'))
@@ -43,9 +42,8 @@ export default function App() {
           <Suspense fallback={<div className="min-h-screen bg-[#f8f7f2]" aria-busy="true" />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
             <Route path="/shop" element={<ProductListingPage />} />
-            <Route path="/shop/:slug" element={<P><ProductDetailPage /></P>} />
+            <Route path="/shop/:slug" element={<ProductDetailPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/blog/:slug" element={<BlogPage />} />
             <Route path="/faq" element={<FAQPage />} />
@@ -55,8 +53,8 @@ export default function App() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/shop/bestsellers" element={<ProductListingPage />} />
 
-            <Route path="/cart" element={<P><CartPage /></P>} />
-            <Route path="/checkout" element={<P><CheckoutPage /></P>} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/payment/:orderId" element={<P><PaymentPage /></P>} />
             <Route path="/order-confirm/:orderId" element={<P><OrderConfirmPage /></P>} />
             <Route path="/orders" element={<P><OrdersPage /></P>} />

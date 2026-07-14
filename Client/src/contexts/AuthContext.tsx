@@ -36,10 +36,9 @@ interface AuthContextValue {
   user: AuthUser | null
   isAuthenticated: boolean
   isLoading: boolean
-  signup: (email: string, password: string, name?: string) => Promise<{ expiresIn: number }>
-  resendVerification: (email: string) => Promise<{ expiresIn: number }>
-  verifyEmail: (email: string, code: string) => Promise<{ isNewUser: boolean }>
-  login: (email: string, password: string) => Promise<void>
+  loginWithPhone: (phone: string) => Promise<{ isNewUser: boolean }>
+  sendOtp: (phone: string) => Promise<{ expiresIn: number }>
+  verifyOtp: (phone: string, code: string) => Promise<{ isNewUser: boolean }>
   logout: () => Promise<void>
 }
 
@@ -59,7 +58,6 @@ function toUser(profile: any): AuthUser {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { user: null, isLoading: true })
 
-  // Hydrate user from stored access token on mount
   useEffect(() => {
     const token = getAccessToken()
     if (!token || isTokenExpiringSoon()) {
@@ -67,8 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'CLEAR_USER' })
       return
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    api.users.getProfile().then((profile: any) => {
+
+    api.users.getProfile().then((profile) => {
       dispatch({ type: 'SET_USER', user: toUser(profile) })
     }).catch(() => {
       clearTokens()
@@ -76,31 +74,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  const signup = useCallback(async (email: string, password: string, name?: string) => {
-    const res = await api.auth.signup(email, password, name)
-    return { expiresIn: res.expiresIn }
-  }, [])
-
-  const resendVerification = useCallback(async (email: string) => {
-    const res = await api.auth.resendVerification(email)
-    return { expiresIn: res.expiresIn }
-  }, [])
-
-  const verifyEmail = useCallback(async (email: string, code: string) => {
-    const result = await api.auth.verifyEmail(email, code)
+  const loginWithPhone = useCallback(async (phone: string) => {
+    const result = await api.auth.phoneLogin(phone)
     setTokens(result.accessToken, result.refreshToken, result.expiresIn)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const profile = await api.users.getProfile() as any
+    const profile = await api.users.getProfile()
     dispatch({ type: 'SET_USER', user: toUser(profile) })
     return { isNewUser: result.isNewUser }
   }, [])
 
-  const login = useCallback(async (email: string, password: string) => {
-    const result = await api.auth.login(email, password)
+  const sendOtp = useCallback(async (phone: string) => {
+    const res = await api.auth.sendOtp(phone)
+    return { expiresIn: res.expiresIn }
+  }, [])
+
+  const verifyOtp = useCallback(async (phone: string, code: string) => {
+    const result = await api.auth.verifyOtp(phone, code)
     setTokens(result.accessToken, result.refreshToken, result.expiresIn)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const profile = await api.users.getProfile() as any
+    const profile = await api.users.getProfile()
     dispatch({ type: 'SET_USER', user: toUser(profile) })
+    return { isNewUser: result.isNewUser }
   }, [])
 
   const logout = useCallback(async () => {
@@ -116,12 +108,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: state.user,
       isAuthenticated: state.user !== null,
       isLoading: state.isLoading,
-      signup,
-      resendVerification,
-      verifyEmail,
-      login,
+      loginWithPhone,
+      sendOtp,
+      verifyOtp,
       logout,
-    }), [state.user, state.isLoading, signup, resendVerification, verifyEmail, login, logout])
+    }), [state.user, state.isLoading, loginWithPhone, sendOtp, verifyOtp, logout])
 
   return (
     <AuthContext.Provider value={value}>

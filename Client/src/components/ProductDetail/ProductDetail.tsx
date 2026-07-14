@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 import type { ProductData } from '../../types/productDetail'
 import { useProductDetail } from './hooks/useProductDetail'
 import ProductActions from './ProductActions'
@@ -16,6 +17,15 @@ export interface AddToCartPayload {
   readonly customImageUrl?: string
 }
 
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
 interface ProductDetailProps {
   readonly data: ProductData
   onAddToCart?: (payload: AddToCartPayload) => Promise<unknown>
@@ -51,6 +61,7 @@ export default function ProductDetail({
   const [qrCodeImages, setQrCodeImages] = useState<File[]>([])
   const [customizationError, setCustomizationError] = useState('')
   const config = data.customizationConfig
+  const { isAuthenticated } = useAuth()
 
   const handleAddToCart = useCallback(async () => {
     if (!onAddToCart || cartStatus !== 'idle') return
@@ -85,24 +96,36 @@ export default function ProductDetail({
     setCartStatus('adding')
     setCustomizationError('')
     try {
-      const { api } = await import('../../lib/api')
-      const imageUrls = await Promise.all(
-        images.map(async (file) => (await api.cart.uploadPhoto(file)).url),
-      )
-      const qrCodeImageUrls = await Promise.all(
-        qrCodeImages.map(async (file) => (await api.cart.uploadPhoto(file)).url),
-      )
       const customization: Record<string, unknown> = {}
-      if (imageUrls.length) customization.imageUrls = imageUrls
+      let customImageUrl: string | undefined
+
+      if (isAuthenticated) {
+        const { api } = await import('../../lib/api')
+        const imageUrls = await Promise.all(
+          images.map(async (file) => (await api.cart.uploadPhoto(file)).url),
+        )
+        const qrCodeImageUrls = await Promise.all(
+          qrCodeImages.map(async (file) => (await api.cart.uploadPhoto(file)).url),
+        )
+        if (imageUrls.length) customization.imageUrls = imageUrls
+        if (qrCodeImageUrls.length) customization.qrCodeImageUrls = qrCodeImageUrls
+        customImageUrl = imageUrls[0]
+      } else {
+        const imageDataUrls = await Promise.all(images.map(fileToDataUrl))
+        const qrCodeImageDataUrls = await Promise.all(qrCodeImages.map(fileToDataUrl))
+        if (imageDataUrls.length) customization.imageDataUrls = imageDataUrls
+        if (qrCodeImageDataUrls.length) customization.qrCodeImageDataUrls = qrCodeImageDataUrls
+        customImageUrl = imageDataUrls[0]
+      }
+
       if (config.numberOfNames.enabled) customization.names = names.map((name) => name.trim())
       if (config.date.enabled) customization.date = date
       if (config.songName.enabled) customization.songName = songName.trim()
-      if (qrCodeImageUrls.length) customization.qrCodeImageUrls = qrCodeImageUrls
 
       await onAddToCart({
         productId: data.id,
         quantity,
-        customImageUrl: imageUrls[0],
+        customImageUrl,
         customization: Object.keys(customization).length ? customization : undefined,
       })
       setCartStatus('added')
@@ -111,7 +134,7 @@ export default function ProductDetail({
       setCustomizationError('We could not save your customization. Please try again.')
       setCartStatus('idle')
     }
-  }, [onAddToCart, data.id, quantity, cartStatus, config, images, names, date, songName, qrCodeImages])
+  }, [onAddToCart, data.id, quantity, cartStatus, config, images, names, date, songName, qrCodeImages, isAuthenticated])
 
   const handleWishlistToggle = useCallback(() => {
     const next = !isWishlisted

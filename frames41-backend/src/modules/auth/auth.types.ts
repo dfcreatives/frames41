@@ -1,4 +1,4 @@
-import type { User, RefreshToken, EmailVerificationToken } from '@prisma/client';
+import type { User, RefreshToken, SmsOtpToken } from '@prisma/client';
 import type { TokenPair } from '../../shared/types/index.js';
 
 /**
@@ -14,38 +14,25 @@ export interface TokenPayload {
  * Auth service interface
  */
 export interface IAuthService {
-  /**
-   * Signup: create an unverified user and email a 6-digit verification code
-   */
-  signup(
-    email: string,
-    password: string,
-    name: string | undefined,
+  sendOtp(
+    phone: string,
     ipAddress: string,
   ): Promise<{ expiresIn: number }>;
 
-  /**
-   * Resend the signup verification code
-   */
-  resendVerification(
-    email: string,
-    ipAddress: string,
-  ): Promise<{ expiresIn: number }>;
-
-  /**
-   * Verify the emailed code; marks the user verified and returns tokens
-   */
-  verifyEmail(
-    email: string,
+  verifyOtp(
+    phone: string,
     code: string,
     deviceInfo: string | undefined,
     ipAddress: string | undefined,
   ): Promise<TokenPair & { isNewUser: boolean }>;
 
-  /**
-   * Login with email + password
-   */
-  login(
+  authenticateWithPhone(
+    phone: string,
+    deviceInfo: string | undefined,
+    ipAddress: string | undefined,
+  ): Promise<TokenPair & { isNewUser: boolean }>;
+
+  authenticateDashboardAdmin(
     email: string,
     password: string,
     deviceInfo: string | undefined,
@@ -70,55 +57,40 @@ export interface IAuthService {
    * Logout from all devices
    */
   logoutAll(userId: string): Promise<void>;
-
-  /**
-   * Change password for authenticated user
-   */
-  changePassword(
-    userId: string,
-    currentPassword: string,
-    newPassword: string,
-  ): Promise<void>;
 }
 
 /**
  * Auth repository interface
  */
 export interface IAuthRepository {
-  // Email verification tokens
-  createVerificationToken(
-    email: string,
+  // SMS OTP tokens
+  createSmsOtpToken(
+    phone: string,
     codeHash: string,
     ipAddress: string,
     expiresAt: Date,
-  ): Promise<EmailVerificationToken>;
+  ): Promise<SmsOtpToken>;
 
-  findValidVerificationToken(email: string): Promise<EmailVerificationToken | null>;
+  findValidSmsOtpToken(phone: string): Promise<SmsOtpToken | null>;
 
-  incrementVerifyAttempts(id: string): Promise<void>;
+  incrementSmsOtpVerifyAttempts(id: string): Promise<void>;
 
-  markVerificationConsumed(id: string): Promise<void>;
+  markSmsOtpConsumed(id: string): Promise<void>;
 
-  countVerificationTokensByEmail(email: string, since: Date): Promise<number>;
+  countSmsOtpTokensByPhone(phone: string, since: Date): Promise<number>;
 
-  countVerificationTokensByIp(ipAddress: string, since: Date): Promise<number>;
+  countSmsOtpTokensByIp(ipAddress: string, since: Date): Promise<number>;
 
   // Users
+  findUserByPhone(phone: string): Promise<User | null>;
+
   findUserByEmail(email: string): Promise<User | null>;
 
   findUserById(userId: string): Promise<User | null>;
 
-  createUser(
-    email: string,
-    passwordHash: string,
-    name: string | undefined,
-  ): Promise<User>;
+  createPhoneUser(phone: string, email: string): Promise<User>;
 
-  setUserVerified(userId: string): Promise<void>;
-
-  updateUserPassword(userId: string, passwordHash: string): Promise<void>;
-
-  updateUserName(userId: string, name: string): Promise<void>;
+  markPhoneVerified(userId: string, phone: string): Promise<void>;
 
   updateLastLogin(userId: string): Promise<void>;
 
