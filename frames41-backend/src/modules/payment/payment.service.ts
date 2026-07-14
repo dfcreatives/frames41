@@ -5,6 +5,9 @@ import { env } from '../../config/env.js';
 import { NotFoundError, BadRequestError, UnauthorizedError } from '../../shared/errors/AppError.js';
 import { logger } from '../../infrastructure/logger/pino.logger.js';
 
+const RAZORPAY_MINIMUM_AMOUNT_IN_PAISE = 100;
+const RAZORPAY_MINIMUM_AMOUNT_IN_INR = RAZORPAY_MINIMUM_AMOUNT_IN_PAISE / 100;
+
 /**
  * Payment service
  */
@@ -95,6 +98,12 @@ export class PaymentService {
 
     const amount = Number(order.total);
     const amountInPaise = Math.round(amount * 100);
+    if (!Number.isFinite(amount) || amountInPaise < RAZORPAY_MINIMUM_AMOUNT_IN_PAISE) {
+      throw new BadRequestError(
+        `Razorpay payments require an order total of at least INR ${RAZORPAY_MINIMUM_AMOUNT_IN_INR.toFixed(2)}`,
+        'PAYMENT_AMOUNT_TOO_LOW',
+      );
+    }
 
     // If a Razorpay payment already exists and is pending, return existing.
     if (
