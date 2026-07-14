@@ -29,15 +29,6 @@ function FileList({ files }: { files: File[] }) {
   )
 }
 
-function getWhatsAppUrl(value: string): string {
-  const trimmed = value.trim()
-  if (/^https?:\/\/(wa\.me|api\.whatsapp\.com)\//i.test(trimmed)) return trimmed
-
-  const digits = trimmed.replace(/\D/g, '')
-  const internationalNumber = digits.length === 10 ? `91${digits}` : digits
-  return `https://wa.me/${internationalNumber}`
-}
-
 export default function CustomerCustomizationForm({
   config,
   images,
@@ -58,7 +49,6 @@ export default function CustomerCustomizationForm({
     config.date.enabled ||
     config.songName.enabled ||
     config.qrCodeImages.enabled ||
-    config.contactShop.enabled ||
     config.startingFrom.enabled
 
   if (!hasInputs) return null
@@ -159,17 +149,6 @@ export default function CustomerCustomizationForm({
           </span>
           <FileList files={qrCodeImages} />
         </label>
-      )}
-
-      {config.contactShop.enabled && (
-        <a
-          href={getWhatsAppUrl(config.contactShop.value)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex w-full items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white transition-colors hover:brightness-110"
-        >
-          Contact Shop on WhatsApp
-        </a>
       )}
 
       {error && <p role="alert" className="text-sm font-medium text-error">{error}</p>}
