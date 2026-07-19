@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import type { ProductListingProduct } from '../../types/productListing'
 import { formatINR } from '../../utils/format'
 import Icon from '../ui/Icon'
-import { getProductHref } from './productListingUtils'
+import { getProductHref } from '@/utils/productListing'
 
 
 interface ProductListingCardProps {

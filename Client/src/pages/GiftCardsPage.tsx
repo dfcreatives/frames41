@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import Navbar from '@/components/home/Navbar'
-import Footer from '@/components/home/Footer'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 import { NAV_LINKS, FOOTER_COLUMNS, SOCIAL_LINKS } from '@/constants/home'
 
 const DENOMINATIONS = [500, 1000, 2000, 5000]

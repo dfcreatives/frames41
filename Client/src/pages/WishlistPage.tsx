@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useWishlist } from '@/hooks/useWishlist'
 import { useCart } from '@/contexts/CartContext'
-import Wishlist from '@/components/Wishlist/wishlist'
+import Wishlist from '@/components/wishlist/Wishlist'
 import { WISHLIST_BANNER } from '@/constants/wishlist'
 
 export default function WishlistPage() {

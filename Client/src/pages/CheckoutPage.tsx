@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCheckout } from '@/hooks/useCheckout'
-import Checkout from '@/components/checkout/checkout'
+import Checkout from '@/components/checkout/Checkout'
 import type { AddressFormData } from '@/components/checkout/AddressFormInline'
 import { api } from '@/lib/api'
 import { NAV_LINKS } from '@/constants/home'
-import Navbar from '@/components/home/Navbar'
+import Navbar from '@/components/layout/Navbar'
 
 type PhoneErrors = Partial<Record<'phone' | 'form', string>>
 

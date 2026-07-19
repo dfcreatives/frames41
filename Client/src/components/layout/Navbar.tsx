@@ -8,7 +8,7 @@ import { api } from '../../lib/api'
 import { adaptProductListing } from '../../lib/adapters'
 import { formatINR } from '../../utils/format'
 import type { ProductListingProduct } from '../../types/productListing'
-import { getProductHref } from '../ProductListing/productListingUtils'
+import { getProductHref } from '@/utils/productListing'
 
 interface NavbarProps {
   links: ReadonlyArray<NavLink>

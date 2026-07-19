@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { CartProvider } from '@/contexts/CartContext'
-import ProtectedRoute from '@/components/ui/ProtectedRoute'
+import ProtectedRoute from '@/components/layout/ProtectedRoute'
 
 // Public pages
 const HomePage = lazy(() => import('@/pages/HomePage'))

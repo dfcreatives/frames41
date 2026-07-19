@@ -1,7 +1,7 @@
 import type {
   ProductListingProduct,
   ProductListingSortKey,
-} from '../../types/productListing'
+} from '@/types/productListing'
 
 const MAX_SEARCH_LENGTH = 80
 

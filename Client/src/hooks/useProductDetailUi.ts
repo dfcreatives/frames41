@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
-import type { ProductTabId } from '../../../types/productDetail'
-import { useCart } from '../../../contexts/CartContext'
+import type { ProductTabId } from '@/types/productDetail'
+import { useCart } from '@/contexts/CartContext'
 
 const MIN_QTY = 1
 const MAX_QTY = 99

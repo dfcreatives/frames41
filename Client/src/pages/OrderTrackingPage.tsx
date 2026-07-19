@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useOrderTracking } from '@/hooks/useOrderTracking'
-import OrderTracking from '@/components/Ordertracking/Ordertracking'
+import OrderTracking from '@/components/order-tracking/OrderTracking'
 
 export default function OrderTrackingPage() {
   const { orderNumber = '' } = useParams<{ orderNumber: string }>()

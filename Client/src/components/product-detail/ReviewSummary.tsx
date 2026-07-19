@@ -1,5 +1,5 @@
 import type { ProductReviews } from '../../types/productDetail'
-import StarRating from '../Review/StarRating'
+import StarRating from '../review/StarRating'
 
 interface RatingBarProps {
   stars: number

@@ -1,5 +1,5 @@
 import { useReferral } from '@/hooks/useReferral'
-import Refer from '@/components/ReferAndEarn/Refer'
+import Refer from '@/components/refer/Refer'
 
 export default function ReferPage() {
   const { data, loading, createCode } = useReferral()

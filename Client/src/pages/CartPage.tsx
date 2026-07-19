@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '@/contexts/CartContext'
-import Shipping from '@/components/Shipping/Shipping'
+import Shipping from '@/components/cart/Shipping'
 import { NAV_LINKS } from '@/constants/home'
-import Navbar from '@/components/home/Navbar'
+import Navbar from '@/components/layout/Navbar'
 
 export default function CartPage() {
   const navigate = useNavigate()

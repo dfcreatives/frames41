@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import type { ProductData } from '../../types/productDetail'
-import { useProductDetail } from './hooks/useProductDetail'
+import { useProductDetail } from '@/hooks/useProductDetailUi'
 import ProductActions from './ProductActions'
 import ProductGallery from './ProductGallery'
 import ProductInfo from './ProductInfo'

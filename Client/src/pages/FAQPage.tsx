@@ -1,5 +1,5 @@
 import { useFAQ } from '@/hooks/useFAQ'
-import Faq from '@/components/faq/faq'
+import Faq from '@/components/faq/Faq'
 
 export default function FAQPage() {
   const { items, categories, loading } = useFAQ()
