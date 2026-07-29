@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "postinstall": "npx --no-install prisma generate --schema=apps/backend/prisma/schema.prisma 2>/dev/null || true",
-    "build": "npm run build -w apps/frontend",
+    "build": "npm run build -w apps/frontend && npm run build -w apps/backend && npm run build -w apps/admin",
     "build:all": "npm run build -w apps/frontend && npm run build -w apps/backend && npm run build -w apps/admin",
     "install:all": "npm install",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:admin\"",
@@ -18,9 +18,11 @@
     "build:frontend": "npm run build -w apps/frontend",
     "build:admin": "npm run build -w apps/admin",
     "build:backend": "npm run build -w apps/backend",
-    "lint": "npm run lint -w apps/frontend && npm run lint -w apps/admin"
+    "lint": "npm run lint -w apps/frontend && npm run lint -w apps/admin",
+    "start:prod": "npm run build && npm run start:prod -w apps/backend"
   },
   "devDependencies": {
     "concurrently": "^10.0.4"
   }
 }
+
