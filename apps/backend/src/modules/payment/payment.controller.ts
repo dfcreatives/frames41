@@ -38,6 +38,7 @@ export class PaymentController {
       const paymentData = await this.paymentService.createRazorpayOrder(
         data.orderId,
         req.user.userId,
+        data.partial,
       );
 
       res.status(200).json({

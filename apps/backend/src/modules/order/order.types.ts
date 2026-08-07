@@ -36,6 +36,7 @@ export interface OrderData {
   discount: number;
   shippingCharge: number;
   total: number;
+  codDueAmount: number;
   addressSnapshot: {
     line1: string;
     line2?: string;
@@ -49,6 +50,7 @@ export interface OrderData {
     status: string;
     method?: string;
     razorpayOrderId: string;
+    isPartial: boolean;
   };
   placedAt: string;
   paidAt?: string;

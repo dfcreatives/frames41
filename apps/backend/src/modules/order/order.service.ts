@@ -346,6 +346,7 @@ export class OrderService implements IOrderService {
     discount: { toString(): string } | number;
     shippingCharge: { toString(): string } | number;
     total: { toString(): string } | number;
+    codDueAmount: { toString(): string } | number;
     addressSnapshot: unknown;
     couponCode?: string | null;
     items: Array<{
@@ -361,6 +362,7 @@ export class OrderService implements IOrderService {
       status: string;
       method?: string | null;
       razorpayOrderId: string;
+      isPartial: boolean;
     } | null;
     placedAt: Date;
     paidAt?: Date | null;
@@ -376,6 +378,7 @@ export class OrderService implements IOrderService {
       discount: Number(order.discount),
       shippingCharge: Number(order.shippingCharge),
       total: Number(order.total),
+      codDueAmount: Number(order.codDueAmount),
       addressSnapshot: {
         line1: address.line1 ?? '',
         line2: address.line2,
@@ -399,6 +402,7 @@ export class OrderService implements IOrderService {
             status: order.payment.status,
             method: order.payment.method ?? undefined,
             razorpayOrderId: order.payment.razorpayOrderId,
+            isPartial: order.payment.isPartial,
           }
         : undefined,
       placedAt: order.placedAt.toISOString(),

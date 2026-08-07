@@ -317,9 +317,9 @@ Services included:
 
 ### Railway (Recommended)
 
-Each app (`apps/backend`, `apps/frontend`, `apps/admin`) deploys as its own Railway service, built via the `nixpacks.toml` in that app's folder — no Dockerfile/image build involved.
+Each app (`apps/backend`, `apps/frontend`, `admin`) deploys as its own Railway service, built via the `nixpacks.toml` in that app's folder — no Dockerfile/image build involved.
 
-1. Connect GitHub repo to Railway, one service per app with its root directory set to `apps/backend`, `apps/frontend`, or `apps/admin`
+1. Connect GitHub repo to Railway, one service per app with its root directory set to `apps/backend`, `apps/frontend`, or `admin`. If the admin service was previously pointed at `apps/admin`, update its Root Directory setting in the Railway dashboard to `admin` — this repo move doesn't change Railway's own config.
 2. Add PostgreSQL database (backend service)
 3. Set environment variables per service
 4. Deploy automatically on push

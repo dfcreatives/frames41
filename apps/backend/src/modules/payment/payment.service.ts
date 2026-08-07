@@ -7,6 +7,7 @@ import { logger } from '../../infrastructure/logger/pino.logger.js';
 
 const RAZORPAY_MINIMUM_AMOUNT_IN_PAISE = 100;
 const RAZORPAY_MINIMUM_AMOUNT_IN_INR = RAZORPAY_MINIMUM_AMOUNT_IN_PAISE / 100;
+const PARTIAL_COD_ADVANCE_RATIO = 0.5;
 
 /**
  * Payment service
@@ -64,13 +65,15 @@ export class PaymentService {
   /**
    * Create Razorpay order for our order
    */
-  async createRazorpayOrder(orderId: string, userId: string): Promise<{
+  async createRazorpayOrder(orderId: string, userId: string, partial = false): Promise<{
     razorpayOrderId: string;
     amount: number;
     amountInPaise: number;
     currency: string;
     keyId: string;
     orderNumber: string;
+    isPartial: boolean;
+    codDueAmount: number;
   }> {
     // Get order
     const order = await prisma.order.findUnique({
@@ -96,8 +99,10 @@ export class PaymentService {
       throw new BadRequestError('Razorpay is not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to the backend .env file.');
     }
 
-    const amount = Number(order.total);
+    const orderTotal = Number(order.total);
+    const amount = partial ? Math.round(orderTotal * PARTIAL_COD_ADVANCE_RATIO * 100) / 100 : orderTotal;
     const amountInPaise = Math.round(amount * 100);
+    const codDueAmount = Math.round((orderTotal - amount) * 100) / 100;
     if (!Number.isFinite(amount) || amountInPaise < RAZORPAY_MINIMUM_AMOUNT_IN_PAISE) {
       throw new BadRequestError(
         `Razorpay payments require an order total of at least INR ${RAZORPAY_MINIMUM_AMOUNT_IN_INR.toFixed(2)}`,
@@ -105,19 +110,22 @@ export class PaymentService {
       );
     }
 
-    // If a Razorpay payment already exists and is pending, return existing.
+    // If a Razorpay payment already exists, is pending, and matches the requested payment mode, return it.
     if (
       order.payment &&
       order.payment.status === 'PENDING' &&
+      order.payment.isPartial === partial &&
       !order.payment.razorpayOrderId.startsWith('cod-')
     ) {
       return {
         razorpayOrderId: order.payment.razorpayOrderId,
-        amount,
-        amountInPaise,
+        amount: Number(order.payment.amount),
+        amountInPaise: Math.round(Number(order.payment.amount) * 100),
         currency: 'INR',
         keyId,
         orderNumber: order.orderNumber,
+        isPartial: order.payment.isPartial,
+        codDueAmount,
       };
     }
 
@@ -137,21 +145,23 @@ export class PaymentService {
       create: {
         orderId: order.id,
         razorpayOrderId: razorpayOrder.id,
-        amount: order.total,
+        amount,
+        isPartial: partial,
         status: 'PENDING',
       },
       update: {
         razorpayOrderId: razorpayOrder.id,
         razorpayPaymentId: null,
         razorpaySignature: null,
-        amount: order.total,
+        amount,
+        isPartial: partial,
         status: 'PENDING',
         method: null,
         capturedAt: null,
       },
     });
 
-    logger.info({ orderId, razorpayOrderId: razorpayOrder.id }, 'Razorpay order created');
+    logger.info({ orderId, razorpayOrderId: razorpayOrder.id, partial }, 'Razorpay order created');
 
     return {
       razorpayOrderId: razorpayOrder.id,
@@ -160,6 +170,8 @@ export class PaymentService {
       currency: 'INR',
       keyId,
       orderNumber: order.orderNumber,
+      isPartial: partial,
+      codDueAmount,
     };
   }
 
@@ -221,6 +233,14 @@ export class PaymentService {
       throw new BadRequestError('Payment amount does not match order total');
     }
 
+    const codDueAmount = payment.isPartial
+      ? Math.max(0, Math.round((Number(payment.order.total) - Number(payment.amount)) * 100) / 100)
+      : 0;
+    const orderStatus = payment.isPartial ? 'PROCESSING' : 'PAID';
+    const statusNote = payment.isPartial
+      ? `Advance payment (50%) verified; balance of INR ${codDueAmount.toFixed(2)} due on delivery`
+      : 'Payment verified successfully';
+
     await prisma.$transaction([
       prisma.payment.update({
         where: { id: payment.id },
@@ -235,20 +255,24 @@ export class PaymentService {
       prisma.order.update({
         where: { id: data.orderId },
         data: {
-          status: 'PAID',
+          status: orderStatus,
           paidAt: new Date(),
+          codDueAmount,
         },
       }),
       prisma.orderStatusHistory.create({
         data: {
           orderId: data.orderId,
-          status: 'PAID',
-          note: 'Payment verified successfully',
+          status: orderStatus,
+          note: statusNote,
         },
       }),
     ]);
 
-    logger.info({ orderId: data.orderId, paymentId: data.razorpayPaymentId }, 'Payment verified and captured');
+    logger.info(
+      { orderId: data.orderId, paymentId: data.razorpayPaymentId, isPartial: payment.isPartial, codDueAmount },
+      'Payment verified and captured',
+    );
   }
 
   /**
