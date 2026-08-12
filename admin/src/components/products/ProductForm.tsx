@@ -28,6 +28,23 @@ const emptyCustomizationConfig = (): ProductCustomizationConfig => ({
   startingFrom: { enabled: false, amount: undefined },
 })
 
+// Products saved before a customization option existed (or edited directly in the DB)
+// may be missing individual keys, so merge onto the defaults key-by-key instead of
+// falling back only when the whole config is absent.
+function mergeCustomizationConfig(config?: Partial<ProductCustomizationConfig> | null): ProductCustomizationConfig {
+  const defaults = emptyCustomizationConfig()
+  return {
+    numberOfImages: { ...defaults.numberOfImages, ...config?.numberOfImages },
+    numberOfNames: { ...defaults.numberOfNames, ...config?.numberOfNames },
+    date: { ...defaults.date, ...config?.date },
+    songName: { ...defaults.songName, ...config?.songName },
+    address: { ...defaults.address, ...config?.address },
+    qrCodeImages: { ...defaults.qrCodeImages, ...config?.qrCodeImages },
+    contactShop: { ...defaults.contactShop, ...config?.contactShop },
+    startingFrom: { ...defaults.startingFrom, ...config?.startingFrom },
+  }
+}
+
 function buildInitial(p?: AdminProductDetail | null): ProductFormData {
   return {
     name: p?.name ?? '',
@@ -50,7 +67,7 @@ function buildInitial(p?: AdminProductDetail | null): ProductFormData {
     priceTiers: p?.priceTiers?.map(({ minQty, maxQty, pricePerUnit }) => ({ minQty, maxQty, pricePerUnit })) ?? [],
     seoTitle: p?.seoTitle ?? '',
     seoDescription: p?.seoDescription ?? '',
-    customizationConfig: p?.customizationConfig ?? emptyCustomizationConfig(),
+    customizationConfig: mergeCustomizationConfig(p?.customizationConfig),
   }
 }
 
@@ -69,7 +86,7 @@ function Field({ label, children, required, error }: { label: string; children: 
 function flattenCategories(cats: AdminCategory[], depth = 0): { id: string; label: string }[] {
   return cats.flatMap((c) => [
     { id: c.id, label: `${'  '.repeat(depth)}${c.name}` },
-    ...flattenCategories(c.children, depth + 1),
+    ...flattenCategories(c.children ?? [], depth + 1),
   ])
 }
 
