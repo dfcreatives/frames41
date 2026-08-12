@@ -123,7 +123,7 @@ export function useHomePage() {
         // Filter up to 10 products explicitly marked as Trending AND Active
         const trendingProds: any[] = mergedProducts.filter((p: any) => (p.isTrending || p.trendingBannerUrl) && p.isActive !== false).slice(0, 10)
         const productBanners: Banner[] = trendingProds
-          .map((prod, idx) => {
+          .map((prod, idx): Banner | null => {
             const image = prod.trendingBannerUrl || (Array.isArray(prod.imageUrls) ? prod.imageUrls[0] : undefined) || (prod.images && prod.images[0]?.url)
             if (!image) return null
             return {
