@@ -1,0 +1,23 @@
+{
+  "name": "frames41",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix apps/backend run start:prod",
+    "build": "npm run build:all",
+    "build:all": "npm run build:frontend && npm run build:backend && npm run build:admin",
+    "install:all": "npm install && npm --prefix apps/backend install && npm --prefix apps/frontend install && npm --prefix admin install",
+    "dev": "concurrently -n \"backend,frontend,admin\" -c \"cyan,blue,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:admin\"",
+    "dev:full": "concurrently \"npm run dev:frontend\" \"npm run dev:admin\" \"npm run dev:backend\"",
+    "dev:frontend": "npm --prefix apps/frontend run dev",
+    "dev:admin": "npm --prefix admin run dev",
+    "dev:backend": "npm --prefix apps/backend run dev",
+    "build:frontend": "npm --prefix apps/frontend run build",
+    "build:admin": "npm --prefix admin run build",
+    "build:backend": "npm --prefix apps/backend run build:backend",
+    "lint": "npm --prefix apps/frontend run lint && npm --prefix admin run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4"
+  }
+}

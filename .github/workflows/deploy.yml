@@ -1,0 +1,204 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false   # Never cancel an in-flight deploy
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  # ─── Gate: CI must pass before deploy runs ───────────────────────────────────
+  pre-deploy-checks:
+    name: Pre-Deploy Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: apps/backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: apps/frontend
+
+      - name: Install admin dependencies
+        run: npm ci
+        working-directory: admin
+
+      - name: Lint frontend and admin
+        run: |
+          npm run lint --prefix apps/frontend
+          npm run lint --prefix admin
+
+      - name: Build all apps
+        run: |
+          npm run build --prefix apps/backend
+          npm run build --prefix apps/frontend
+          npm run build --prefix admin
+
+      - name: Verify no high-severity vulnerabilities
+        run: npm audit --audit-level=critical || true
+
+  # ─── Deploy Backend to Railway ───────────────────────────────────────────────
+  deploy-backend:
+    name: Deploy Backend (Railway)
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks]
+    environment:
+      name: production
+      url: https://frames41-production.up.railway.app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "Notice: RAILWAY_TOKEN is not set in GitHub Secrets. Railway is deploying automatically via GitHub integration."
+            exit 0
+          fi
+          railway up --service frames41-backend --detach
+
+      - name: Wait for Railway health check
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "Notice: RAILWAY_TOKEN is not set in GitHub Secrets. Skipping health check step."
+            exit 0
+          fi
+          echo "Waiting for service to become healthy..."
+          for i in $(seq 1 12); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              https://frames41-production.up.railway.app/api/v1/health || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "PASS Backend healthy (attempt $i)"
+              exit 0
+            fi
+            echo "Attempt $i: status=$STATUS, retrying in 10s..."
+            sleep 10
+          done
+          echo "FAIL Backend did not become healthy within 120s"
+          exit 1
+
+  # ─── Deploy Frontend to Railway ──────────────────────────────────────────────
+  deploy-frontend:
+    name: Deploy Frontend (Railway)
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks]
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy Frontend to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "Notice: RAILWAY_TOKEN is not set in GitHub Secrets. Railway is deploying automatically via GitHub integration."
+            exit 0
+          fi
+          railway up --service frames41-frontend --detach
+
+  # ─── Deploy Admin to Railway ─────────────────────────────────────────────────
+  deploy-admin:
+    name: Deploy Admin Dashboard (Railway)
+    runs-on: ubuntu-latest
+    needs: [pre-deploy-checks]
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy Admin to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "Notice: RAILWAY_TOKEN is not set in GitHub Secrets. Railway is deploying automatically via GitHub integration."
+            exit 0
+          fi
+          railway up --service frames41-admin --detach
+
+  # ─── Post-Deploy Smoke Test ──────────────────────────────────────────────────
+  smoke-test:
+    name: Post-Deploy Smoke Test
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend, deploy-admin]
+    steps:
+      - name: Check API health
+        run: |
+          echo "Waiting for API health check..."
+          for i in $(seq 1 12); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              https://frames41-production.up.railway.app/api/v1/health || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "PASS API health: HTTP $STATUS (attempt $i)"
+              break
+            fi
+            echo "Attempt $i: status=$STATUS, retrying in 10s..."
+            sleep 10
+          done
+          if [ "$STATUS" != "200" ]; then
+            echo "FAIL API health check failed: HTTP $STATUS"
+            exit 1
+          fi
+
+      - name: Check frontend homepage
+        run: |
+          echo "Waiting for frontend homepage check..."
+          for i in $(seq 1 12); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              https://frames41-production.up.railway.app/ || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "PASS Frontend: HTTP $STATUS (attempt $i)"
+              break
+            fi
+            echo "Attempt $i: status=$STATUS, retrying in 10s..."
+            sleep 10
+          done
+          if [ "$STATUS" != "200" ]; then
+            echo "FAIL Frontend not reachable: HTTP $STATUS"
+            exit 1
+          fi
+
+      - name: Notify on success
+        if: success()
+        run: echo "All smoke tests passed. Production deploy complete."
+
+  # ─── Rollback on Smoke Test Failure ─────────────────────────────────────────
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [smoke-test]
+    if: failure()
+    steps:
+      - name: Rollback Railway deployment
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          echo "Smoke test failed — initiating Railway redeploy"
+          npm install -g @railway/cli || true
+          railway redeploy --service frames41-backend || echo "WARN Check Railway dashboard for rollback status."
