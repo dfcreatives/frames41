@@ -41,6 +41,7 @@ export default function Navbar({
   const [showDropdown, setShowDropdown] = useState(false)
   const [isSearching, setIsSearching] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { itemCount } = useCart()
@@ -49,6 +50,8 @@ export default function Navbar({
   const wishlistCount = wishlistItems.length
   const searchRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const mobileMenuButtonRef = useRef<HTMLButtonElement>(null)
+  const mobileMenuPanelRef = useRef<HTMLDivElement>(null)
 
   // Debounced search
   useEffect(() => {
@@ -89,22 +92,37 @@ export default function Navbar({
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setShowDropdown(false)
       }
+      const target = e.target as Node
+      if (
+        mobileMenuButtonRef.current &&
+        !mobileMenuButtonRef.current.contains(target) &&
+        mobileMenuPanelRef.current &&
+        !mobileMenuPanelRef.current.contains(target)
+      ) {
+        setMobileMenuOpen(false)
+      }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Close dropdown on Escape
+  // Close dropdown / mobile menu on Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setShowDropdown(false)
+        setMobileMenuOpen(false)
         inputRef.current?.blur()
       }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  // Close mobile menu on navigation
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
 
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -178,21 +196,34 @@ export default function Navbar({
 
           <ul className="hidden md:flex gap-8 list-none m-0 p-0" role="list">
             {links.map(({ label, href }) => {
-              const active = isLinkActive(href)
+              const isExternal = /^https?:\/\//.test(href)
+              const active = !isExternal && isLinkActive(href)
+              const linkClassName = `text-label-bold uppercase tracking-widest transition-colors ${
+                active
+                  ? 'text-primary'
+                  : 'text-on-background/60 hover:text-primary'
+              }`
 
               return (
                 <li key={href}>
-                  <Link
-                    to={href}
-                    aria-current={active ? 'page' : undefined}
-                    className={`text-label-bold uppercase tracking-widest transition-colors ${
-                      active
-                        ? 'text-primary'
-                        : 'text-on-background/60 hover:text-primary'
-                    }`}
-                  >
-                    {label}
-                  </Link>
+                  {isExternal ? (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={linkClassName}
+                    >
+                      {label}
+                    </a>
+                  ) : (
+                    <Link
+                      to={href}
+                      aria-current={active ? 'page' : undefined}
+                      className={linkClassName}
+                    >
+                      {label}
+                    </Link>
+                  )}
                 </li>
               )
             })}
@@ -283,6 +314,8 @@ export default function Navbar({
           </div>
 
           <div className="flex items-center gap-4 sm:ml-6">
+            
+
             <Link
               to="/wishlist"
               aria-label={`Wishlist${wishlistCount > 0 ? ` – ${wishlistCount} item${wishlistCount !== 1 ? 's' : ''}` : ''}`}
@@ -324,8 +357,63 @@ export default function Navbar({
                 </span>
               )}
             </button>
+            <button
+              ref={mobileMenuButtonRef}
+              type="button"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-menu"
+              className="hover:text-primary transition-colors p-1 md:hidden"
+            >
+              <Icon name={mobileMenuOpen ? 'close' : 'menu'} />
+            </button>
           </div>
       </div>
+
+      {mobileMenuOpen && (
+        <div
+          id="mobile-nav-menu"
+          ref={mobileMenuPanelRef}
+          className="md:hidden border-t border-on-background/10 bg-background"
+        >
+          <ul className="flex flex-col list-none m-0 p-4 gap-1" role="list">
+            {links.map(({ label, href }) => {
+              const isExternal = /^https?:\/\//.test(href)
+              const active = !isExternal && isLinkActive(href)
+              const linkClassName = `block rounded-lg px-3 py-2.5 text-label-bold uppercase tracking-widest transition-colors ${
+                active
+                  ? 'text-primary bg-primary/5'
+                  : 'text-on-background/60 hover:text-primary hover:bg-on-background/5'
+              }`
+
+              return (
+                <li key={href}>
+                  {isExternal ? (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={linkClassName}
+                    >
+                      {label}
+                    </a>
+                  ) : (
+                    <Link
+                      to={href}
+                      aria-current={active ? 'page' : undefined}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={linkClassName}
+                    >
+                      {label}
+                    </Link>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
     </nav>
   )
 }

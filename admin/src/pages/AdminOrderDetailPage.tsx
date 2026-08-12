@@ -193,6 +193,9 @@ export default function AdminOrderDetailPage() {
                               {typeof item.customization.songName === 'string' && (
                                 <p><span className="font-semibold">Song:</span> {item.customization.songName}</p>
                               )}
+                              {typeof item.customization.address === 'string' && (
+                                <p><span className="font-semibold">Custom Address:</span> {item.customization.address}</p>
+                              )}
                               <div className="flex flex-wrap gap-2 pt-1">
                                 {([
                                   ...(Array.isArray(item.customization.imageUrls) ? item.customization.imageUrls : []),

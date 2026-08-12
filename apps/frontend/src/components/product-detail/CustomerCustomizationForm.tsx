@@ -7,12 +7,14 @@ interface Props {
   names: string[]
   date: string
   songName: string
+  address: string
   qrCodeImages: File[]
   error?: string
   onImagesChange: (files: File[]) => void
   onNamesChange: (names: string[]) => void
   onDateChange: (value: string) => void
   onSongNameChange: (value: string) => void
+  onAddressChange: (value: string) => void
   onQrCodeImagesChange: (files: File[]) => void
 }
 
@@ -35,12 +37,14 @@ export default function CustomerCustomizationForm({
   names,
   date,
   songName,
+  address,
   qrCodeImages,
   error,
   onImagesChange,
   onNamesChange,
   onDateChange,
   onSongNameChange,
+  onAddressChange,
   onQrCodeImagesChange,
 }: Props) {
   const hasInputs =
@@ -48,6 +52,7 @@ export default function CustomerCustomizationForm({
     config.numberOfNames.enabled ||
     config.date.enabled ||
     config.songName.enabled ||
+    config.address.enabled ||
     config.qrCodeImages.enabled ||
     config.startingFrom.enabled
 
@@ -131,6 +136,21 @@ export default function CustomerCustomizationForm({
             required
             onChange={(event) => onSongNameChange(event.target.value)}
             placeholder="Enter the song name *"
+            className="mt-2 block w-full rounded-lg border border-outline-variant bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+        </label>
+      )}
+
+      {config.address.enabled && (
+        <label className="block text-sm font-bold text-on-background">
+          Address <span className="text-red-600 font-bold ml-1">*</span>
+          <textarea
+            value={address}
+            maxLength={500}
+            required
+            rows={3}
+            onChange={(event) => onAddressChange(event.target.value)}
+            placeholder="Enter the address *"
             className="mt-2 block w-full rounded-lg border border-outline-variant bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
         </label>

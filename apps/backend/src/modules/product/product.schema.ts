@@ -55,6 +55,7 @@ const productCustomizationConfigSchema = z.object({
   numberOfNames: customizationCountSchema.optional(),
   date: customizationToggleSchema.optional(),
   songName: customizationToggleSchema.optional(),
+  address: customizationToggleSchema.optional(),
   qrCodeImages: customizationCountSchema.optional(),
   contactShop: customizationToggleSchema.extend({
     value: z.string().max(300).optional(),

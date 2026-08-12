@@ -22,6 +22,7 @@ const emptyCustomizationConfig = (): ProductCustomizationConfig => ({
   numberOfNames: { enabled: false, count: 1 },
   date: { enabled: false },
   songName: { enabled: false },
+  address: { enabled: false },
   qrCodeImages: { enabled: false, count: 1 },
   contactShop: { enabled: false, value: '' },
   startingFrom: { enabled: false, amount: undefined },
@@ -640,6 +641,7 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
         {([
           ['date', 'Date'],
           ['songName', 'Name of the Song'],
+          ['address', 'Address'],
         ] as const).map(([key, label]) => {
           const option = form.customizationConfig[key]
           return (

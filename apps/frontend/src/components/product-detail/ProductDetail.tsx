@@ -58,6 +58,7 @@ export default function ProductDetail({
   const [names, setNames] = useState<string[]>([])
   const [date, setDate] = useState('')
   const [songName, setSongName] = useState('')
+  const [address, setAddress] = useState('')
   const [qrCodeImages, setQrCodeImages] = useState<File[]>([])
   const [customizationError, setCustomizationError] = useState('')
   const config = data.customizationConfig
@@ -85,6 +86,10 @@ export default function ProductDetail({
     }
     if (config.songName.enabled && !songName?.trim()) {
       setCustomizationError('Please enter the name of the song.')
+      return
+    }
+    if (config.address.enabled && !address?.trim()) {
+      setCustomizationError('Please enter the address.')
       return
     }
     if (config.qrCodeImages.enabled && config.qrCodeImages.count > 0 && qrCodeImages.length === 0) {
@@ -130,6 +135,7 @@ export default function ProductDetail({
       if (filteredNames.length > 0) customization.names = filteredNames
       if (date) customization.date = date
       if (songName?.trim()) customization.songName = songName.trim()
+      if (address?.trim()) customization.address = address.trim()
 
       await onAddToCart({
         productId: data.id,
@@ -143,7 +149,7 @@ export default function ProductDetail({
       setCustomizationError('We could not save your customization. Please try again.')
       setCartStatus('idle')
     }
-  }, [onAddToCart, data.id, quantity, cartStatus, images, names, date, songName, qrCodeImages, isAuthenticated, config])
+  }, [onAddToCart, data.id, quantity, cartStatus, images, names, date, songName, address, qrCodeImages, isAuthenticated, config])
 
   const handleWishlistToggle = useCallback(() => {
     const next = !isWishlisted
@@ -175,12 +181,14 @@ export default function ProductDetail({
                 names={names}
                 date={date}
                 songName={songName}
+                address={address}
                 qrCodeImages={qrCodeImages}
                 error={customizationError}
                 onImagesChange={(files) => { setImages(files); setCustomizationError('') }}
                 onNamesChange={(values) => { setNames(values); setCustomizationError('') }}
                 onDateChange={(value) => { setDate(value); setCustomizationError('') }}
                 onSongNameChange={(value) => { setSongName(value); setCustomizationError('') }}
+                onAddressChange={(value) => { setAddress(value); setCustomizationError('') }}
                 onQrCodeImagesChange={(files) => { setQrCodeImages(files); setCustomizationError('') }}
               />
             )}

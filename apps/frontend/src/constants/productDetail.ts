@@ -125,6 +125,7 @@ export const PRODUCT_DATA: ProductData = {
     numberOfNames: { enabled: false, count: 1 },
     date: { enabled: false },
     songName: { enabled: false },
+    address: { enabled: false },
     qrCodeImages: { enabled: false, count: 1 },
     contactShop: { enabled: false, value: '' },
     startingFrom: { enabled: false },

@@ -57,6 +57,7 @@ export function adaptProductDetail(p: Raw): ProductData {
     },
     date: { enabled: rawConfig.date?.enabled ?? false },
     songName: { enabled: rawConfig.songName?.enabled ?? false },
+    address: { enabled: rawConfig.address?.enabled ?? false },
     qrCodeImages: {
       enabled: rawConfig.qrCodeImages?.enabled ?? false,
       count: rawConfig.qrCodeImages?.count ?? 1,

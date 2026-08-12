@@ -6,6 +6,7 @@ export interface ProductCustomizationConfig {
   numberOfNames?: { enabled: boolean; count: number };
   date?: { enabled: boolean };
   songName?: { enabled: boolean };
+  address?: { enabled: boolean };
   qrCodeImages?: { enabled: boolean; count: number };
   contactShop?: { enabled: boolean; value?: string };
   startingFrom?: { enabled: boolean; amount?: number };
