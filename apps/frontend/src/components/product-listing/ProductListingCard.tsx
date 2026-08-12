@@ -99,16 +99,15 @@ export default memo(function ProductListingCard({
                 {product.description}
               </p>
             )}
-          </div>
 
-          <div className="mt-2.5 flex items-center justify-between text-xs text-[#58111a]/80 border-t border-[#800020]/15 pt-2">
-            <div className="flex items-center gap-1 font-semibold text-[#800020]">
-              <Icon name="star" filled className="text-sm fill-current text-amber-600" />
-              <span>4.9</span>
-            </div>
-            <span className="text-[11px] font-bold text-[#800020] bg-[#efe7d3] px-2 py-0.5 rounded border border-[#800020]/20">
-              Handcrafted Wood
-            </span>
+            {product.rating !== undefined && (
+              <div className="mt-2.5 flex items-center text-xs text-[#58111a]/80 border-t border-[#800020]/15 pt-2">
+                <div className="flex items-center gap-1 font-semibold text-[#800020]">
+                  <Icon name="star" filled className="text-sm fill-current text-amber-600" />
+                  <span>{product.rating.toFixed(1)}</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </Link>

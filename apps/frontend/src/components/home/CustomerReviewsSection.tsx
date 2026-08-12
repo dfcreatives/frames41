@@ -60,7 +60,7 @@ export default function CustomerReviewsSection() {
     <section
       id="customer-reviews"
       aria-labelledby="reviews-heading"
-      className="pt-6 pb-12 sm:pt-8 sm:pb-16 max-w-container mx-auto px-4 sm:px-6"
+      className="scroll-mt-24 pt-6 pb-12 sm:pt-8 sm:pb-16 max-w-container mx-auto px-4 sm:px-6"
     >
       {/* Header */}
       <div className="text-center mb-12 sm:mb-16">
@@ -78,12 +78,12 @@ export default function CustomerReviewsSection() {
         </p>
       </div>
 
-      {/* 4 Review Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Review Cards: horizontal swipe carousel on mobile, grid from md up */}
+      <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:pb-0 md:px-0 lg:grid-cols-4">
         {REVIEWS.map((rev) => (
           <article
             key={rev.id}
-            className="flex flex-col justify-between rounded-2xl bg-[#faf8f0] p-6 border border-[#800020]/20 shadow-md hover:border-[#800020] hover:shadow-[0_12px_32px_rgba(128,0,32,0.15)] transition-all duration-500 overflow-hidden"
+            className="flex flex-col justify-between shrink-0 w-[82%] sm:w-[45%] snap-start rounded-2xl bg-[#faf8f0] p-6 border border-[#800020]/20 shadow-md hover:border-[#800020] hover:shadow-[0_12px_32px_rgba(128,0,32,0.15)] transition-all duration-500 overflow-hidden md:w-auto"
           >
             <div>
               {/* Customer Header Info */}

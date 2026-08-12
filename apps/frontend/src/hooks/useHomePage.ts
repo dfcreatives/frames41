@@ -122,18 +122,25 @@ export function useHomePage() {
 
         // Filter up to 10 products explicitly marked as Trending AND Active
         const trendingProds: any[] = mergedProducts.filter((p: any) => (p.isTrending || p.trendingBannerUrl) && p.isActive !== false).slice(0, 10)
-        if (trendingProds.length > 0) {
-          const productBanners: Banner[] = trendingProds.map((prod, idx) => ({
-            id: `trending-prod-${prod.id || idx}`,
-            type: 'TRENDING',
-            title: prod.name,
-            subtitle: prod.shortDescription || prod.name,
-            imageUrl: prod.trendingBannerUrl || (Array.isArray(prod.imageUrls) ? prod.imageUrls[0] : undefined) || (prod.images && prod.images[0]?.url) || 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=1600&q=85',
-            mobileImageUrl: prod.trendingBannerUrl || (Array.isArray(prod.imageUrls) ? prod.imageUrls[0] : undefined) || (prod.images && prod.images[0]?.url),
-            link: `/product/${prod.slug}`,
-            sortOrder: idx,
-            isActive: true,
-          }))
+        const productBanners: Banner[] = trendingProds
+          .map((prod, idx) => {
+            const image = prod.trendingBannerUrl || (Array.isArray(prod.imageUrls) ? prod.imageUrls[0] : undefined) || (prod.images && prod.images[0]?.url)
+            if (!image) return null
+            return {
+              id: `trending-prod-${prod.id || idx}`,
+              type: 'TRENDING',
+              title: prod.name,
+              subtitle: prod.shortDescription || prod.name,
+              imageUrl: image,
+              mobileImageUrl: image,
+              link: `/product/${prod.slug}`,
+              sortOrder: idx,
+              isActive: true,
+            }
+          })
+          .filter((banner): banner is Banner => banner !== null)
+
+        if (productBanners.length > 0) {
           setTrendingBanners(productBanners)
         } else if (Array.isArray(rawTrending) && rawTrending.length > 0) {
           setTrendingBanners(

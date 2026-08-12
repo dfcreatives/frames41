@@ -44,7 +44,7 @@ export default function ProductListingPage() {
     <>
       <Navbar links={NAV_LINKS} />
 
-      <main className="mx-auto max-w-container px-4 pb-24 pt-28 sm:px-6 lg:pt-32">
+      <main className="mx-auto max-w-container px-4 pb-24 pt-8 sm:px-6 lg:pt-10">
         {/* Page Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>

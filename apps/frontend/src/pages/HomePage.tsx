@@ -27,9 +27,7 @@ export default function HomePage() {
       <Navbar links={NAV_LINKS} />
       <main id="main-content">
         {/* Top 519px Full-Length Trending Banner Section */}
-        <div className="pt-20 sm:pt-24">
-          <TrendingBannerSection banners={trendingBanners} />
-        </div>
+        <TrendingBannerSection banners={trendingBanners} />
 
         {loading && !newCollections.length ? (
           <ProductSectionShimmer
