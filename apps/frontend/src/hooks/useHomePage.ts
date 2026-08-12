@@ -133,7 +133,7 @@ export function useHomePage() {
               subtitle: prod.shortDescription || prod.name,
               imageUrl: image,
               mobileImageUrl: image,
-              link: `/product/${prod.slug}`,
+              link: `/shop/${prod.slug}`,
               sortOrder: idx,
               isActive: true,
             }

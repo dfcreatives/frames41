@@ -4,6 +4,7 @@ import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { CartProvider } from '@/contexts/CartContext'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
+import WhatsAppFab from '@/components/layout/WhatsAppFab'
 
 // Public pages
 const HomePage = lazy(() => import('@/pages/HomePage'))
@@ -112,6 +113,7 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <OfflineBanner />
+          <WhatsAppFab />
           <Toaster position="top-right" richColors />
           <Suspense fallback={<div className="min-h-screen bg-[#f8f7f2]" aria-busy="true" />}>
           <Routes>

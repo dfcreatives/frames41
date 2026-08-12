@@ -55,6 +55,77 @@ const REVIEWS: ReadonlyArray<ReviewItem> = [
   },
 ]
 
+function ReviewCard({ rev, className = '' }: { rev: ReviewItem; className?: string }) {
+  return (
+    <article
+      className={`flex flex-col justify-between shrink-0 rounded-2xl bg-[#faf8f0] p-6 border border-[#800020]/20 shadow-md hover:border-[#800020] hover:shadow-[0_12px_32px_rgba(128,0,32,0.15)] transition-all duration-500 overflow-hidden ${className}`}
+    >
+      <div>
+        {/* Customer Header Info */}
+        <div className="flex items-center gap-3.5 mb-4">
+          <div className="relative shrink-0 w-12 h-12">
+            <img
+              src={rev.avatarUrl}
+              alt={rev.name}
+              style={{ width: '48px', height: '48px', maxWidth: '48px', maxHeight: '48px' }}
+              className="w-12 h-12 rounded-full object-cover shrink-0 border-2 border-[#800020]/40 shadow-sm"
+            />
+            <span
+              className="absolute -bottom-1 -right-1 bg-[#800020] text-amber-300 rounded-full p-0.5 border border-amber-300 flex items-center justify-center"
+              title="Verified Buyer"
+            >
+              <Icon name="check_circle" className="text-[10px]" />
+            </span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-extrabold text-sm text-[#2b0b14] truncate">
+              {rev.name}
+            </h3>
+            <p className="text-xs text-[#800020] font-semibold flex items-center gap-1">
+              <Icon name="location_on" className="text-xs text-[#800020]" />
+              {rev.location}
+            </p>
+          </div>
+        </div>
+
+        {/* Star Rating */}
+        <div className="flex items-center gap-1 mb-3">
+          {Array.from({ length: rev.rating }).map((_, i) => (
+            <Icon
+              key={i}
+              name="star"
+              filled
+              className="text-sm fill-current text-amber-500"
+            />
+          ))}
+          <span className="text-[11px] font-bold text-[#800020] ml-1.5 bg-[#efe7d3] px-2 py-0.5 rounded border border-[#800020]/20">
+            Verified Buyer ✓
+          </span>
+        </div>
+
+        {/* Review Text */}
+        <p
+          className={`text-xs sm:text-sm text-[#2b0b14] leading-relaxed mb-6 font-medium ${
+            rev.isTamil ? 'font-sans text-[13px] leading-snug' : ''
+          }`}
+        >
+          "{rev.reviewText}"
+        </p>
+      </div>
+
+      {/* Purchased Product Tag */}
+      <div className="border-t border-[#800020]/15 pt-3.5 mt-auto flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[#58111a]/60">
+          Purchased:
+        </span>
+        <span className="text-[11px] font-extrabold text-[#800020] bg-[#efe7d3] px-3 py-1 rounded-full border border-[#800020]/20 truncate max-w-[160px]">
+          {rev.purchasedProduct}
+        </span>
+      </div>
+    </article>
+  )
+}
+
 export default function CustomerReviewsSection() {
   return (
     <section
@@ -78,76 +149,18 @@ export default function CustomerReviewsSection() {
         </p>
       </div>
 
-      {/* Review Cards: horizontal swipe carousel on mobile, grid from md up */}
-      <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:pb-0 md:px-0 lg:grid-cols-4">
+      {/* Review Cards: continuous auto-scrolling marquee on mobile, static grid from md up */}
+      <div className="md:hidden -mx-4 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
+        <div className="reviews-marquee flex w-max gap-4 px-4">
+          {[...REVIEWS, ...REVIEWS].map((rev, i) => (
+            <ReviewCard key={`${rev.id}-${i}`} rev={rev} className="w-[280px]" />
+          ))}
+        </div>
+      </div>
+
+      <div className="hidden md:grid md:grid-cols-2 md:gap-6 lg:grid-cols-4">
         {REVIEWS.map((rev) => (
-          <article
-            key={rev.id}
-            className="flex flex-col justify-between shrink-0 w-[82%] sm:w-[45%] snap-start rounded-2xl bg-[#faf8f0] p-6 border border-[#800020]/20 shadow-md hover:border-[#800020] hover:shadow-[0_12px_32px_rgba(128,0,32,0.15)] transition-all duration-500 overflow-hidden md:w-auto"
-          >
-            <div>
-              {/* Customer Header Info */}
-              <div className="flex items-center gap-3.5 mb-4">
-                <div className="relative shrink-0 w-12 h-12">
-                  <img
-                    src={rev.avatarUrl}
-                    alt={rev.name}
-                    style={{ width: '48px', height: '48px', maxWidth: '48px', maxHeight: '48px' }}
-                    className="w-12 h-12 rounded-full object-cover shrink-0 border-2 border-[#800020]/40 shadow-sm"
-                  />
-                  <span
-                    className="absolute -bottom-1 -right-1 bg-[#800020] text-amber-300 rounded-full p-0.5 border border-amber-300 flex items-center justify-center"
-                    title="Verified Buyer"
-                  >
-                    <Icon name="check_circle" className="text-[10px]" />
-                  </span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-extrabold text-sm text-[#2b0b14] truncate">
-                    {rev.name}
-                  </h3>
-                  <p className="text-xs text-[#800020] font-semibold flex items-center gap-1">
-                    <Icon name="location_on" className="text-xs text-[#800020]" />
-                    {rev.location}
-                  </p>
-                </div>
-              </div>
-
-              {/* Star Rating */}
-              <div className="flex items-center gap-1 mb-3">
-                {Array.from({ length: rev.rating }).map((_, i) => (
-                  <Icon
-                    key={i}
-                    name="star"
-                    filled
-                    className="text-sm fill-current text-amber-500"
-                  />
-                ))}
-                <span className="text-[11px] font-bold text-[#800020] ml-1.5 bg-[#efe7d3] px-2 py-0.5 rounded border border-[#800020]/20">
-                  Verified Buyer ✓
-                </span>
-              </div>
-
-              {/* Review Text */}
-              <p
-                className={`text-xs sm:text-sm text-[#2b0b14] leading-relaxed mb-6 font-medium ${
-                  rev.isTamil ? 'font-sans text-[13px] leading-snug' : ''
-                }`}
-              >
-                "{rev.reviewText}"
-              </p>
-            </div>
-
-            {/* Purchased Product Tag */}
-            <div className="border-t border-[#800020]/15 pt-3.5 mt-auto flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#58111a]/60">
-                Purchased:
-              </span>
-              <span className="text-[11px] font-extrabold text-[#800020] bg-[#efe7d3] px-3 py-1 rounded-full border border-[#800020]/20 truncate max-w-[160px]">
-                {rev.purchasedProduct}
-              </span>
-            </div>
-          </article>
+          <ReviewCard key={rev.id} rev={rev} />
         ))}
       </div>
     </section>

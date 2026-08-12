@@ -51,37 +51,35 @@ export default function TrendingBannerSection({ banners = [] }: TrendingBannerSe
 
   return (
     <section
-      className="w-full pb-6 md:pb-10 bg-white"
+      className="w-full bg-white"
       id="trending-section"
       onMouseEnter={stopTimer}
       onMouseLeave={startTimer}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Full-Length Clickable Banner Image — same aspect ratio at every breakpoint */}
-        <div
-          onClick={handleClick}
-          title={activeBanner.title ? `View ${activeBanner.title}` : 'Click to view product'}
-          className="group relative w-full aspect-[1600/519] overflow-hidden rounded-2xl md:rounded-3xl shadow-xl cursor-pointer transition-all duration-500 transform hover:-translate-y-1 hover:shadow-2xl border border-amber-500/20"
-        >
-          {/* Desktop Banner Image */}
-          <img
-            key={activeBanner.id + '-desktop'}
-            src={activeBanner.imageUrl}
-            alt={activeBanner.title || 'Trending Banner'}
-            className="hidden sm:block w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105"
-          />
+      {/* Full-Bleed Clickable Banner Image — edge to edge, same aspect ratio at every breakpoint */}
+      <div
+        onClick={handleClick}
+        title={activeBanner.title ? `View ${activeBanner.title}` : 'Click to view product'}
+        className="group relative w-full aspect-[1600/519] overflow-hidden cursor-pointer"
+      >
+        {/* Desktop Banner Image */}
+        <img
+          key={activeBanner.id + '-desktop'}
+          src={activeBanner.imageUrl}
+          alt={activeBanner.title || 'Trending Banner'}
+          className="hidden sm:block w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105"
+        />
 
-          {/* Mobile Banner Image */}
-          <img
-            key={activeBanner.id + '-mobile'}
-            src={activeBanner.mobileImageUrl || activeBanner.imageUrl}
-            alt={activeBanner.title || 'Trending Banner'}
-            className="block sm:hidden w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105"
-          />
+        {/* Mobile Banner Image */}
+        <img
+          key={activeBanner.id + '-mobile'}
+          src={activeBanner.mobileImageUrl || activeBanner.imageUrl}
+          alt={activeBanner.title || 'Trending Banner'}
+          className="block sm:hidden w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105"
+        />
 
-          {/* Minimal Hover Overlay */}
-          <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-        </div>
+        {/* Minimal Hover Overlay */}
+        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
       </div>
     </section>
   )
