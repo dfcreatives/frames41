@@ -237,8 +237,9 @@ export class PaymentService {
       ? Math.max(0, Math.round((Number(payment.order.total) - Number(payment.amount)) * 100) / 100)
       : 0;
     const orderStatus = payment.isPartial ? 'PROCESSING' : 'PAID';
+    const balanceDueWhen = payment.order.type === 'PICKUP' ? 'due at pickup' : 'due on delivery';
     const statusNote = payment.isPartial
-      ? `Advance payment (50%) verified; balance of INR ${codDueAmount.toFixed(2)} due on delivery`
+      ? `Advance payment (50%) verified; balance of INR ${codDueAmount.toFixed(2)} ${balanceDueWhen}`
       : 'Payment verified successfully';
 
     await prisma.$transaction([

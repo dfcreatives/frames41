@@ -6,19 +6,14 @@ export default function WelcomeOfferModal() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    // Show modal after 1.2s delay if not previously dismissed in this session
-    const dismissed = sessionStorage.getItem('frames41_welcome_offer_dismissed')
-    if (!dismissed) {
-      const timer = setTimeout(() => {
-        setIsOpen(true)
-      }, 1200)
-      return () => clearTimeout(timer)
-    }
+    const timer = setTimeout(() => {
+      setIsOpen(true)
+    }, 20000)
+    return () => clearTimeout(timer)
   }, [])
 
   const handleClose = () => {
     setIsOpen(false)
-    sessionStorage.setItem('frames41_welcome_offer_dismissed', 'true')
   }
 
   const handleCopyCoupon = () => {

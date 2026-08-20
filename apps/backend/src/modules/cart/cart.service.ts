@@ -330,6 +330,7 @@ export class CartService implements ICartService {
     userId: string,
     couponCode?: string,
     pincode?: string,
+    giftWrap?: boolean,
   ): Promise<CartCalculation> {
     const cart = await this.repository.findOrCreateCart(userId);
 
@@ -381,6 +382,7 @@ export class CartService implements ICartService {
       coupon,
       state,
       pincodeServiceable,
+      giftWrap,
     );
 
     return result;

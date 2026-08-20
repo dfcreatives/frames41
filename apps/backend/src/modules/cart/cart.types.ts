@@ -67,6 +67,7 @@ export interface CartCalculation {
   couponCode?: string;
   shippingCharge: number;
   shippingFree: boolean;
+  giftWrapCharge: number;
   total: number;
   itemCount: number;
 }
@@ -197,5 +198,6 @@ export interface ICartService {
     userId: string,
     couponCode?: string,
     pincode?: string,
+    giftWrap?: boolean,
   ): Promise<CartCalculation>;
 }

@@ -36,7 +36,7 @@ export class OrderService implements IOrderService {
 
   async createOrder(
     userId: string,
-    data: { addressId: string; couponCode?: string },
+    data: { addressId: string; couponCode?: string; giftWrap?: boolean },
   ): Promise<OrderData> {
     const order = await prisma.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
@@ -97,6 +97,7 @@ export class OrderService implements IOrderService {
         coupon,
         address.state,
         true,
+        data.giftWrap,
       );
 
       const quantityByProduct = new Map<string, number>();
@@ -129,6 +130,8 @@ export class OrderService implements IOrderService {
           subtotal: calculation.subtotal,
           discount: calculation.couponDiscount,
           shippingCharge: calculation.shippingCharge,
+          giftWrap: !!data.giftWrap,
+          giftWrapCharge: calculation.giftWrapCharge,
           total: calculation.total,
           addressSnapshot: {
             line1: address.line1,
@@ -238,6 +241,29 @@ export class OrderService implements IOrderService {
     return this.mapOrderToData(order);
   }
 
+  async updateOrderType(orderId: string, userId: string, type: string): Promise<OrderData> {
+    const order = await this.repository.findById(orderId);
+
+    if (!order) {
+      throw new NotFoundError('Order');
+    }
+
+    if (order.userId !== userId) {
+      throw new ForbiddenError('You do not have permission to update this order');
+    }
+
+    if (order.status !== 'PENDING') {
+      throw new BadRequestError('Order type can only be changed before payment');
+    }
+
+    await this.repository.updateType(orderId, type);
+
+    logger.info({ orderId, type }, 'Order type updated');
+
+    const updatedOrder = await this.repository.findById(orderId);
+    return this.mapOrderToData(updatedOrder!);
+  }
+
   async getUserOrders(
     userId: string,
     cursor?: string,
@@ -342,9 +368,12 @@ export class OrderService implements IOrderService {
     id: string;
     orderNumber: string;
     status: string;
+    type: string;
     subtotal: { toString(): string } | number;
     discount: { toString(): string } | number;
     shippingCharge: { toString(): string } | number;
+    giftWrap: boolean;
+    giftWrapCharge: { toString(): string } | number;
     total: { toString(): string } | number;
     codDueAmount: { toString(): string } | number;
     addressSnapshot: unknown;
@@ -374,9 +403,12 @@ export class OrderService implements IOrderService {
       id: order.id,
       orderNumber: order.orderNumber,
       status: order.status,
+      type: order.type,
       subtotal: Number(order.subtotal),
       discount: Number(order.discount),
       shippingCharge: Number(order.shippingCharge),
+      giftWrap: order.giftWrap,
+      giftWrapCharge: Number(order.giftWrapCharge),
       total: Number(order.total),
       codDueAmount: Number(order.codDueAmount),
       addressSnapshot: {

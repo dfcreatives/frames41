@@ -23,6 +23,9 @@ interface CheckoutProps {
   applyingCoupon?: boolean
   onApplyCoupon?: (code: string) => Promise<number>
   onRemoveCoupon?: () => Promise<void>
+  giftWrap?: boolean
+  togglingGiftWrap?: boolean
+  onToggleGiftWrap?: (next: boolean) => Promise<void>
 }
 
 export default function Checkout({
@@ -38,6 +41,9 @@ export default function Checkout({
   applyingCoupon,
   onApplyCoupon,
   onRemoveCoupon,
+  giftWrap,
+  togglingGiftWrap,
+  onToggleGiftWrap,
 }: CheckoutProps) {
   const [selectedAddressId, setSelectedAddressId] = useState(defaultAddressId || data.addresses[0]?.id || '')
   const [selectedDeliveryId, setSelectedDeliveryId] = useState(defaultDeliveryId)
@@ -109,6 +115,9 @@ export default function Checkout({
           applyingCoupon={applyingCoupon}
           onApplyCoupon={onApplyCoupon}
           onRemoveCoupon={onRemoveCoupon}
+          giftWrap={giftWrap}
+          togglingGiftWrap={togglingGiftWrap}
+          onToggleGiftWrap={onToggleGiftWrap}
         />
       </div>
     </main>

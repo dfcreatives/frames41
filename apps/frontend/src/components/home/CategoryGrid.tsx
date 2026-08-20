@@ -45,7 +45,7 @@ const CategoryCard = memo(function CategoryCard({ category, index }: CategoryCar
         className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500"
       />
       <div className="absolute bottom-0 left-0 p-4 sm:p-10 w-full text-white">
-        <h3 className="font-headline text-lg sm:text-headline-md italic mb-1 sm:mb-2">
+        <h3 className="font-headline text-lg sm:text-headline-md bold mb-1 sm:mb-2">
           {category.title}
         </h3>
         {category.description && (
@@ -82,7 +82,7 @@ export default function CategoryGrid({ categories }: CategoryGridProps) {
           </span>
           <h2
             id="categories-heading"
-            className="font-headline text-[28px] sm:text-headline-lg italic"
+            className="font-headline text-[28px] sm:text-headline-lg bold"
           >
             Curated Categories
           </h2>

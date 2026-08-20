@@ -1,5 +1,7 @@
 export type PaymentMethodId = 'razorpay'
 
+export type OrderType = 'DELIVERY' | 'PICKUP'
+
 export interface PaymentMethod {
   readonly id: PaymentMethodId
   readonly label: string
@@ -37,4 +39,10 @@ export interface TrustBadge {
   readonly src: string
   readonly alt: string
   readonly className: string
+}
+
+export interface PickupLocation {
+  readonly name: string
+  readonly address: string
+  readonly hours: string
 }

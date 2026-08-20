@@ -233,6 +233,7 @@ export class CartController {
         req.user.userId,
         data.couponCode,
         data.pincode,
+        data.giftWrap,
       );
 
       res.status(200).json({

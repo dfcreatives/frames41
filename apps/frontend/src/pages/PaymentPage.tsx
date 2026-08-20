@@ -4,7 +4,7 @@ import { usePayment } from '@/hooks/usePayment'
 import Payment from '@/components/payment/Payment'
 import Icon from '@/components/ui/Icon'
 import { api } from '@/lib/api'
-import type { PaymentMethodId, PaymentOrderSummary, PaymentStatus } from '@/types/payment'
+import type { OrderType, PaymentMethodId, PaymentOrderSummary, PaymentStatus } from '@/types/payment'
 
 const STATUS_MAP: Record<string, PaymentStatus> = {
   idle: 'idle',
@@ -71,6 +71,7 @@ export default function PaymentPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [showFailedModal, setShowFailedModal] = useState(false)
   const [lastMethod, setLastMethod] = useState<PaymentMethodId>('razorpay')
+  const [lastFulfillmentType, setLastFulfillmentType] = useState<OrderType>('DELIVERY')
 
   useEffect(() => {
     let active = true
@@ -132,10 +133,20 @@ export default function PaymentPage() {
     return () => { active = false }
   }, [orderId])
 
-  const handlePaymentSubmit = async (method: PaymentMethodId) => {
+  const handlePaymentSubmit = async (method: PaymentMethodId, fulfillmentType: OrderType) => {
     setShowFailedModal(false)
     setLastMethod(method)
-    const success = await startPayment((method as string) === 'partial_cod')
+    setLastFulfillmentType(fulfillmentType)
+
+    try {
+      await api.orders.updateType(orderId, fulfillmentType)
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Failed to save delivery option')
+      return
+    }
+
+    const isPartial = fulfillmentType === 'PICKUP' || (method as string) === 'partial_cod'
+    const success = await startPayment(isPartial)
 
     if (success) {
       navigate(`/order-confirm/${orderId}`, { replace: true })
@@ -176,7 +187,7 @@ export default function PaymentPage() {
           reason={error ?? 'The payment process was cancelled or could not be completed.'}
           onRetry={() => {
             setShowFailedModal(false)
-            handlePaymentSubmit(lastMethod)
+            handlePaymentSubmit(lastMethod, lastFulfillmentType)
           }}
           onClose={() => setShowFailedModal(false)}
         />

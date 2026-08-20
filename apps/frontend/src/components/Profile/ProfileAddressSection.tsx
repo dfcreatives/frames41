@@ -1,10 +1,10 @@
-import type { ProfileAddress } from '../../types/profile'
+import type { AddressEditData, ProfileAddress } from '../../types/profile'
 import ProfileAddressCard from './ProfileAddressCard'
 
 interface ProfileAddressSectionProps {
   addresses: ReadonlyArray<ProfileAddress>
   onAddAddress?: () => void
-  onEditAddress: (id: string) => void
+  onSaveAddress: (id: string, data: AddressEditData) => Promise<void> | void
   onRemoveAddress: (id: string) => void
   onSetDefaultAddress: (id: string) => void
 }
@@ -12,7 +12,7 @@ interface ProfileAddressSectionProps {
 export default function ProfileAddressSection({
   addresses,
   onAddAddress,
-  onEditAddress,
+  onSaveAddress,
   onRemoveAddress,
   onSetDefaultAddress,
 }: ProfileAddressSectionProps) {
@@ -39,7 +39,7 @@ export default function ProfileAddressSection({
           <ProfileAddressCard
             key={address.id}
             address={address}
-            onEdit={onEditAddress}
+            onSave={onSaveAddress}
             onRemove={onRemoveAddress}
             onSetDefault={onSetDefaultAddress}
           />

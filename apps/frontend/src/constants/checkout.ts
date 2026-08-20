@@ -63,6 +63,7 @@ export const CHECKOUT_DATA: CheckoutData = {
     taxInr: 42.9,
     shippingInr: 0,
     discountInr: 0,
+    giftWrapInr: 0,
     totalInr: 547.9,
   },
 }

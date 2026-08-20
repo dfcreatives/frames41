@@ -424,7 +424,7 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
             </div>
           ))}
           {Object.keys(form.specifications).length === 0 && (
-            <p className="text-xs text-gray-400 italic">No specifications added.</p>
+            <p className="text-xs text-gray-400 bold">No specifications added.</p>
           )}
         </div>
         <Field label="Care instructions">
@@ -526,7 +526,7 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
             </div>
           ))}
           {form.imageUrls.length === 0 && (
-            <div className="col-span-full text-sm text-gray-400 italic py-4 text-center border border-dashed border-gray-200 rounded-xl">
+            <div className="col-span-full text-sm text-gray-400 bold py-4 text-center border border-dashed border-gray-200 rounded-xl">
               No images uploaded yet. Click "+ Upload Image" to add.
             </div>
           )}

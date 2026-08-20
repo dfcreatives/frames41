@@ -50,7 +50,7 @@ export default function AddressCard({ address, isSelected, onSelect, onEdit, onD
 
         <h3 className="font-label-bold text-label-bold text-[#111110] mb-2">{fullName}</h3>
 
-        <address className="font-body-md text-body-md text-secondary not-italic">
+        <address className="font-body-md text-body-md text-secondary not-bold">
           {line1}
           <br />
           {line2 && (

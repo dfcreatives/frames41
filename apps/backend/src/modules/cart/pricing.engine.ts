@@ -1,5 +1,5 @@
 import type { ProductPriceTier } from '@prisma/client';
-import { SHIPPING } from '../../config/constants.js';
+import { SHIPPING, GIFT_WRAP } from '../../config/constants.js';
 
 const TEMP_FREE_SHIPPING_FOR_RAZORPAY_TEST = process.env.FREE_SHIPPING_FOR_RAZORPAY_TEST !== 'false';
 
@@ -159,6 +159,15 @@ export class PricingEngine {
   }
 
   /**
+   * Calculate the tiered shipping charge for a given subtotal
+   */
+  static calculateShippingCharge(subtotal: number): number {
+    if (subtotal < SHIPPING.TIER_1_MAX) return SHIPPING.TIER_1_CHARGE;
+    if (subtotal < SHIPPING.TIER_2_MAX) return SHIPPING.TIER_2_CHARGE;
+    return SHIPPING.TIER_3_CHARGE;
+  }
+
+  /**
    * Calculate shipping charge
    */
   static calculateShipping(
@@ -174,14 +183,6 @@ export class PricingEngine {
       };
     }
 
-    // Check if shipping is free
-    if (subtotal >= SHIPPING.FREE_SHIPPING_THRESHOLD) {
-      return {
-        charge: 0,
-        free: true,
-      };
-    }
-
     // Check if pincode is serviceable
     if (pincodeServiceable === false) {
       return {
@@ -191,9 +192,16 @@ export class PricingEngine {
     }
 
     return {
-      charge: SHIPPING.DEFAULT_SHIPPING_CHARGE,
+      charge: this.calculateShippingCharge(subtotal),
       free: false,
     };
+  }
+
+  /**
+   * Calculate gift wrap charge
+   */
+  static calculateGiftWrapCharge(giftWrap: boolean): number {
+    return giftWrap ? GIFT_WRAP.CHARGE : 0;
   }
 
   /**
@@ -203,8 +211,9 @@ export class PricingEngine {
     subtotal: number,
     couponDiscount: number,
     shippingCharge: number,
+    giftWrapCharge: number,
   ): number {
-    return Math.max(0, subtotal - couponDiscount + shippingCharge);
+    return Math.max(0, subtotal - couponDiscount + shippingCharge + giftWrapCharge);
   }
 
   /**
@@ -221,6 +230,7 @@ export class PricingEngine {
     } | null,
     state?: string,
     pincodeServiceable?: boolean,
+    giftWrap?: boolean,
   ): {
     items: CalculatedItem[];
     subtotal: number;
@@ -228,6 +238,7 @@ export class PricingEngine {
     couponCode?: string;
     shippingCharge: number;
     shippingFree: boolean;
+    giftWrapCharge: number;
     total: number;
     itemCount: number;
   } {
@@ -245,11 +256,15 @@ export class PricingEngine {
     // Calculate shipping
     const shipping = this.calculateShipping(subtotal, state, pincodeServiceable);
 
+    // Calculate gift wrap charge
+    const giftWrapCharge = this.calculateGiftWrapCharge(!!giftWrap);
+
     // Calculate total
     const total = this.calculateTotal(
       subtotal,
       couponValidation.discount,
       shipping.charge,
+      giftWrapCharge,
     );
 
     // Calculate total item count
@@ -262,6 +277,7 @@ export class PricingEngine {
       couponCode: coupon && couponValidation.valid ? coupon.code : undefined,
       shippingCharge: shipping.charge,
       shippingFree: shipping.free,
+      giftWrapCharge,
       total,
       itemCount,
     };

@@ -39,7 +39,7 @@ export default function NewsletterStrip() {
         </span>
         <h2
           id="newsletter-heading"
-          className="font-headline text-[24px] sm:text-headline-lg italic text-white mb-6 sm:mb-10 max-w-2xl"
+          className="font-headline text-[24px] sm:text-headline-lg bold text-white mb-6 sm:mb-10 max-w-2xl"
         >
           Subscribe for early access to sales and exclusive DIY tips.
         </h2>

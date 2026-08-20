@@ -64,7 +64,7 @@ export default function CategoryProductsSection({
         <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.3em] text-[#800020]">
           Shop by collection
         </span>
-        <h2 id="categories-heading" className="font-headline text-[28px] italic font-extrabold text-[#2b0b14] sm:text-headline-lg">
+        <h2 id="categories-heading" className="font-headline text-[28px] bold font-extrabold text-[#2b0b14] sm:text-headline-lg">
           Curated Categories
         </h2>
       </div>

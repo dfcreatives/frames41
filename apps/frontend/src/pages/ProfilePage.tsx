@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import Profile from '@/components/Profile/Profile'
 
 export default function ProfilePage() {
-  const { profileData, loading, updateProfile, deleteAddress } = useProfile()
+  const { profileData, loading, updateProfile, updateAddress, deleteAddress } = useProfile()
   const { logout } = useAuth()
   const navigate = useNavigate()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -31,6 +31,7 @@ export default function ProfilePage() {
       data={profileData}
       onLogout={handleLogout}
       isLoggingOut={isLoggingOut}
+      onSavePersonalInfo={(data) => updateProfile(data)}
       onSaveAll={({ addresses }) => {
         // Sync any removed addresses
         const currentIds = new Set(profileData.addresses.map((a) => a.id))

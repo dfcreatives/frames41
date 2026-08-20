@@ -66,7 +66,7 @@ export default function ReviewCard({ review, onEdit, onRemove }: ReviewCardProps
           )}
         </div>
 
-        <blockquote className="font-body-md text-body-md text-on-surface-variant italic mb-sm">
+        <blockquote className="font-body-md text-body-md text-on-surface-variant bold mb-sm">
           <p>"{review.reviewText}"</p>
         </blockquote>
 

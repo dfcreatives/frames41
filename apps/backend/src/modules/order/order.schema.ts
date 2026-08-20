@@ -6,6 +6,11 @@ import { z } from 'zod';
 export const orderStatusSchema = z.enum(['PENDING', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED']);
 
 /**
+ * Order type enum (delivery vs. store pickup)
+ */
+export const orderTypeSchema = z.enum(['DELIVERY', 'PICKUP']);
+
+/**
  * Address snapshot schema
  */
 const addressSnapshotSchema = z.object({
@@ -22,6 +27,7 @@ const addressSnapshotSchema = z.object({
 export const createOrderSchema = z.object({
   addressId: z.string().uuid('Invalid address ID'),
   couponCode: z.string().trim().min(1).max(20).optional(),
+  giftWrap: z.boolean().optional(),
 });
 
 /**
@@ -30,6 +36,13 @@ export const createOrderSchema = z.object({
 export const updateOrderStatusSchema = z.object({
   status: orderStatusSchema,
   note: z.string().optional(),
+});
+
+/**
+ * Update order type schema
+ */
+export const updateOrderTypeSchema = z.object({
+  type: orderTypeSchema,
 });
 
 /**
@@ -68,8 +81,10 @@ export const refundRequestSchema = z.object({
  */
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
+export type UpdateOrderTypeInput = z.infer<typeof updateOrderTypeSchema>;
 export type OrderIdParam = z.infer<typeof orderIdParamSchema>;
 export type OrderNumberParam = z.infer<typeof orderNumberParamSchema>;
 export type OrderQuery = z.infer<typeof orderQuerySchema>;
 export type RefundRequestInput = z.infer<typeof refundRequestSchema>;
 export type OrderStatus = z.infer<typeof orderStatusSchema>;
+export type OrderType = z.infer<typeof orderTypeSchema>;

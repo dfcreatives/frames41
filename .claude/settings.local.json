@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(npm install *)",
-      "Bash(cp /tmp/claude-1000/-home-jeyadev-Downloads-frames41-main--2-/dfb5ce3e-7c35-4244-9a49-b0f76330b6e2/scratchpad/find-admin.mjs \"/home/jeyadev/Downloads/frames41-main \\(2\\)/apps/backend/scripts/_tmp-find-admin.mjs\")",
-      "Bash(npx tsx *)"
-    ]
-  }
-}

@@ -52,7 +52,7 @@ export default function BudgetSection({ products, priceLimit = 999 }: BudgetSect
           <span className="text-label-bold text-amber-400 text-[10px] tracking-[0.3em] uppercase block mb-1">
             Value Picks
           </span>
-          <h2 id="budget-heading" className="font-headline text-[28px] sm:text-headline-lg italic font-extrabold text-amber-100">
+          <h2 id="budget-heading" className="font-headline text-[28px] sm:text-headline-lg bold font-extrabold text-amber-100">
             Under {formatINR(priceLimit)}
           </h2>
         </div>

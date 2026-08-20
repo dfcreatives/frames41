@@ -50,7 +50,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
       <div className="relative">
         <div
           ref={imageContainerRef}
-          className="relative aspect-square rounded-2xl overflow-hidden bg-[#faf8f0] border border-[#800020]/20 p-3 flex items-center justify-center shadow-sm lg:cursor-crosshair select-none"
+          className="relative aspect-square rounded-2xl overflow-hidden border border-[#800020]/20 flex items-center justify-center shadow-sm lg:cursor-crosshair select-none"
           onMouseEnter={() => canZoom && setIsZooming(true)}
           onMouseLeave={() => setIsZooming(false)}
           onMouseMove={canZoom ? handleMouseMove : undefined}
@@ -65,7 +65,7 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
               src={selectedImage?.url}
               alt={selectedImage?.alt || 'Product image'}
               widthPreset="full"
-              objectFit="contain"
+              objectFit="cover"
               className="w-full h-full"
               loading="eager"
             />

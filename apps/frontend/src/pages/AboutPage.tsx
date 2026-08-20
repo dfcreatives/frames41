@@ -30,7 +30,7 @@ export default function AboutPage() {
             <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary block mb-4">
               The heart behind Frames 41
             </span>
-            <h1 className="font-headline text-4xl sm:text-5xl italic mb-6">Our Story</h1>
+            <h1 className="font-headline text-4xl sm:text-5xl bold mb-6">Our Story</h1>
             <p className="text-on-background/65 text-base sm:text-lg leading-relaxed">
               We believe the best gifts do more than mark an occasion—they preserve a
               feeling, celebrate a bond, and turn a beautiful moment into a lasting memory.
@@ -38,7 +38,7 @@ export default function AboutPage() {
           </div>
 
           <div className="max-w-4xl mx-auto rounded-3xl bg-on-background text-background px-7 py-10 sm:px-14 sm:py-14 mb-14">
-            <p className="font-headline text-2xl sm:text-3xl italic leading-relaxed mb-7">
+            <p className="font-headline text-2xl sm:text-3xl bold leading-relaxed mb-7">
               Thoughtful gifts, made especially for the people who matter.
             </p>
             <div className="space-y-5 text-sm sm:text-base text-white/65 leading-relaxed">
@@ -64,7 +64,7 @@ export default function AboutPage() {
                 className="rounded-2xl border border-on-background/10 bg-white/40 p-7"
               >
                 <span className="text-2xl block mb-5" aria-hidden="true">{icon}</span>
-                <h2 className="font-headline text-xl italic mb-3">{title}</h2>
+                <h2 className="font-headline text-xl bold mb-3">{title}</h2>
                 <p className="text-sm text-on-background/60 leading-relaxed">{description}</p>
               </article>
             ))}

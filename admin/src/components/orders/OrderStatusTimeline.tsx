@@ -28,7 +28,7 @@ export default function OrderStatusTimeline({ history }: { history: OrderStatusH
             )}
           </div>
           {entry.note && (
-            <p className="text-sm text-gray-600 italic">&ldquo;{entry.note}&rdquo;</p>
+            <p className="text-sm text-gray-600 bold">&ldquo;{entry.note}&rdquo;</p>
           )}
         </li>
       ))}

@@ -54,6 +54,8 @@ export type OrderStatus =
   | 'CANCELLED'
   | 'REFUNDED'
 
+export type OrderType = 'DELIVERY' | 'PICKUP'
+
 export interface AdminOrderListItem {
   id: string
   orderNumber: string
@@ -61,6 +63,7 @@ export interface AdminOrderListItem {
   userName: string | null
   userPhone: string
   status: OrderStatus
+  type: OrderType
   subtotal: number
   discount: number
   shippingCharge: number
@@ -80,6 +83,7 @@ export interface AdminOrderDetail {
   id: string
   orderNumber: string
   status: OrderStatus
+  type: OrderType
   user: { id: string; name: string | null; phone: string; email: string | null }
   address?: {
     line1: string

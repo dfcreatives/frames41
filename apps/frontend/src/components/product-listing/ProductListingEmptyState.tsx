@@ -8,7 +8,7 @@ export default function ProductListingEmptyState({ onReset }: ProductListingEmpt
   return (
     <div className="flex min-h-80 flex-col items-center justify-center border border-dashed border-on-background/15 px-6 py-16 text-center">
       <Icon name="inventory_2" className="mb-4 text-5xl text-on-background/35" />
-      <h2 className="font-headline text-3xl italic text-on-background">No products found</h2>
+      <h2 className="font-headline text-3xl bold text-on-background">No products found</h2>
       <p className="mt-3 max-w-md text-sm leading-6 text-on-background/60">
         Try a different search term or browse every category in the collection.
       </p>

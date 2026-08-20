@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer, useRef } from 'react'
+import { useCallback, useMemo, useReducer, useRef, useState } from 'react'
 import type { CartData, CartLineItem } from '../../types/shipping'
 import CartItemList from './CartItemList'
 import OrderSummaryPanel from './OrderSummaryPanel'
@@ -74,6 +74,7 @@ export default function Shipping({
   onRemoveItem,
 }: ShippingProps) {
   const [cart, dispatch] = useReducer(cartReducer, data.items, buildInitialState)
+  const [removingIds, setRemovingIds] = useState<ReadonlySet<string>>(new Set())
   const latestQuantities = useRef<Record<string, number>>(
     Object.fromEntries(data.items.map((item) => [item.id, item.quantity])),
   )
@@ -140,8 +141,17 @@ export default function Shipping({
   }, [syncQuantity])
 
   const handleRemove = useCallback(async (id: string) => {
-    await onRemoveItem?.(id)
-    dispatch({ type: 'REMOVE', id })
+    setRemovingIds((prev) => new Set(prev).add(id))
+    try {
+      await onRemoveItem?.(id)
+      dispatch({ type: 'REMOVE', id })
+    } finally {
+      setRemovingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
   }, [onRemoveItem])
 
   const handleCheckout = useCallback(() => {
@@ -168,6 +178,7 @@ export default function Shipping({
           <CartItemList
             items={visibleItems}
             quantities={cart.quantities}
+            removingIds={removingIds}
             onIncrement={handleIncrement}
             onDecrement={handleDecrement}
             onRemove={handleRemove}

@@ -40,6 +40,7 @@ export const cartItemIdParamSchema = z.object({
 export const calculateCartSchema = z.object({
   couponCode: z.string().trim().min(1).max(20).optional(),
   pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits').optional(),
+  giftWrap: z.boolean().optional(),
 });
 
 /**
@@ -84,6 +85,7 @@ export const cartCalculationSchema = z.object({
   couponCode: z.string().optional(),
   shippingCharge: z.number(),
   shippingFree: z.boolean(),
+  giftWrapCharge: z.number(),
   total: z.number(),
   itemCount: z.number(),
 });

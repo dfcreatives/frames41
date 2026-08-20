@@ -2,7 +2,7 @@
  * Admin types
  */
 
-import type { OrderStatus, RefundStatus } from '@prisma/client';
+import type { OrderStatus, OrderType, RefundStatus } from '@prisma/client';
 
 export interface DashboardStats {
   totalUsers: number;
@@ -69,6 +69,7 @@ export interface OrderListItem {
   userName: string | null;
   userPhone: string | null;
   status: OrderStatus;
+  type: OrderType;
   subtotal: number;
   discount: number;
   shippingCharge: number;

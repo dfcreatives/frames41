@@ -16,6 +16,8 @@ const productCatalogCache = createLRUCache<string, {}>({
   ttl: 30_000,
 });
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Product repository implementation
  */
@@ -204,6 +206,7 @@ export class ProductRepository implements IProductRepository {
   }
 
   async findById(id: string): Promise<ProductWithRelations | null> {
+    if (!UUID_PATTERN.test(id)) return null;
     const cacheKey = `id:${id}`;
     const cached = productCatalogCache.get(cacheKey);
     if (cached) return cached as ProductWithRelations;

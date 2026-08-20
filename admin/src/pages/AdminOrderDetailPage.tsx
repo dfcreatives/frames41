@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { useAdminOrderDetail } from '@/hooks/useAdminOrders'
 import OrderStatusBadge from '@/components/orders/OrderStatusBadge'
+import OrderTypeBadge from '@/components/orders/OrderTypeBadge'
 import OrderStatusTimeline from '@/components/orders/OrderStatusTimeline'
 import TrackingModal from '@/components/orders/TrackingModal'
 import type { OrderStatus } from '@/types/admin'
@@ -76,6 +77,7 @@ export default function AdminOrderDetailPage() {
           </button>
           <span className="font-mono text-sm font-bold text-primary">{order.orderNumber}</span>
           <OrderStatusBadge status={order.status} />
+          <OrderTypeBadge type={order.type} />
         </div>
         <button
           onClick={() => setTrackingOpen(true)}
@@ -113,7 +115,12 @@ export default function AdminOrderDetailPage() {
                 </p>
               </div>
             </div>
-            {order.address && (
+            {order.type === 'PICKUP' ? (
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <p className="text-xs text-gray-400 mb-1">Fulfillment</p>
+                <p className="text-sm text-gray-700">Customer will collect this order from the store.</p>
+              </div>
+            ) : order.address && (
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <p className="text-xs text-gray-400 mb-1">Shipping Address</p>
                 <p className="text-sm text-gray-700">

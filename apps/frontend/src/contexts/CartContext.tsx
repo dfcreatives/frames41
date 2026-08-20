@@ -120,6 +120,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const setCart = useCallback((cart: unknown) => {
     const data = adaptCart(cart)
     setCartData(data)
+
+    // getCart() doesn't compute shipping/coupon totals, only the pricing
+    // engine (/cart/calculate) does — fetch it to fill in real charges.
+    const version = requestVersion.current
+    api.cart.calculate({})
+      .then((calc: unknown) => {
+        if (version !== requestVersion.current) return
+        const c = calc as { shippingCharge?: number; couponDiscount?: number }
+        setCartData((prev) => prev ? {
+          ...prev,
+          charges: {
+            ...prev.charges,
+            shippingInr: Number(c.shippingCharge ?? 0),
+            discountInr: Number(c.couponDiscount ?? 0),
+          },
+        } : prev)
+      })
+      .catch(() => {})
   }, [])
 
   const setGuestCart = useCallback((items: GuestCartItem[]) => {

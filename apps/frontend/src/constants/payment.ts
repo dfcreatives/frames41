@@ -1,7 +1,15 @@
-import type { PaymentMethod, PaymentOrderSummary, TrustBadge } from '../types/payment'
+import type { PaymentMethod, PaymentOrderSummary, PickupLocation, TrustBadge } from '../types/payment'
 
 export const ACTIVE_FORM_ID = 'active-payment-form'
 
+// Store pickup orders only need to be paid half upfront; the rest is due at pickup.
+export const PICKUP_ADVANCE_RATIO = 0.5
+
+export const STORE_PICKUP_LOCATION: PickupLocation = {
+  name: 'Frames41 Store',
+  address: 'MX7X+P3G, Palaghat Road, Pollachi, Tamil Nadu 642001',
+  hours: 'Mon–Sat, 10:00 AM – 7:00 PM',
+}
 export const PAYMENT_METHODS: ReadonlyArray<PaymentMethod> = [
   {
     id: 'razorpay',

@@ -330,12 +330,12 @@ export const api = {
     removeItem: (id: string) =>
       unwrap<unknown>(instance.delete(`/cart/items/${id}`)),
     clearCart: () => unwrap<unknown>(instance.delete("/cart")),
-    calculate: (data: { couponCode?: string; pincode?: string }) =>
+    calculate: (data: { couponCode?: string; pincode?: string; giftWrap?: boolean }) =>
       unwrap<unknown>(instance.post("/cart/calculate", data)),
   },
 
   orders: {
-    create: (data: { addressId: string; couponCode?: string }, idempotencyKey?: string) =>
+    create: (data: { addressId: string; couponCode?: string; giftWrap?: boolean }, idempotencyKey?: string) =>
       unwrap<unknown>(instance.post(
         "/orders",
         data,
@@ -348,6 +348,8 @@ export const api = {
       unwrap<unknown>(instance.get(`/orders/by-number/${orderNumber}`)),
     cancel: (id: string) =>
       unwrap<unknown>(instance.post(`/orders/${id}/cancel`)),
+    updateType: (id: string, type: 'DELIVERY' | 'PICKUP') =>
+      unwrap<unknown>(instance.patch(`/orders/${id}/type`, { type })),
     requestRefund: (id: string, data: { reason: string; videoUrl?: string }) =>
       unwrap<unknown>(instance.post(`/orders/${id}/refund`, data)),
   },

@@ -140,7 +140,7 @@ export default function CustomerReviewsSection() {
         </span>
         <h2
           id="reviews-heading"
-          className="font-headline text-2xl sm:text-headline-lg italic font-extrabold text-[#2b0b14]"
+          className="font-headline text-2xl sm:text-headline-lg bold font-extrabold text-[#2b0b14]"
         >
           Loved by Customers Across India
         </h2>

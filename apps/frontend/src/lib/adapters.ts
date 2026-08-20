@@ -100,7 +100,7 @@ export function adaptProductDetail(p: Raw): ProductData {
     ],
     relatedProducts: [],
     customizationConfig,
-    shippingNote: 'Free shipping on orders above ₹999',
+    shippingNote: 'Shipping ₹75–₹150, based on order value',
     shippingDuration: '3–7 business days',
   }
 }
@@ -231,12 +231,14 @@ export function adaptCheckoutTotals(cart: Raw): CheckoutTotals {
   const subtotalInr = Number(cart.subtotal ?? 0)
   const shippingInr = Number(cart.shippingCharge ?? 0)
   const discountInr = Number(cart.couponDiscount ?? 0)
+  const giftWrapInr = Number(cart.giftWrapCharge ?? 0)
   return {
     subtotalInr,
     taxInr: 0,
     shippingInr,
     discountInr,
-    totalInr: Number(cart.total ?? subtotalInr + shippingInr - discountInr),
+    giftWrapInr,
+    totalInr: Number(cart.total ?? subtotalInr + shippingInr - discountInr + giftWrapInr),
   }
 }
 

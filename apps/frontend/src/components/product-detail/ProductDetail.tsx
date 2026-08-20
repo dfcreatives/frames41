@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import type { ProductData } from '../../types/productDetail'
 import { useProductDetail } from '@/hooks/useProductDetailUi'
@@ -63,37 +63,48 @@ export default function ProductDetail({
   const [customizationError, setCustomizationError] = useState('')
   const config = data.customizationConfig
   const { isAuthenticated } = useAuth()
+  const isSubmittingRef = useRef(false)
 
   const handleAddToCart = useCallback(async () => {
-    if (!onAddToCart || cartStatus !== 'idle') return
+    // cartStatus alone can't block a second click fired before the first
+    // setState commits, so guard synchronously with a ref too.
+    if (!onAddToCart || isSubmittingRef.current || cartStatus !== 'idle') return
+    isSubmittingRef.current = true
 
     const oversizedFile = [...images, ...qrCodeImages].find((file) => file.size > 200 * 1024 * 1024)
     if (oversizedFile) {
       setCustomizationError(`${oversizedFile.name} must be 200 MB or smaller.`)
+      isSubmittingRef.current = false
       return
     }
     if (config.numberOfImages.enabled && config.numberOfImages.count > 0 && images.length === 0) {
       setCustomizationError(`Please upload the required photo(s).`)
+      isSubmittingRef.current = false
       return
     }
     if (config.numberOfNames.enabled && config.numberOfNames.count > 0 && names.filter((n) => n?.trim()).length < config.numberOfNames.count) {
       setCustomizationError(`Please enter all required name(s).`)
+      isSubmittingRef.current = false
       return
     }
     if (config.date.enabled && !date) {
       setCustomizationError('Please select a date.')
+      isSubmittingRef.current = false
       return
     }
     if (config.songName.enabled && !songName?.trim()) {
       setCustomizationError('Please enter the name of the song.')
+      isSubmittingRef.current = false
       return
     }
     if (config.address.enabled && !address?.trim()) {
       setCustomizationError('Please enter the address.')
+      isSubmittingRef.current = false
       return
     }
     if (config.qrCodeImages.enabled && config.qrCodeImages.count > 0 && qrCodeImages.length === 0) {
       setCustomizationError('Please upload the required QR code photo.')
+      isSubmittingRef.current = false
       return
     }
     setCartStatus('adding')
@@ -148,6 +159,8 @@ export default function ProductDetail({
     } catch {
       setCustomizationError('We could not save your customization. Please try again.')
       setCartStatus('idle')
+    } finally {
+      isSubmittingRef.current = false
     }
   }, [onAddToCart, data.id, quantity, cartStatus, images, names, date, songName, address, qrCodeImages, isAuthenticated, config])
 

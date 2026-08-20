@@ -296,6 +296,7 @@ export class AdminRepository implements IAdminRepository {
       userName: order.user.name,
       userPhone: order.user.phone,
       status: order.status,
+      type: order.type,
       subtotal: Number(order.subtotal),
       discount: Number(order.discount),
       shippingCharge: Number(order.shippingCharge),

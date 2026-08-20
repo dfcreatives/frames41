@@ -1,6 +1,6 @@
 import type { PincodeServiceability, ShippingRate } from '@prisma/client';
 import { prisma } from '../../infrastructure/database/prisma.client.js';
-import { SHIPPING } from '../../config/constants.js';
+import { PricingEngine } from '../cart/pricing.engine.js';
 
 const TEMP_FREE_SHIPPING_FOR_RAZORPAY_TEST = process.env.FREE_SHIPPING_FOR_RAZORPAY_TEST !== 'false';
 
@@ -21,7 +21,6 @@ export interface ServiceabilityResult {
 export interface ShippingCalculationResult {
   charge: number;
   free: boolean;
-  threshold: number;
   estimatedDays?: number;
   message?: string;
 }
@@ -70,16 +69,6 @@ export class ShippingService {
       return {
         charge: 0,
         free: true,
-        threshold: SHIPPING.FREE_SHIPPING_THRESHOLD,
-      };
-    }
-
-    // Check free shipping threshold
-    if (subtotal >= SHIPPING.FREE_SHIPPING_THRESHOLD) {
-      return {
-        charge: 0,
-        free: true,
-        threshold: SHIPPING.FREE_SHIPPING_THRESHOLD,
       };
     }
 
@@ -90,24 +79,21 @@ export class ShippingService {
         return {
           charge: 0,
           free: false,
-          threshold: SHIPPING.FREE_SHIPPING_THRESHOLD,
           message: 'Delivery not available for this pincode',
         };
       }
 
       return {
-        charge: SHIPPING.DEFAULT_SHIPPING_CHARGE,
+        charge: PricingEngine.calculateShippingCharge(subtotal),
         free: false,
-        threshold: SHIPPING.FREE_SHIPPING_THRESHOLD,
         estimatedDays: serviceability.estimatedDays,
       };
     }
 
-    // Default shipping charge
+    // Default tiered shipping charge
     return {
-      charge: SHIPPING.DEFAULT_SHIPPING_CHARGE,
+      charge: PricingEngine.calculateShippingCharge(subtotal),
       free: false,
-      threshold: SHIPPING.FREE_SHIPPING_THRESHOLD,
     };
   }
 

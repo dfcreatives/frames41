@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import type { ProfileAddress, ProfileData, ProfileSection } from '../../types/profile'
+import type { AddressEditData, ProfileAddress, ProfileData, ProfileSection } from '../../types/profile'
 import { PROFILE_NAV_ITEMS } from '../../constants/profile'
 import ProfileSidebarNav from './ProfileSidebarNav'
 import ProfileSupportCard from './ProfileSupportCard'
@@ -18,10 +18,10 @@ export interface ProfileSaveParams {
 interface ProfileProps {
   data: ProfileData
   onSaveAll?: (params: ProfileSaveParams) => void
-  onEditPersonalInfo?: () => void
+  onSavePersonalInfo?: (data: { legalName: string; email: string }) => Promise<void> | void
   onContactSupport?: () => void
   onAddAddress?: () => void
-  onEditAddress?: (id: string) => void
+  onSaveAddress?: (id: string, data: AddressEditData) => Promise<void> | void
   onLogout?: () => void
   isLoggingOut?: boolean
 }
@@ -29,10 +29,10 @@ interface ProfileProps {
 export default function Profile({
   data,
   onSaveAll,
-  onEditPersonalInfo,
+  onSavePersonalInfo,
   onContactSupport,
   onAddAddress,
-  onEditAddress,
+  onSaveAddress,
   onLogout,
   isLoggingOut = false,
 }: ProfileProps) {
@@ -41,6 +41,11 @@ export default function Profile({
   const [isNewsletterSubscribed, setIsNewsletterSubscribed] = useState(
     data.isNewsletterSubscribed,
   )
+
+  const handleSaveAddress = useCallback(async (id: string, data: AddressEditData) => {
+    await onSaveAddress?.(id, data)
+    setAddresses((prev) => prev.map((a) => (a.id === id ? { ...a, ...data } : a)))
+  }, [onSaveAddress])
 
   const handleRemoveAddress = useCallback((id: string) => {
     setAddresses((prev) => prev.filter((a) => a.id !== id))
@@ -99,11 +104,11 @@ export default function Profile({
         <div className="md:col-span-9 space-y-gutter">
           {activeSection === 'personal' && (
             <>
-              <ProfilePersonalInfo user={data.user} onEdit={onEditPersonalInfo} />
+              <ProfilePersonalInfo user={data.user} onSave={onSavePersonalInfo} />
               <ProfileAddressSection
                 addresses={addresses}
                 onAddAddress={onAddAddress}
-                onEditAddress={(id) => onEditAddress?.(id)}
+                onSaveAddress={handleSaveAddress}
                 onRemoveAddress={handleRemoveAddress}
                 onSetDefaultAddress={handleSetDefaultAddress}
               />

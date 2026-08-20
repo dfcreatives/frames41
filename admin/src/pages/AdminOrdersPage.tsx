@@ -6,6 +6,7 @@ import AdminTable from '@/components/shared/AdminTable'
 import Pagination from '@/components/shared/Pagination'
 import OrderFilters from '@/components/orders/OrderFilters'
 import OrderStatusBadge from '@/components/orders/OrderStatusBadge'
+import OrderTypeBadge from '@/components/orders/OrderTypeBadge'
 import type { AdminOrderListItem, OrderStatus } from '@/types/admin'
 
 export default function AdminOrdersPage() {
@@ -54,6 +55,11 @@ export default function AdminOrdersPage() {
       key: 'status',
       header: 'Status',
       render: (o: AdminOrderListItem) => <OrderStatusBadge status={o.status} />,
+    },
+    {
+      key: 'type',
+      header: 'Type',
+      render: (o: AdminOrderListItem) => <OrderTypeBadge type={o.type} />,
     },
     {
       key: 'items',
