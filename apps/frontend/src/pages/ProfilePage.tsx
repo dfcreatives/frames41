@@ -32,6 +32,7 @@ export default function ProfilePage() {
       onLogout={handleLogout}
       isLoggingOut={isLoggingOut}
       onSavePersonalInfo={(data) => updateProfile(data)}
+      onSaveAddress={(id, data) => updateAddress(id, data)}
       onSaveAll={({ addresses }) => {
         // Sync any removed addresses
         const currentIds = new Set(profileData.addresses.map((a) => a.id))
