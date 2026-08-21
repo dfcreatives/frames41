@@ -43,7 +43,7 @@ export class BannerController {
   ): Promise<void> => {
     try {
       if (!isDbConnected) {
-        return res.status(200).json({
+        res.status(200).json({
           success: true,
           data: MOCK_BANNERS,
           meta: {
@@ -51,6 +51,7 @@ export class BannerController {
             timestamp: new Date().toISOString(),
           },
         });
+        return;
       }
 
       const query = bannerTypeQuerySchema.parse(req.query);

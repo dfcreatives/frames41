@@ -45,7 +45,8 @@ export default function createHomeRoutes(): Router {
           heroBanners: MOCK_BANNERS,
         };
         res.setHeader('X-Cache', 'MOCK');
-        return res.status(200).json({ success: true, data: mockData });
+        res.status(200).json({ success: true, data: mockData });
+        return;
       }
 
       const now = new Date();

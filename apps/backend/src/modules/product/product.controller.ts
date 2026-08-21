@@ -37,7 +37,7 @@ export class ProductController {
       if (!isDbConnected) {
         const includeInactive = req.query.includeInactive === 'true';
         const list = includeInactive ? MOCK_PRODUCTS : MOCK_PRODUCTS.filter((p) => p.isActive !== false);
-        return res.status(200).json({
+        res.status(200).json({
           success: true,
           data: list,
           meta: {
@@ -46,6 +46,7 @@ export class ProductController {
             pagination: { cursor: null, nextCursor: null, hasMore: false, limit: 20 },
           },
         });
+        return;
       }
 
       const query = productQuerySchema.parse(req.query);
@@ -109,11 +110,12 @@ export class ProductController {
       const { id } = productIdParamSchema.parse(req.params);
       if (!isDbConnected) {
         const found = MOCK_PRODUCTS.find((p) => p.id === id) || MOCK_PRODUCTS[0];
-        return res.status(200).json({
+        res.status(200).json({
           success: true,
           data: found,
           meta: { requestId: req.headers['x-request-id'] as string, timestamp: new Date().toISOString() },
         });
+        return;
       }
 
       const product = await this.productService.getProductById(id);
@@ -150,11 +152,12 @@ export class ProductController {
       const { slug } = productSlugParamSchema.parse(req.params);
       if (!isDbConnected) {
         const found = MOCK_PRODUCTS.find((p) => p.slug === slug) || MOCK_PRODUCTS[0];
-        return res.status(200).json({
+        res.status(200).json({
           success: true,
           data: found,
           meta: { requestId: req.headers['x-request-id'] as string, timestamp: new Date().toISOString() },
         });
+        return;
       }
 
       const product = await this.productService.getProductBySlug(slug);
@@ -306,7 +309,7 @@ export class ProductController {
           if (data.isFeatured !== undefined) mock.isFeatured = data.isFeatured;
           if (data.trendingBannerUrl !== undefined) mock.trendingBannerUrl = data.trendingBannerUrl;
           saveMockOverrides();
-          return res.status(200).json({
+          res.status(200).json({
             success: true,
             data: mock,
             meta: {
@@ -314,6 +317,7 @@ export class ProductController {
               timestamp: new Date().toISOString(),
             },
           });
+          return;
         }
       }
 
@@ -344,7 +348,7 @@ export class ProductController {
           if (data.isBestSeller !== undefined) mock.isBestSeller = Boolean(data.isBestSeller);
           if (data.isFeatured !== undefined) mock.isFeatured = Boolean(data.isFeatured);
           if (data.trendingBannerUrl !== undefined) mock.trendingBannerUrl = data.trendingBannerUrl;
-          return res.status(200).json({
+          res.status(200).json({
             success: true,
             data: mock,
             meta: {
@@ -352,6 +356,7 @@ export class ProductController {
               timestamp: new Date().toISOString(),
             },
           });
+          return;
         }
       }
       next(error);

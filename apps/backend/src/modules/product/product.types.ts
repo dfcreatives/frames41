@@ -131,6 +131,8 @@ export interface CreateProductData {
   isActive: boolean;
   isBestSeller: boolean;
   isFeatured: boolean;
+  isTrending?: boolean;
+  trendingBannerUrl?: string;
   categoryId: string;
   fontOptions?: string[];
   customizationConfig?: ProductCustomizationConfig;

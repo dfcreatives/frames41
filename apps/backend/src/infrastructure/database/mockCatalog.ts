@@ -1,3 +1,5 @@
+import type { ProductCustomizationConfig } from '../../modules/product/product.types.js';
+
 export interface MockCategory {
   id: string;
   slug: string;
@@ -37,6 +39,7 @@ export interface MockProduct {
   categoryId: string;
   specifications: Record<string, string>;
   careInstructions?: string;
+  customizationConfig?: ProductCustomizationConfig;
   images: MockProductImage[];
   category?: Partial<MockCategory>;
   createdAt: Date;

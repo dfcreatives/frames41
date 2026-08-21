@@ -32,7 +32,7 @@ export class CategoryController {
   ): Promise<void> => {
     try {
       if (!isDbConnected) {
-        return res.status(200).json({
+        res.status(200).json({
           success: true,
           data: MOCK_CATEGORIES,
           meta: {
@@ -40,6 +40,7 @@ export class CategoryController {
             timestamp: new Date().toISOString(),
           },
         });
+        return;
       }
 
       const query = categoryQuerySchema.parse(req.query);
