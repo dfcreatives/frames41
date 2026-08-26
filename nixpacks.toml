@@ -3,7 +3,7 @@ nixPkgs = ["nodejs_22", "openssl"]
 
 [phases.install]
 cmds = [
-  "npm install -g npm@latest",
+  "npm install -g npm@10.9.8",
   "npm install --include=dev",
   "npm --prefix apps/backend install --include=dev",
   "npm --prefix apps/frontend install --include=dev",
