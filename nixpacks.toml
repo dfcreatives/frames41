@@ -4,10 +4,10 @@ nixPkgs = ["nodejs_22", "openssl"]
 [phases.install]
 cmds = [
   "npm install -g npm@10.9.8",
-  "npm install --include=dev",
-  "npm --prefix apps/backend install --include=dev",
-  "npm --prefix apps/frontend install --include=dev",
-  "npm --prefix admin install --include=dev"
+  "npm install --include=dev --include=optional",
+  "npm --prefix apps/backend install --include=dev --include=optional",
+  "npm --prefix apps/frontend install --include=dev --include=optional",
+  "npm --prefix admin install --include=dev --include=optional"
 ]
 
 [phases.build]
