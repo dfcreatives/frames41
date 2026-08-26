@@ -1,0 +1,16 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "openssl"]
+
+[phases.install]
+cmds = [
+  "npm install --include=dev",
+  "npm --prefix apps/backend install --include=dev",
+  "npm --prefix apps/frontend install --include=dev",
+  "npm --prefix admin install --include=dev"
+]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm run start"
