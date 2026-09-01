@@ -15,9 +15,7 @@ const SECTIONS = [
   {
     heading: 'Shipping Charges',
     rows: [
-      ['Orders above ₹999', 'FREE shipping'],
-      ['Orders below ₹999', '₹79 flat'],
-      ['Express delivery (where available)', '₹149 flat'],
+      ['All orders', '₹80 flat'],
     ],
   },
   {

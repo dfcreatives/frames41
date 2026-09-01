@@ -166,13 +166,9 @@ export const CURRENCY = {
   DECIMAL_PLACES: 2,
 } as const;
 
-// Shipping (tiered by cart subtotal)
+// Shipping
 export const SHIPPING = {
-  TIER_1_MAX: 200,     // subtotal < TIER_1_MAX
-  TIER_2_MAX: 1000,    // TIER_1_MAX <= subtotal < TIER_2_MAX
-  TIER_1_CHARGE: 75,   // charge for subtotal < TIER_1_MAX
-  TIER_2_CHARGE: 100,  // charge for TIER_1_MAX <= subtotal < TIER_2_MAX
-  TIER_3_CHARGE: 150,  // charge for subtotal >= TIER_2_MAX
+  FLAT_CHARGE: 80,
 } as const;
 
 // Gift Wrapping

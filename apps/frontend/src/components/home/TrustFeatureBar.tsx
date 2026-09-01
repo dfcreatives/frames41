@@ -5,7 +5,7 @@ export default function TrustFeatureBar() {
     {
       id: 'shipping',
       icon: 'local_shipping',
-      title: 'Shipping From ₹75',
+      title: 'Flat ₹80 Shipping',
       subtitle: '',
     },
     {

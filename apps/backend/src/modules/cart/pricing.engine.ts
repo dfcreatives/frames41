@@ -1,8 +1,6 @@
 import type { ProductPriceTier } from '@prisma/client';
 import { SHIPPING, GIFT_WRAP } from '../../config/constants.js';
 
-const TEMP_FREE_SHIPPING_FOR_RAZORPAY_TEST = process.env.FREE_SHIPPING_FOR_RAZORPAY_TEST !== 'false';
-
 /**
  * Cart item for pricing calculation
  */
@@ -159,12 +157,10 @@ export class PricingEngine {
   }
 
   /**
-   * Calculate the tiered shipping charge for a given subtotal
+   * Calculate the flat shipping charge applied to every order
    */
-  static calculateShippingCharge(subtotal: number): number {
-    if (subtotal < SHIPPING.TIER_1_MAX) return SHIPPING.TIER_1_CHARGE;
-    if (subtotal < SHIPPING.TIER_2_MAX) return SHIPPING.TIER_2_CHARGE;
-    return SHIPPING.TIER_3_CHARGE;
+  static calculateShippingCharge(_subtotal: number): number {
+    return SHIPPING.FLAT_CHARGE;
   }
 
   /**
@@ -175,14 +171,6 @@ export class PricingEngine {
     state?: string,
     pincodeServiceable?: boolean,
   ): ShippingCalculation {
-    if (TEMP_FREE_SHIPPING_FOR_RAZORPAY_TEST) {
-      // Temporary: free shipping for Razorpay testing. Remove after payment flow is verified.
-      return {
-        charge: 0,
-        free: true,
-      };
-    }
-
     // Check if pincode is serviceable
     if (pincodeServiceable === false) {
       return {

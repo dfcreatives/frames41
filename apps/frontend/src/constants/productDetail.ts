@@ -118,7 +118,7 @@ export const PRODUCT_DATA: ProductData = {
       imageAlt: 'Handcrafted culinary wood set with cutting board and utensils',
     },
   ],
-  shippingNote: 'Free Shipping Worldwide',
+  shippingNote: 'Flat ₹80 Shipping',
   shippingDuration: '3–5 Business Days',
   customizationConfig: {
     numberOfImages: { enabled: false, count: 1 },

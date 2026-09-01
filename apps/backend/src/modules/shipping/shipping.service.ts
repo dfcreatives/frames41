@@ -2,8 +2,6 @@ import type { PincodeServiceability, ShippingRate } from '@prisma/client';
 import { prisma } from '../../infrastructure/database/prisma.client.js';
 import { PricingEngine } from '../cart/pricing.engine.js';
 
-const TEMP_FREE_SHIPPING_FOR_RAZORPAY_TEST = process.env.FREE_SHIPPING_FOR_RAZORPAY_TEST !== 'false';
-
 /**
  * Serviceability check result
  */
@@ -64,14 +62,6 @@ export class ShippingService {
     state?: string,
     pincode?: string,
   ): Promise<ShippingCalculationResult> {
-    if (TEMP_FREE_SHIPPING_FOR_RAZORPAY_TEST) {
-      // Temporary: free shipping for Razorpay testing. Remove after payment flow is verified.
-      return {
-        charge: 0,
-        free: true,
-      };
-    }
-
     // Check pincode serviceability
     if (pincode) {
       const serviceability = await this.checkServiceability(pincode);

@@ -100,7 +100,7 @@ export function adaptProductDetail(p: Raw): ProductData {
     ],
     relatedProducts: [],
     customizationConfig,
-    shippingNote: 'Shipping ₹75–₹150, based on order value',
+    shippingNote: 'Flat ₹80 shipping on all orders',
     shippingDuration: '3–7 business days',
   }
 }
