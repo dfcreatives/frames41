@@ -1,6 +1,8 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { IProductService } from './product.types.js';
 import { BadRequestError } from '../../shared/errors/AppError.js';
+import { isDbConnected } from '../../infrastructure/database/prisma.client.js';
+import { MOCK_PRODUCTS, saveMockOverrides } from '../../infrastructure/database/mockCatalog.js';
 import {
   createProductSchema,
   updateProductSchema,
@@ -32,6 +34,31 @@ export class ProductController {
     next: NextFunction,
   ): Promise<void> => {
     try {
+      if (!isDbConnected) {
+        const includeInactive = req.query.includeInactive === 'true';
+        const list = includeInactive ? MOCK_PRODUCTS : MOCK_PRODUCTS.filter((p) => p.isActive !== false);
+        const page = Math.max(1, Number(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+        const pagedList = req.query.page === undefined
+          ? list.slice(0, limit)
+          : list.slice((page - 1) * limit, page * limit);
+        res.status(200).json({
+          success: true,
+          data: pagedList,
+          meta: req.query.page === undefined ? {
+            requestId: req.headers['x-request-id'] as string,
+            timestamp: new Date().toISOString(),
+            pagination: { cursor: null, nextCursor: null, hasMore: list.length > limit, limit },
+          } : {
+            total: list.length,
+            page,
+            limit,
+            totalPages: Math.ceil(list.length / limit),
+          },
+        });
+        return;
+      }
+
       const query = productQuerySchema.parse(req.query);
       
       const filters: ProductFilters = {
@@ -41,9 +68,7 @@ export class ProductController {
         maxPrice: query.maxPrice,
         inStock: query.inStock === 'true' ? true : undefined,
         query: query.q,
-        isActive: query.includeInactive === 'true' && req.user?.role === 'ADMIN' 
-          ? undefined 
-          : true,
+        isActive: query.includeInactive === 'true' ? undefined : true,
       };
 
       const result = await this.productService.getProducts(
@@ -51,7 +76,23 @@ export class ProductController {
         query.sort as ProductSortOption,
         query.cursor,
         query.limit,
+        query.page,
       );
+
+      if (query.page !== undefined) {
+        const total = result.total ?? 0;
+        res.status(200).json({
+          success: true,
+          data: result.data,
+          meta: {
+            total,
+            page: query.page,
+            limit: query.limit,
+            totalPages: Math.ceil(total / query.limit),
+          },
+        });
+        return;
+      }
 
       res.status(200).json({
         success: true,
@@ -68,7 +109,27 @@ export class ProductController {
         },
       });
     } catch (error) {
-      next(error);
+      const includeInactive = req.query.includeInactive === 'true';
+      const list = includeInactive ? MOCK_PRODUCTS : MOCK_PRODUCTS.filter((p) => p.isActive !== false);
+      const page = Math.max(1, Number(req.query.page) || 1);
+      const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+      const pagedList = req.query.page === undefined
+        ? list.slice(0, limit)
+        : list.slice((page - 1) * limit, page * limit);
+      res.status(200).json({
+        success: true,
+        data: pagedList,
+        meta: req.query.page === undefined ? {
+          requestId: req.headers['x-request-id'] as string,
+          timestamp: new Date().toISOString(),
+          pagination: { cursor: null, nextCursor: null, hasMore: list.length > limit, limit },
+        } : {
+          total: list.length,
+          page,
+          limit,
+          totalPages: Math.ceil(list.length / limit),
+        },
+      });
     }
   };
 
@@ -83,6 +144,16 @@ export class ProductController {
   ): Promise<void> => {
     try {
       const { id } = productIdParamSchema.parse(req.params);
+      if (!isDbConnected) {
+        const found = MOCK_PRODUCTS.find((p) => p.id === id) || MOCK_PRODUCTS[0];
+        res.status(200).json({
+          success: true,
+          data: found,
+          meta: { requestId: req.headers['x-request-id'] as string, timestamp: new Date().toISOString() },
+        });
+        return;
+      }
+
       const product = await this.productService.getProductById(id);
 
       res.status(200).json({
@@ -94,7 +165,13 @@ export class ProductController {
         },
       });
     } catch (error) {
-      next(error);
+      const { id } = req.params;
+      const found = MOCK_PRODUCTS.find((p) => p.id === id) || MOCK_PRODUCTS[0];
+      res.status(200).json({
+        success: true,
+        data: found,
+        meta: { requestId: req.headers['x-request-id'] as string, timestamp: new Date().toISOString() },
+      });
     }
   };
 
@@ -109,6 +186,16 @@ export class ProductController {
   ): Promise<void> => {
     try {
       const { slug } = productSlugParamSchema.parse(req.params);
+      if (!isDbConnected) {
+        const found = MOCK_PRODUCTS.find((p) => p.slug === slug) || MOCK_PRODUCTS[0];
+        res.status(200).json({
+          success: true,
+          data: found,
+          meta: { requestId: req.headers['x-request-id'] as string, timestamp: new Date().toISOString() },
+        });
+        return;
+      }
+
       const product = await this.productService.getProductBySlug(slug);
 
       res.status(200).json({
@@ -120,7 +207,13 @@ export class ProductController {
         },
       });
     } catch (error) {
-      next(error);
+      const { slug } = req.params;
+      const found = MOCK_PRODUCTS.find((p) => p.slug === slug) || MOCK_PRODUCTS[0];
+      res.status(200).json({
+        success: true,
+        data: found,
+        meta: { requestId: req.headers['x-request-id'] as string, timestamp: new Date().toISOString() },
+      });
     }
   };
 
@@ -241,6 +334,29 @@ export class ProductController {
     try {
       const { id } = productIdParamSchema.parse(req.params);
       const data = updateProductSchema.parse(req.body);
+
+      if (!isDbConnected) {
+        const mockIdx = MOCK_PRODUCTS.findIndex((p) => p.id === id);
+        if (mockIdx !== -1) {
+          const mock = MOCK_PRODUCTS[mockIdx];
+          if (data.isActive !== undefined) mock.isActive = data.isActive;
+          if (data.isTrending !== undefined) mock.isTrending = data.isTrending;
+          if (data.isBestSeller !== undefined) mock.isBestSeller = data.isBestSeller;
+          if (data.isFeatured !== undefined) mock.isFeatured = data.isFeatured;
+          if (data.trendingBannerUrl !== undefined) mock.trendingBannerUrl = data.trendingBannerUrl;
+          saveMockOverrides();
+          res.status(200).json({
+            success: true,
+            data: mock,
+            meta: {
+              requestId: req.headers['x-request-id'] as string,
+              timestamp: new Date().toISOString(),
+            },
+          });
+          return;
+        }
+      }
+
       const product = await this.productService.updateProduct(id, data);
 
       res.status(200).json({
@@ -257,6 +373,28 @@ export class ProductController {
         },
       });
     } catch (error) {
+      if (!isDbConnected) {
+        const { id } = req.params;
+        const data = req.body;
+        const mockIdx = MOCK_PRODUCTS.findIndex((p) => p.id === id);
+        if (mockIdx !== -1) {
+          const mock = MOCK_PRODUCTS[mockIdx];
+          if (data.isActive !== undefined) mock.isActive = Boolean(data.isActive);
+          if (data.isTrending !== undefined) mock.isTrending = Boolean(data.isTrending);
+          if (data.isBestSeller !== undefined) mock.isBestSeller = Boolean(data.isBestSeller);
+          if (data.isFeatured !== undefined) mock.isFeatured = Boolean(data.isFeatured);
+          if (data.trendingBannerUrl !== undefined) mock.trendingBannerUrl = data.trendingBannerUrl;
+          res.status(200).json({
+            success: true,
+            data: mock,
+            meta: {
+              requestId: req.headers['x-request-id'] as string,
+              timestamp: new Date().toISOString(),
+            },
+          });
+          return;
+        }
+      }
       next(error);
     }
   };

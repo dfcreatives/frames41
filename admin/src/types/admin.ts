@@ -32,6 +32,7 @@ export interface AnalyticsSummary {
   totalOrders: number
   conversionRate: number
   period: string
+  statusBreakdown?: Record<string, number>
 }
 
 export interface TopProduct {
@@ -53,6 +54,8 @@ export type OrderStatus =
   | 'CANCELLED'
   | 'REFUNDED'
 
+export type OrderType = 'DELIVERY' | 'PICKUP'
+
 export interface AdminOrderListItem {
   id: string
   orderNumber: string
@@ -60,6 +63,7 @@ export interface AdminOrderListItem {
   userName: string | null
   userPhone: string
   status: OrderStatus
+  type: OrderType
   subtotal: number
   discount: number
   shippingCharge: number
@@ -79,6 +83,7 @@ export interface AdminOrderDetail {
   id: string
   orderNumber: string
   status: OrderStatus
+  type: OrderType
   user: { id: string; name: string | null; phone: string; email: string | null }
   address?: {
     line1: string
@@ -183,6 +188,7 @@ export interface PriceTier {
 
 export interface AdminProductListItem {
   id: string
+  categoryId?: string
   name: string
   slug: string
   sku?: string
@@ -192,6 +198,8 @@ export interface AdminProductListItem {
   isActive: boolean
   isBestSeller: boolean
   isFeatured: boolean
+  isTrending?: boolean
+  trendingBannerUrl?: string
   categoryName?: string
   imageUrls?: string[]
   specifications?: Record<string, string | number>
@@ -204,6 +212,7 @@ export interface ProductCustomizationConfig {
   numberOfNames: { enabled: boolean; count: number }
   date: { enabled: boolean }
   songName: { enabled: boolean }
+  address: { enabled: boolean }
   qrCodeImages: { enabled: boolean; count: number }
   contactShop: { enabled: boolean; value: string }
   startingFrom: { enabled: boolean; amount?: number }
@@ -240,6 +249,8 @@ export interface ProductFormData {
   isActive: boolean
   isBestSeller: boolean
   isFeatured: boolean
+  isTrending?: boolean
+  trendingBannerUrl?: string
   imageUrls: string[]
   images?: ProductImageInput[]
   variants: Omit<ProductVariant, 'id'>[]
@@ -281,6 +292,7 @@ export type BannerType =
   | 'UNDER_999'
   | 'CATEGORY_BANNER'
   | 'PROMOTIONAL'
+  | 'TRENDING'
 
 export const BANNER_TYPE_LABELS: Record<BannerType, string> = {
   TOP_STRIP: 'Top Strip',
@@ -288,6 +300,7 @@ export const BANNER_TYPE_LABELS: Record<BannerType, string> = {
   UNDER_999: 'Under ₹999',
   CATEGORY_BANNER: 'Category Banner',
   PROMOTIONAL: 'Promotional',
+  TRENDING: 'Trending (Full Width)',
 }
 
 export interface AdminBanner {

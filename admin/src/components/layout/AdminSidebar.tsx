@@ -13,7 +13,6 @@ const NAV: NavItem[] = [
   { to: '/refunds', label: 'Refunds', icon: '↩' },
   { to: '/products', label: 'Products', icon: '🛍' },
   { to: '/categories', label: 'Categories', icon: '🗂' },
-  { to: '/banners', label: 'Banners', icon: '🖼' },
   { to: '/reviews', label: 'Reviews', icon: '⭐' },
   { to: '/coupons', label: 'Coupons', icon: '🏷' },
 ]

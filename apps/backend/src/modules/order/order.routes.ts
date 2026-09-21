@@ -28,6 +28,7 @@ export function createOrderRoutes(): Router {
   router.get('/by-number/:orderNumber', controller.getOrderByNumber);
   router.get('/:id', controller.getOrderById);
   router.patch('/:id/status', requireAdmin, controller.updateOrderStatus);
+  router.patch('/:id/type', controller.updateOrderType);
   router.post('/:id/refund', controller.requestRefund);
   router.post('/:id/cancel', controller.cancelOrder);
 

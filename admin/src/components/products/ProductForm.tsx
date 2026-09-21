@@ -22,10 +22,28 @@ const emptyCustomizationConfig = (): ProductCustomizationConfig => ({
   numberOfNames: { enabled: false, count: 1 },
   date: { enabled: false },
   songName: { enabled: false },
+  address: { enabled: false },
   qrCodeImages: { enabled: false, count: 1 },
   contactShop: { enabled: false, value: '' },
   startingFrom: { enabled: false, amount: undefined },
 })
+
+// Products saved before a customization option existed (or edited directly in the DB)
+// may be missing individual keys, so merge onto the defaults key-by-key instead of
+// falling back only when the whole config is absent.
+function mergeCustomizationConfig(config?: Partial<ProductCustomizationConfig> | null): ProductCustomizationConfig {
+  const defaults = emptyCustomizationConfig()
+  return {
+    numberOfImages: { ...defaults.numberOfImages, ...config?.numberOfImages },
+    numberOfNames: { ...defaults.numberOfNames, ...config?.numberOfNames },
+    date: { ...defaults.date, ...config?.date },
+    songName: { ...defaults.songName, ...config?.songName },
+    address: { ...defaults.address, ...config?.address },
+    qrCodeImages: { ...defaults.qrCodeImages, ...config?.qrCodeImages },
+    contactShop: { ...defaults.contactShop, ...config?.contactShop },
+    startingFrom: { ...defaults.startingFrom, ...config?.startingFrom },
+  }
+}
 
 function buildInitial(p?: AdminProductDetail | null): ProductFormData {
   return {
@@ -42,12 +60,14 @@ function buildInitial(p?: AdminProductDetail | null): ProductFormData {
     isActive: p?.isActive ?? true,
     isBestSeller: p?.isBestSeller ?? false,
     isFeatured: p?.isFeatured ?? false,
+    isTrending: p?.isTrending ?? false,
+    trendingBannerUrl: p?.trendingBannerUrl ?? '',
     imageUrls: p?.imageUrls ?? [],
     variants: p?.variants?.map(({ name, sku, priceModifier, stock, imageUrl }) => ({ name, sku, priceModifier, stock, imageUrl })) ?? [],
     priceTiers: p?.priceTiers?.map(({ minQty, maxQty, pricePerUnit }) => ({ minQty, maxQty, pricePerUnit })) ?? [],
     seoTitle: p?.seoTitle ?? '',
     seoDescription: p?.seoDescription ?? '',
-    customizationConfig: p?.customizationConfig ?? emptyCustomizationConfig(),
+    customizationConfig: mergeCustomizationConfig(p?.customizationConfig),
   }
 }
 
@@ -66,7 +86,7 @@ function Field({ label, children, required, error }: { label: string; children: 
 function flattenCategories(cats: AdminCategory[], depth = 0): { id: string; label: string }[] {
   return cats.flatMap((c) => [
     { id: c.id, label: `${'  '.repeat(depth)}${c.name}` },
-    ...flattenCategories(c.children, depth + 1),
+    ...flattenCategories(c.children ?? [], depth + 1),
   ])
 }
 
@@ -103,7 +123,26 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
   const [autoSlug, setAutoSlug] = useState(!initial)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const trendingImageInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingTrendingBanner, setUploadingTrendingBanner] = useState(false)
   const { addToast } = useToast()
+
+  const handleTrendingBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingTrendingBanner(true)
+    try {
+      const { url } = await api.admin.uploadImage(file)
+      set('trendingBannerUrl', url)
+      addToast('Trending banner image uploaded successfully!', 'success')
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Upload failed', 'error')
+    } finally {
+      setUploadingTrendingBanner(false)
+      e.target.value = ''
+    }
+  }
 
   useEffect(() => {
     if (initial) setForm(buildInitial(initial))
@@ -385,7 +424,7 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
             </div>
           ))}
           {Object.keys(form.specifications).length === 0 && (
-            <p className="text-xs text-gray-400 italic">No specifications added.</p>
+            <p className="text-xs text-gray-400 bold">No specifications added.</p>
           )}
         </div>
         <Field label="Care instructions">
@@ -487,9 +526,65 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
             </div>
           ))}
           {form.imageUrls.length === 0 && (
-            <div className="col-span-full text-sm text-gray-400 italic py-4 text-center border border-dashed border-gray-200 rounded-xl">
+            <div className="col-span-full text-sm text-gray-400 bold py-4 text-center border border-dashed border-gray-200 rounded-xl">
               No images uploaded yet. Click "+ Upload Image" to add.
             </div>
+          )}
+        </div>
+
+        {/* Upload Trending Banner Image (519px Height) directly inside the Images Card */}
+        <div className="pt-4 mt-4 border-t border-gray-100 space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
+              Trending Banner Image (519px Height) — Optional
+            </label>
+            <span className="text-[11px] text-gray-400">Used as full-width hero banner on storefront when Trending is enabled</span>
+          </div>
+          <input
+            ref={trendingImageInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onChange={handleTrendingBannerUpload}
+            className="hidden"
+          />
+          {form.trendingBannerUrl ? (
+            <div className="relative h-[160px] w-full overflow-hidden rounded-xl border border-amber-300 bg-gray-900">
+              <img
+                src={form.trendingBannerUrl}
+                alt="Trending banner"
+                className="h-full w-full object-cover opacity-90"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-between p-3">
+                <span className="text-xs text-amber-300 font-semibold">519px Banner Image Active</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => trendingImageInputRef.current?.click()}
+                    disabled={uploadingTrendingBanner}
+                    className="rounded-lg bg-white px-3 py-1 text-xs font-medium text-gray-800 shadow-sm hover:bg-gray-100"
+                  >
+                    {uploadingTrendingBanner ? 'Uploading…' : 'Replace Banner'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => set('trendingBannerUrl', '')}
+                    disabled={uploadingTrendingBanner}
+                    className="rounded-lg bg-red-600 px-3 py-1 text-xs font-medium text-white shadow-sm hover:bg-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => trendingImageInputRef.current?.click()}
+              disabled={uploadingTrendingBanner}
+              className="flex w-full items-center justify-center rounded-xl border border-dashed border-amber-300 bg-amber-50/40 px-4 py-5 text-xs font-semibold text-amber-800 hover:border-amber-500 hover:bg-amber-50 disabled:cursor-wait transition-colors"
+            >
+              {uploadingTrendingBanner ? 'Uploading 519px banner image…' : '+ Upload Trending Banner Image (519px Height)'}
+            </button>
           )}
         </div>
       </div>
@@ -563,6 +658,7 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
         {([
           ['date', 'Date'],
           ['songName', 'Name of the Song'],
+          ['address', 'Address'],
         ] as const).map(([key, label]) => {
           const option = form.customizationConfig[key]
           return (
@@ -636,24 +732,83 @@ export default function ProductForm({ initial, categories, onSubmit, loading = f
         </div>
       </div>
 
-      {/* Flags */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
+      {/* Flags & Visibility */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
         <h3 className="text-sm font-semibold text-gray-700 border-b border-gray-100 pb-3">Flags & Visibility</h3>
         {([
           ['isActive', 'Active (visible on store)'],
           ['isBestSeller', 'Best Seller'],
           ['isFeatured', 'Featured'],
+          ['isTrending', 'Mark as Trending Item (Spotlight on Homepage)'],
         ] as [keyof ProductFormData, string][]).map(([key, label]) => (
           <label key={key} className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
-              checked={form[key] as boolean}
+              checked={Boolean(form[key])}
               onChange={(e) => set(key, e.target.checked)}
               className={checkboxCls}
             />
-            <span className="text-sm text-gray-700">{label}</span>
+            <span className="text-sm text-gray-700 font-medium">{label}</span>
           </label>
         ))}
+
+        {/* Trending Banner Uploader */}
+        {form.isTrending && (
+          <div className="mt-4 pt-4 border-t border-rose-100 bg-rose-50/60 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-rose-800 uppercase tracking-wider">
+                Trending Banner Picture (519px Height) *
+              </label>
+              <span className="text-[11px] text-rose-600 font-medium">Displayed full-width on storefront homepage</span>
+            </div>
+            <input
+              ref={trendingImageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handleTrendingBannerUpload}
+              className="hidden"
+            />
+            {form.trendingBannerUrl ? (
+              <div className="relative h-[180px] w-full overflow-hidden rounded-xl border border-rose-200 bg-gray-900">
+                <img
+                  src={form.trendingBannerUrl}
+                  alt="Trending banner preview"
+                  className="h-full w-full object-cover opacity-90"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end justify-between p-3">
+                  <span className="text-xs text-white font-semibold">519px Banner active</span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => trendingImageInputRef.current?.click()}
+                      disabled={uploadingTrendingBanner}
+                      className="rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-gray-800 shadow-sm hover:bg-gray-100"
+                    >
+                      {uploadingTrendingBanner ? 'Uploading…' : 'Replace Image'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => set('trendingBannerUrl', '')}
+                      disabled={uploadingTrendingBanner}
+                      className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => trendingImageInputRef.current?.click()}
+                disabled={uploadingTrendingBanner}
+                className="flex w-full items-center justify-center rounded-xl border border-dashed border-rose-300 bg-white px-4 py-6 text-sm font-semibold text-rose-600 transition-colors hover:border-rose-500 hover:bg-rose-50 disabled:cursor-wait"
+              >
+                {uploadingTrendingBanner ? 'Uploading 519px banner…' : '+ Upload Trending Banner Picture (519px Height)'}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* SEO */}

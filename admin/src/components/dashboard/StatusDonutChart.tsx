@@ -10,10 +10,12 @@ const STATUS_COLORS: Record<string, string> = {
 
 interface Props {
   stats: DashboardStats | null
+  statusBreakdown?: Record<string, number> | null
+  periodLabel?: string
   loading?: boolean
 }
 
-export default function StatusDonutChart({ stats, loading }: Props) {
+export default function StatusDonutChart({ stats, statusBreakdown, periodLabel, loading }: Props) {
   if (loading) {
     return (
       <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
@@ -25,27 +27,38 @@ export default function StatusDonutChart({ stats, loading }: Props) {
     )
   }
 
-  const data = stats
+  const data = statusBreakdown
     ? [
-        { name: 'Pending', value: stats.pendingOrders },
-        { name: 'Processing', value: stats.processingOrders },
-        { name: 'Shipped', value: stats.shippedOrders },
-        {
-          name: 'Delivered',
-          value: Math.max(
-            0,
-            stats.totalOrders -
-              stats.pendingOrders -
-              stats.processingOrders -
-              stats.shippedOrders,
-          ),
-        },
+        { name: 'Pending', value: statusBreakdown.PENDING || statusBreakdown.pending || 0 },
+        { name: 'Processing', value: statusBreakdown.PROCESSING || statusBreakdown.processing || 0 },
+        { name: 'Shipped', value: statusBreakdown.SHIPPED || statusBreakdown.shipped || 0 },
+        { name: 'Delivered', value: statusBreakdown.DELIVERED || statusBreakdown.delivered || 0 },
+        { name: 'Cancelled', value: statusBreakdown.CANCELLED || statusBreakdown.cancelled || 0 },
+        { name: 'Refunded', value: statusBreakdown.REFUNDED || statusBreakdown.refunded || 0 },
       ].filter((d) => d.value > 0)
-    : []
+    : (stats
+        ? [
+            { name: 'Pending', value: stats.pendingOrders },
+            { name: 'Processing', value: stats.processingOrders },
+            { name: 'Shipped', value: stats.shippedOrders },
+            {
+              name: 'Delivered',
+              value: Math.max(
+                0,
+                stats.totalOrders -
+                  stats.pendingOrders -
+                  stats.processingOrders -
+                  stats.shippedOrders,
+              ),
+            },
+          ].filter((d) => d.value > 0)
+        : [])
 
   return (
     <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">Order Status Breakdown</h3>
+      <h3 className="text-sm font-semibold text-gray-700 mb-4">
+        Order Status Breakdown {periodLabel ? `(${periodLabel})` : ''}
+      </h3>
       {data.length === 0 ? (
         <div className="flex items-center justify-center h-52 text-gray-400 text-sm">
           No order data

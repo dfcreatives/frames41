@@ -99,7 +99,7 @@ export function adaptProductDetail(p: Raw): ProductData {
     ],
     relatedProducts: [],
     customizationConfig,
-    shippingNote: 'Free shipping on orders above ₹999',
+    shippingNote: 'Shipping charges: ₹75 (up to ₹200), ₹100 (₹200–₹1000), ₹150 (above ₹1000)',
     shippingDuration: '3–7 business days',
   }
 }

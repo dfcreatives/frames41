@@ -55,6 +55,7 @@ const productCustomizationConfigSchema = z.object({
   numberOfNames: customizationCountSchema.optional(),
   date: customizationToggleSchema.optional(),
   songName: customizationToggleSchema.optional(),
+  address: customizationToggleSchema.optional(),
   qrCodeImages: customizationCountSchema.optional(),
   contactShop: customizationToggleSchema.extend({
     value: z.string().max(300).optional(),
@@ -79,7 +80,9 @@ export const createProductSchema = z.object({
   isActive: z.boolean().default(true),
   isBestSeller: z.boolean().default(false),
   isFeatured: z.boolean().default(false),
-  categoryId: z.string().uuid(),
+  isTrending: z.boolean().default(false),
+  trendingBannerUrl: z.union([z.literal(''), z.string().url()]).optional(),
+  categoryId: z.string().min(1, 'Category ID is required'),
   fontOptions: z.array(z.string()).optional(),
   customizationConfig: productCustomizationConfigSchema.optional(),
   specifications: z.record(z.union([z.string(), z.number()])).optional(),
@@ -106,7 +109,7 @@ export const updateProductSchema = createProductSchema.partial();
  * Product ID param schema
  */
 export const productIdParamSchema = z.object({
-  id: z.string().uuid('Invalid product ID'),
+  id: z.string().min(1, 'Product ID is required'),
 });
 
 /**
@@ -121,7 +124,8 @@ export const productSlugParamSchema = z.object({
  */
 export const productQuerySchema = z.object({
   cursor: z.string().optional(),
-  limit: z.string().regex(/^\d+$/).transform(Number).default('20'),
+  page: z.string().regex(/^\d+$/).transform(Number).refine((value) => value >= 1).optional(),
+  limit: z.string().regex(/^\d+$/).transform(Number).refine((value) => value >= 1 && value <= 100).default('20'),
   categoryId: z.string().uuid().optional(),
   categoryIds: z.string().transform((value) => value.split(',')).pipe(
     z.array(z.string().uuid()).max(20),
@@ -129,7 +133,7 @@ export const productQuerySchema = z.object({
   minPrice: z.string().regex(/^\d+(\.\d{1,2})?$/).transform(Number).optional(),
   maxPrice: z.string().regex(/^\d+(\.\d{1,2})?$/).transform(Number).optional(),
   inStock: z.enum(['true', 'false']).optional(),
-  q: z.string().trim().min(2).max(100).optional(),
+  q: z.string().trim().min(1).max(100).optional(),
   sort: z.enum(['newest', 'price-asc', 'price-desc', 'popularity', 'name-asc', 'featured', 'rating-desc']).default('newest'),
   includeInactive: z.enum(['true', 'false']).optional().default('false'),
 });

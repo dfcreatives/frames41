@@ -56,11 +56,12 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="rsabari8991@gmail.com"
+                placeholder="Admin"
                 className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                 autoFocus
               />
             </div>
+          
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1.5">Password</label>
               <input

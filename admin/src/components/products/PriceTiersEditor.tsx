@@ -28,7 +28,7 @@ export default function PriceTiersEditor({ tiers, onChange }: Props) {
       </div>
 
       {tiers.length === 0 && (
-        <p className="text-sm text-gray-400 italic">No bulk pricing configured.</p>
+        <p className="text-sm text-gray-400 bold">No bulk pricing configured.</p>
       )}
 
       {tiers.map((t, i) => (

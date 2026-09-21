@@ -30,13 +30,27 @@ export default function AdminDashboardPage() {
     }
   }, [startDate, endDate])
 
-  const { stats, analytics, topProducts, loading, error } = useAdminDashboard(
+  const { stats, analytics, topProducts, customersTotal, ordersTotal, loading, error } = useAdminDashboard(
     period,
     startDate,
     endDate,
   )
 
   const isCustomIncomplete = period === 'custom' && (!startDate || !endDate)
+
+  const periodLabelMap: Record<Period, string> = {
+    today: 'Today',
+    week: 'This Week',
+    month: 'This Month',
+    year: 'This Year',
+    custom: 'Selected Period',
+  }
+
+  const periodLabel = periodLabelMap[period] || 'Period'
+  const displayRevenue = analytics ? analytics.gmv : (stats?.totalRevenue ?? 0)
+  const displayOrders = analytics ? analytics.totalOrders : (ordersTotal ?? stats?.totalOrders ?? 0)
+  const displayUsers = customersTotal ?? stats?.totalUsers ?? 0
+  const displayAov = analytics ? analytics.aov : 0
 
   return (
     <div className="space-y-6">
@@ -76,28 +90,51 @@ export default function AdminDashboardPage() {
         </div>
       ) : (
         <>
-          {/* KPI Stats */}
+          {/* Dynamic KPI Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <StatsCard label="Total Revenue" value={stats ? fmt(stats.totalRevenue) : '—'} loading={loading} accent />
-            <StatsCard label="Today Revenue" value={stats ? fmt(stats.todayRevenue) : '—'} loading={loading} />
-            <StatsCard label="Total Orders" value={stats?.totalOrders.toLocaleString() ?? '—'} loading={loading} />
-            <StatsCard label="Today Orders" value={stats?.todayOrders.toLocaleString() ?? '—'} loading={loading} />
-            <StatsCard label="Total Users" value={stats?.totalUsers.toLocaleString() ?? '—'} loading={loading} />
+            <StatsCard
+              label={`${periodLabel} Revenue`}
+              value={loading ? '—' : fmt(displayRevenue)}
+              sub={period !== 'today' ? `Today: ${fmt(stats?.todayRevenue ?? 0)}` : undefined}
+              loading={loading}
+              accent
+            />
+            <StatsCard
+              label={`${periodLabel} Orders`}
+              value={loading ? '—' : displayOrders.toLocaleString()}
+              sub={period !== 'today' ? `Today: ${stats?.todayOrders ?? 0}` : undefined}
+              loading={loading}
+            />
+            <StatsCard
+              label="Total Orders"
+              value={loading ? '—' : (ordersTotal ?? stats?.totalOrders ?? 0).toLocaleString()}
+              sub="Live count from Orders Page"
+              loading={loading}
+            />
+            <StatsCard
+              label="Total Customers"
+              value={loading ? '—' : displayUsers.toLocaleString()}
+              sub="Live count from Users Page"
+              loading={loading}
+            />
+            <StatsCard
+              label={`${periodLabel} AOV`}
+              value={loading ? '—' : fmt(displayAov)}
+              sub={`${displayOrders} orders in ${periodLabel.toLowerCase()}`}
+              loading={loading}
+            />
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <StatsCard label="Pending Orders" value={stats?.pendingOrders ?? '—'} loading={loading} />
-            <StatsCard label="Low Stock" value={stats?.lowStockProducts ?? '—'} loading={loading} />
-            <StatsCard label="Pending Reviews" value={stats?.pendingReviews ?? '—'} loading={loading} />
-            <StatsCard label="Pending Refunds" value={stats?.pendingRefunds ?? '—'} loading={loading} />
-            {analytics && (
-              <StatsCard
-                label="AOV"
-                value={fmt(analytics.aov)}
-                sub={`${analytics.totalOrders} orders`}
-                loading={loading}
-              />
-            )}
+            <StatsCard label="Pending Orders" value={stats?.pendingOrders ?? 0} loading={loading} />
+            <StatsCard label="Low Stock Products" value={stats?.lowStockProducts ?? 0} loading={loading} />
+            <StatsCard label="Pending Reviews" value={stats?.pendingReviews ?? 0} loading={loading} />
+            <StatsCard label="Pending Refunds" value={stats?.pendingRefunds ?? 0} loading={loading} />
+            <StatsCard
+              label="Conversion Rate"
+              value={analytics ? `${analytics.conversionRate.toFixed(1)}%` : '0.0%'}
+              loading={loading}
+            />
           </div>
 
           {/* Analytics summary */}
@@ -129,7 +166,12 @@ export default function AdminDashboardPage() {
 
           {/* Charts row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <StatusDonutChart stats={stats} loading={loading} />
+            <StatusDonutChart
+              stats={stats}
+              statusBreakdown={analytics?.statusBreakdown}
+              periodLabel={periodLabel}
+              loading={loading}
+            />
             <TopProductsChart products={topProducts} loading={loading} />
           </div>
 

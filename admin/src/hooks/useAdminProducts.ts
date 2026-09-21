@@ -39,11 +39,33 @@ export function useAdminProducts(filters: ProductFilters) {
   }, [fetch])
 
   const toggleActive = useCallback(async (id: string, current: boolean) => {
-    await api.admin.updateProduct(id, { isActive: !current })
-    await fetch()
-  }, [fetch])
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isActive: !current } : p)))
+    try {
+      await api.admin.updateProduct(id, { isActive: !current })
+    } catch (err) {
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isActive: current } : p)))
+      console.error('[toggleActive] Failed to toggle active status:', err)
+    }
+  }, [])
 
-  return { products, meta, loading, error, deleteProduct, toggleActive, refresh: fetch }
+  const toggleTrending = useCallback(async (id: string, nextTrending: boolean) => {
+    if (nextTrending) {
+      const currentTrendingCount = products.filter((p) => p.isTrending).length
+      if (currentTrendingCount >= 10) {
+        alert('Maximum 10 products can be marked as Trending at a time. Please untoggle another item first.')
+        return
+      }
+    }
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isTrending: nextTrending } : p)))
+    try {
+      await api.admin.updateProduct(id, { isTrending: nextTrending })
+    } catch (err) {
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isTrending: !nextTrending } : p)))
+      console.error('[toggleTrending] Failed to toggle trending status:', err)
+    }
+  }, [products])
+
+  return { products, meta, loading, error, deleteProduct, toggleActive, toggleTrending, refresh: fetch }
 }
 
 export function useAdminProductDetail(id?: string) {

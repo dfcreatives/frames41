@@ -103,6 +103,28 @@ export default function BannerForm({ initial, onSubmit, onCancel }: Props) {
     }
   }
 
+  const [products, setProducts] = useState<Array<{ id: string; name: string; slug: string; images?: Array<{ url: string }> }>>([])
+  const [selectedProductId, setSelectedProductId] = useState<string>('')
+
+  useEffect(() => {
+    api.admin.getProducts({ page: 1, limit: 50 }).then((res) => {
+      if (res && Array.isArray(res.data)) {
+        setProducts(res.data as any)
+      }
+    }).catch(() => {})
+  }, [])
+
+  const handleProductSelect = (productId: string) => {
+    setSelectedProductId(productId)
+    const p = products.find((prod) => prod.id === productId)
+    if (p) {
+      set('title', p.name)
+      set('link', `/product/${p.slug}`)
+      const imgUrl = p.images?.[0]?.url
+      if (imgUrl) set('imageUrl', imgUrl)
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -110,6 +132,21 @@ export default function BannerForm({ initial, onSubmit, onCancel }: Props) {
           <label className="block text-xs font-medium text-gray-700 mb-1">Type *</label>
           <select value={form.type} onChange={(e) => set('type', e.target.value as BannerType)} className={INPUT}>
             {TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-700 mb-1">Link to Target Product (Optional)</label>
+          <select
+            value={selectedProductId}
+            onChange={(e) => handleProductSelect(e.target.value)}
+            className={INPUT}
+          >
+            <option value="">-- Pick a Product to Auto-Fill Details --</option>
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} (/product/{p.slug})
+              </option>
+            ))}
           </select>
         </div>
         <div>

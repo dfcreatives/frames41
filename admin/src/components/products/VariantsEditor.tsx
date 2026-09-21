@@ -42,7 +42,7 @@ export default function VariantsEditor({ variants, onChange }: Props) {
       </div>
 
       {variants.length === 0 && (
-        <p className="text-sm text-gray-400 italic">No variants. This is a simple product.</p>
+        <p className="text-sm text-gray-400 bold">No variants. This is a simple product.</p>
       )}
 
       {variants.map((v, i) => (

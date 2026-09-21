@@ -413,7 +413,7 @@ async function main(): Promise<void> {
     },
     {
       image: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=1200&q=80',
-      title: 'Free shipping on orders above ₹999',
+      title: 'Flat ₹80 shipping on all orders',
       subtitle: 'Discover our latest personalised collections',
       link: '/shop',
       type: BannerType.TOP_STRIP,
@@ -461,13 +461,13 @@ async function main(): Promise<void> {
       where: { state, minOrderValue: 999, productCategoryId: null },
     })
     if (!freeExists) {
-      await prisma.shippingRate.create({ data: { state, minOrderValue: 999, shippingCharge: 0 } })
+      await prisma.shippingRate.create({ data: { state, minOrderValue: 999, shippingCharge: 80 } })
     }
     const paidExists = await prisma.shippingRate.findFirst({
       where: { state, minOrderValue: 0, productCategoryId: null },
     })
     if (!paidExists) {
-      await prisma.shippingRate.create({ data: { state, minOrderValue: 0, shippingCharge: 79 } })
+      await prisma.shippingRate.create({ data: { state, minOrderValue: 0, shippingCharge: 80 } })
     }
   }
   console.log(`✅ Shipping rates: ${states.length * 2}`)
@@ -536,7 +536,7 @@ async function main(): Promise<void> {
     { category: 'orders', question: 'What is your refund policy?', answer: 'Refunds for eligible items are processed within 5-7 business days to the original payment method. For cash-on-delivery orders, refunds are issued as Frames41 store credit.', sortOrder: 4 },
     // Shipping
     { category: 'shipping', question: 'How long does delivery take?', answer: 'Standard delivery takes 5-7 business days. Express delivery (2-3 days) is available for select pincodes. Personalised and custom items may take 1-2 additional days for production.', sortOrder: 1 },
-    { category: 'shipping', question: 'Is shipping free?', answer: 'Yes! We offer free standard shipping on all orders above ₹999. Orders below ₹999 are charged a flat ₹79 shipping fee.', sortOrder: 2 },
+    { category: 'shipping', question: 'How much does shipping cost?', answer: 'We charge a flat ₹80 shipping fee on every order.', sortOrder: 2 },
     { category: 'shipping', question: 'Do you deliver to my pincode?', answer: 'We deliver to 20,000+ pincodes across India. Enter your pincode on the product page to check serviceability and estimated delivery date.', sortOrder: 3 },
     { category: 'shipping', question: 'Can I change my delivery address after placing an order?', answer: 'Address changes are possible within 1 hour of placing the order. Contact our support team via WhatsApp or email with your order number and new address.', sortOrder: 4 },
     // Customization

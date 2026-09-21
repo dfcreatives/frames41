@@ -3,7 +3,7 @@ import { z } from 'zod';
 /**
  * Banner type enum
  */
-export const bannerTypeSchema = z.enum(['TOP_STRIP', 'HEADER_SLIDER', 'UNDER_999', 'CATEGORY_BANNER', 'PROMOTIONAL']);
+export const bannerTypeSchema = z.enum(['TOP_STRIP', 'HEADER_SLIDER', 'UNDER_999', 'CATEGORY_BANNER', 'PROMOTIONAL', 'TRENDING']);
 
 /**
  * Date string schema that accepts ISO datetime, YYYY-MM-DD, or empty string

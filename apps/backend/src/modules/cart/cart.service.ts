@@ -59,6 +59,15 @@ function validateCustomization(
   if (!config.songName?.enabled && values.songName !== undefined) {
     throw new BadRequestError('Song customization is not enabled for this product');
   }
+  if (config.address?.enabled && (
+    typeof values.address !== 'string' ||
+    !values.address.trim()
+  )) {
+    throw new BadRequestError('An address is required');
+  }
+  if (!config.address?.enabled && values.address !== undefined) {
+    throw new BadRequestError('Address customization is not enabled for this product');
+  }
   if (
     config.qrCodeImages?.enabled &&
     qrCodeImageUrls.length !== config.qrCodeImages.count
@@ -321,6 +330,7 @@ export class CartService implements ICartService {
     userId: string,
     couponCode?: string,
     pincode?: string,
+    giftWrap?: boolean,
   ): Promise<CartCalculation> {
     const cart = await this.repository.findOrCreateCart(userId);
 
@@ -372,6 +382,7 @@ export class CartService implements ICartService {
       coupon,
       state,
       pincodeServiceable,
+      giftWrap,
     );
 
     return result;

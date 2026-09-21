@@ -20,11 +20,17 @@ export class ProductService implements IProductService {
     sort: ProductSortOption,
     cursor?: string,
     limit: number = PAGINATION.DEFAULT_PAGE_SIZE,
+    page?: number,
   ): Promise<PaginatedResult<ProductWithRelations>> {
+    const pagination = {
+      limit,
+      ...(cursor === undefined ? {} : { cursor }),
+      ...(page === undefined ? {} : { offset: (page - 1) * limit }),
+    };
     return this.repository.findAll(
       filters,
       sort,
-      { cursor, limit },
+      pagination,
     );
   }
 

@@ -32,9 +32,12 @@ export interface OrderData {
   id: string;
   orderNumber: string;
   status: string;
+  type: string;
   subtotal: number;
   discount: number;
   shippingCharge: number;
+  giftWrap: boolean;
+  giftWrapCharge: number;
   total: number;
   codDueAmount: number;
   addressSnapshot: {
@@ -71,6 +74,8 @@ export interface IOrderRepository {
     subtotal: number;
     discount: number;
     shippingCharge: number;
+    giftWrap: boolean;
+    giftWrapCharge: number;
     total: number;
     addressSnapshot: Record<string, unknown>;
     couponId?: string;
@@ -106,6 +111,11 @@ export interface IOrderRepository {
   updateStatus(id: string, status: string, note?: string, changedBy?: string): Promise<Order>;
 
   /**
+   * Update order type (delivery vs. store pickup)
+   */
+  updateType(id: string, type: string): Promise<Order>;
+
+  /**
    * Update order payment
    */
   updatePayment(id: string, paymentId: string): Promise<Order>;
@@ -133,7 +143,7 @@ export interface IOrderService {
   /**
    * Create order from cart
    */
-  createOrder(userId: string, data: { addressId: string; couponCode?: string }): Promise<OrderData>;
+  createOrder(userId: string, data: { addressId: string; couponCode?: string; giftWrap?: boolean }): Promise<OrderData>;
 
   /**
    * Get order by ID
@@ -144,6 +154,11 @@ export interface IOrderService {
    * Get order by order number
    */
   getOrderByNumber(orderNumber: string, userId: string, userRole: string): Promise<OrderData>;
+
+  /**
+   * Update order type (delivery vs. store pickup)
+   */
+  updateOrderType(orderId: string, userId: string, type: string): Promise<OrderData>;
 
   /**
    * Get user orders

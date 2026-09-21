@@ -55,12 +55,22 @@ export async function authenticate(
     }
 
     const cached = userSessionCache.get(decoded.userId);
-    const user = cached
-      ? { id: decoded.userId, role: cached.role }
-      : await prisma.user.findUnique({
+    let user = cached ? { id: decoded.userId, role: cached.role } : null;
+
+    if (!user) {
+      try {
+        user = await prisma.user.findUnique({
           where: { id: decoded.userId },
           select: { id: true, role: true },
         });
+      } catch (err) {
+        if (env.NODE_ENV === 'development' && decoded.role) {
+          user = { id: decoded.userId, role: decoded.role };
+        } else {
+          throw err;
+        }
+      }
+    }
 
     if (!user) throw new UnauthorizedError('User not found');
     if (!cached) {

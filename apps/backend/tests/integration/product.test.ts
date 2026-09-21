@@ -111,6 +111,41 @@ describe('Product Integration Tests', () => {
       expect(response.body.meta.pagination.limit).toBe(20);
     });
 
+    it('should return distinct products for page-based admin pagination', async () => {
+      await prisma.product.createMany({
+        data: Array.from({ length: 25 }, (_, index) => ({
+          slug: `paged-product-${index + 1}`,
+          name: `Paged Product ${index + 1}`,
+          description: 'Description',
+          basePrice: 99.99,
+          sku: `SKU-PAGED-${index + 1}`,
+          stock: 10,
+          isActive: true,
+          categoryId,
+        })),
+      });
+
+      const firstPage = await request(app)
+        .get('/api/v1/products?page=1&limit=20&includeInactive=true')
+        .expect(200);
+      const secondPage = await request(app)
+        .get('/api/v1/products?page=2&limit=20&includeInactive=true')
+        .expect(200);
+
+      expect(firstPage.body.data).toHaveLength(20);
+      expect(secondPage.body.data).toHaveLength(5);
+      expect(secondPage.body.meta).toMatchObject({
+        total: 25,
+        page: 2,
+        limit: 20,
+        totalPages: 2,
+      });
+      const firstPageProducts = firstPage.body.data as Array<{ id: string }>;
+      const secondPageProducts = secondPage.body.data as Array<{ id: string }>;
+      const firstPageIds = new Set(firstPageProducts.map((product) => product.id));
+      expect(secondPageProducts.every((product) => !firstPageIds.has(product.id))).toBe(true);
+    });
+
     it('should filter by category', async () => {
       const otherCategory = await prisma.category.create({
         data: {

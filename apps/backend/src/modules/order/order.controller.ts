@@ -3,6 +3,7 @@ import type { IOrderService } from './order.types.js';
 import {
   createOrderSchema,
   updateOrderStatusSchema,
+  updateOrderTypeSchema,
   orderIdParamSchema,
   orderNumberParamSchema,
   orderQuerySchema,
@@ -218,6 +219,45 @@ export class OrderController {
         data,
         req.user.userId,
       );
+
+      res.status(200).json({
+        success: true,
+        data: order,
+        meta: {
+          requestId: req.headers['x-request-id'] as string,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * PATCH /orders/:id/type
+   * Update order type (delivery vs. store pickup)
+   */
+  updateOrderType = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+          meta: {
+            requestId: req.headers['x-request-id'] as string,
+            timestamp: new Date().toISOString(),
+          },
+        });
+        return;
+      }
+
+      const { id } = orderIdParamSchema.parse(req.params);
+      const { type } = updateOrderTypeSchema.parse(req.body);
+      const order = await this.orderService.updateOrderType(id, req.user.userId, type);
 
       res.status(200).json({
         success: true,

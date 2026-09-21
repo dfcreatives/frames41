@@ -54,7 +54,7 @@ export class ReviewRepository implements IReviewRepository {
     return reviews as ReviewWithUser[];
   }
 
-  async findByUserId(userId: string, options?: { limit?: number; offset?: number }): Promise<ReviewWithUser[]> {
+  async findByUserId(userId: string , options?: { limit?: number; offset?: number }): Promise<ReviewWithUser[]> {
     const reviews = await this.prisma.review.findMany({
       where: { userId },
       include: {

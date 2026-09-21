@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useCallback, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAdminProducts } from '@/hooks/useAdminProducts'
 import AdminTable from '@/components/shared/AdminTable'
 import Pagination from '@/components/shared/Pagination'
@@ -9,6 +9,9 @@ import type { AdminProductListItem } from '@/types/admin'
 
 export default function AdminProductsPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const categoryId = searchParams.get('categoryId') || undefined
+  const categoryName = searchParams.get('categoryName') || 'Selected category'
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [lowStock, setLowStock] = useState(false)
@@ -17,9 +20,12 @@ export default function AdminProductsPage() {
 
   const handleSearch = useCallback((v: string) => { setSearch(v); setPage(1) }, [])
 
-  const { products, meta, loading, deleteProduct, toggleActive } = useAdminProducts({
+  useEffect(() => { setPage(1) }, [categoryId])
+
+  const { products, meta, loading, deleteProduct, toggleActive, toggleTrending } = useAdminProducts({
     page, limit: 20,
     search: search || undefined,
+    categoryId,
     lowStock: lowStock || undefined,
   })
 
@@ -116,6 +122,19 @@ export default function AdminProductsPage() {
       ),
     },
     {
+      key: 'trending',
+      header: 'Trending',
+      render: (p: AdminProductListItem) => (
+        <button
+          title={p.isTrending ? 'Marked as Trending (Spotlight on Homepage)' : 'Click to Mark as Trending Item'}
+          onClick={(e) => { e.stopPropagation(); toggleTrending(p.id, !p.isTrending) }}
+          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${p.isTrending ? 'bg-rose-600' : 'bg-gray-300'}`}
+        >
+          <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${p.isTrending ? 'translate-x-4' : 'translate-x-1'}`} />
+        </button>
+      ),
+    },
+    {
       key: 'actions',
       header: '',
       render: (p: AdminProductListItem) => (
@@ -139,6 +158,21 @@ export default function AdminProductsPage() {
 
   return (
     <div className="space-y-4">
+      {categoryId && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+          <p className="text-sm text-gray-700">
+            Showing products in <span className="font-semibold text-primary">{categoryName}</span>
+          </p>
+          <button
+            type="button"
+            onClick={() => setSearchParams({})}
+            className="text-xs font-semibold text-primary hover:underline"
+          >
+            Show all products
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <SearchInput value={search} onChange={handleSearch} placeholder="Search products…" className="w-56" />

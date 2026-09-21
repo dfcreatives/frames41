@@ -55,32 +55,34 @@ if (env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
 
+export let isDbConnected = false;
+
 /**
  * Connect to database with retry logic
  */
-export async function connectDatabase(maxRetries = 5, retryDelayMs = 2000): Promise<void> {
+export async function connectDatabase(maxRetries = 2, retryDelayMs = 500): Promise<boolean> {
   let retries = 0;
   
   while (retries < maxRetries) {
     try {
       await prisma.$connect();
+      isDbConnected = true;
       logger.info('Connected to database successfully');
-      return;
+      return true;
     } catch (error) {
       retries += 1;
-      logger.error({
-        error: error instanceof Error ? error.message : 'Unknown error',
-        attempt: retries,
-        maxRetries,
-      }, 'Database connection failed, retrying...');
-      
       if (retries >= maxRetries) {
-        throw new Error(`Failed to connect to database after ${maxRetries} attempts`);
+        isDbConnected = false;
+        logger.warn(
+          { error: error instanceof Error ? error.message : 'Unknown error' },
+          'PostgreSQL unavailable. Server will use mock/fallback catalog data.'
+        );
+        return false;
       }
-      
       await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
     }
   }
+  return false;
 }
 
 /**

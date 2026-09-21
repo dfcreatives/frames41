@@ -64,6 +64,10 @@ export function errorHandler(
       errorCode = 'FOREIGN_KEY_VIOLATION';
       errorMessage = 'Referenced record does not exist';
     }
+  } else if (err.name === 'PrismaClientInitializationError' || (err as unknown as { code?: string }).code === 'P1001') {
+    statusCode = HTTP_STATUS.SERVICE_UNAVAILABLE;
+    errorCode = 'DATABASE_UNREACHABLE';
+    errorMessage = 'Database server is unreachable. Please verify PostgreSQL service is running and DATABASE_URL is correct.';
   } else if (err.name === 'ZodError') {
     statusCode = HTTP_STATUS.UNPROCESSABLE_ENTITY;
     errorCode = 'VALIDATION_ERROR';

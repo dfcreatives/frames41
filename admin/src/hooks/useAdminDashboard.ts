@@ -6,6 +6,8 @@ interface DashboardData {
   stats: DashboardStats | null
   analytics: AnalyticsSummary | null
   topProducts: TopProduct[]
+  customersTotal: number | null
+  ordersTotal: number | null
   loading: boolean
   error: string | null
 }
@@ -15,6 +17,8 @@ export function useAdminDashboard(period: Period, startDate?: string, endDate?: 
     stats: null,
     analytics: null,
     topProducts: [],
+    customersTotal: null,
+    ordersTotal: null,
     loading: true,
     error: null,
   })
@@ -31,8 +35,23 @@ export function useAdminDashboard(period: Period, startDate?: string, endDate?: 
 
     setData((d) => ({ ...d, loading: true, error: null }))
     try {
-      const { stats, analytics, topProducts } = await api.admin.getDashboard(period, startDate, endDate, 10)
-      setData({ stats, analytics, topProducts, loading: false, error: null })
+      const [dashRes, customersRes, ordersRes] = await Promise.all([
+        api.admin.getDashboard(period, startDate, endDate, 10),
+        api.admin.getCustomers({ page: 1, limit: 1 }).catch(() => null),
+        api.admin.getOrders({ page: 1, limit: 1 }).catch(() => null),
+      ])
+
+      const { stats, analytics, topProducts } = dashRes
+
+      setData({
+        stats,
+        analytics,
+        topProducts,
+        customersTotal: customersRes?.meta?.total ?? null,
+        ordersTotal: ordersRes?.meta?.total ?? null,
+        loading: false,
+        error: null,
+      })
     } catch (err) {
       setData((d) => ({
         ...d,

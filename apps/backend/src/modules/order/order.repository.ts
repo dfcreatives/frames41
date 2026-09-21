@@ -139,6 +139,13 @@ export class OrderRepository implements IOrderRepository {
     });
   }
 
+  async updateType(id: string, type: string): Promise<Order> {
+    return this.prisma.order.update({
+      where: { id },
+      data: { type: type as Order['type'] },
+    });
+  }
+
   async updatePayment(id: string, paymentId: string): Promise<Order> {
     return this.prisma.order.update({
       where: { id },

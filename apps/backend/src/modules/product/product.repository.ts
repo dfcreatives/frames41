@@ -16,6 +16,8 @@ const productCatalogCache = createLRUCache<string, {}>({
   ttl: 30_000,
 });
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Product repository implementation
  */
@@ -127,23 +129,30 @@ export class ProductRepository implements IProductRepository {
         orderBy = { createdAt: 'desc' };
     }
 
-    const products = await this.prisma.product.findMany({
-      where,
-      cursor: pagination.cursor ? { id: pagination.cursor } : undefined,
-      skip: pagination.cursor ? 1 : 0,
-      take: limit + 1, // Take one extra to check if there's more
-      orderBy,
-      include: this.listRelations,
-    });
+    const [products, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        ...(pagination.cursor
+          ? { cursor: { id: pagination.cursor }, skip: 1 }
+          : pagination.offset === undefined
+            ? {}
+            : { skip: pagination.offset }),
+        take: limit + 1, // Take one extra to check if there's more
+        orderBy,
+        include: this.listRelations,
+      }),
+      pagination.offset === undefined ? Promise.resolve(undefined) : this.prisma.product.count({ where }),
+    ]);
 
     const hasMore = products.length > limit;
     const data = hasMore ? products.slice(0, limit) : products;
-    const nextCursor = hasMore && data.length > 0 ? data[data.length - 1].id : null;
+    const nextCursor = hasMore ? data.at(-1)?.id ?? null : null;
 
     const result = {
       data: data as unknown as ProductWithRelations[],
       nextCursor,
       hasMore,
+      ...(total === undefined ? {} : { total }),
     };
     productCatalogCache.set(cacheKey, result);
     return result;
@@ -204,6 +213,7 @@ export class ProductRepository implements IProductRepository {
   }
 
   async findById(id: string): Promise<ProductWithRelations | null> {
+    if (!UUID_PATTERN.test(id)) return null;
     const cacheKey = `id:${id}`;
     const cached = productCatalogCache.get(cacheKey);
     if (cached) return cached as ProductWithRelations;
@@ -338,6 +348,8 @@ export class ProductRepository implements IProductRepository {
         isActive: data.isActive,
         isBestSeller: data.isBestSeller,
         isFeatured: data.isFeatured,
+        isTrending: data.isTrending,
+        trendingBannerUrl: data.trendingBannerUrl,
         categoryId: data.categoryId,
         fontOptions: data.fontOptions,
         customizationConfig: data.customizationConfig as Prisma.InputJsonValue | undefined,
@@ -371,7 +383,7 @@ export class ProductRepository implements IProductRepository {
     const simpleFields = [
       'slug', 'name', 'description', 'shortDescription', 'basePrice',
       'discountedPrice', 'sku', 'stock', 'isActive', 'isBestSeller',
-      'isFeatured', 'categoryId', 'fontOptions', 'customizationConfig', 'specifications', 'careInstructions',
+      'isFeatured', 'isTrending', 'trendingBannerUrl', 'categoryId', 'fontOptions', 'customizationConfig', 'specifications', 'careInstructions',
       'weight', 'dimensions', 'metaTitle', 'metaDescription',
     ];
 

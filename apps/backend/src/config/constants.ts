@@ -138,6 +138,9 @@ export const BANNER_TYPES = {
   TOP_STRIP: 'TOP_STRIP',
   HEADER_SLIDER: 'HEADER_SLIDER',
   UNDER_999: 'UNDER_999',
+  CATEGORY_BANNER: 'CATEGORY_BANNER',
+  PROMOTIONAL: 'PROMOTIONAL',
+  TRENDING: 'TRENDING',
 } as const;
 
 // Job Status
@@ -165,6 +168,10 @@ export const CURRENCY = {
 
 // Shipping
 export const SHIPPING = {
-  FREE_SHIPPING_THRESHOLD: 799,
-  DEFAULT_SHIPPING_CHARGE: 79,
+  FLAT_CHARGE: 80,
+} as const;
+
+// Gift Wrapping
+export const GIFT_WRAP = {
+  CHARGE: 60,
 } as const;

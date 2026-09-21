@@ -6,6 +6,7 @@ export interface ProductCustomizationConfig {
   numberOfNames?: { enabled: boolean; count: number };
   date?: { enabled: boolean };
   songName?: { enabled: boolean };
+  address?: { enabled: boolean };
   qrCodeImages?: { enabled: boolean; count: number };
   contactShop?: { enabled: boolean; value?: string };
   startingFrom?: { enabled: boolean; amount?: number };
@@ -130,6 +131,8 @@ export interface CreateProductData {
   isActive: boolean;
   isBestSeller: boolean;
   isFeatured: boolean;
+  isTrending?: boolean;
+  trendingBannerUrl?: string;
   categoryId: string;
   fontOptions?: string[];
   customizationConfig?: ProductCustomizationConfig;
@@ -175,6 +178,7 @@ export interface IProductService {
     sort: ProductSortOption,
     cursor?: string,
     limit?: number,
+    page?: number,
   ): Promise<PaginatedResult<ProductWithRelations>>;
 
   /**

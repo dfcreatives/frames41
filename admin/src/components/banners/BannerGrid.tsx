@@ -27,7 +27,7 @@ export default function BannerGrid({ banners, onEdit, onDelete, onToggle }: Prop
               {BANNER_TYPE_LABELS[type]} ({group.length})
             </h3>
             {group.length === 0 ? (
-              <p className="text-sm text-gray-400 italic py-4">No banners of this type.</p>
+              <p className="text-sm text-gray-400 bold py-4">No banners of this type.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {group.map((b) => (

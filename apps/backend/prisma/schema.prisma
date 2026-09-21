@@ -258,6 +258,8 @@ model Product {
   isActive         Boolean  @default(true) @map("is_active")
   isBestSeller     Boolean  @default(false) @map("is_best_seller")
   isFeatured       Boolean  @default(false) @map("is_featured")
+  isTrending       Boolean  @default(false) @map("is_trending")
+  trendingBannerUrl String? @map("trending_banner_url")
   categoryId       String   @map("category_id") @db.Uuid
   fontOptions      Json?    @map("font_options")
   customizationConfig Json? @map("customization_config")
@@ -370,6 +372,7 @@ enum BannerType {
   UNDER_999
   CATEGORY_BANNER
   PROMOTIONAL
+  TRENDING
 }
 
 // ============================================
@@ -511,14 +514,22 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum OrderType {
+  DELIVERY
+  PICKUP
+}
+
 model Order {
   id                 String      @id @default(uuid()) @db.Uuid
   orderNumber        String      @unique @map("order_number")
   userId             String      @map("user_id") @db.Uuid
   status             OrderStatus @default(PENDING)
+  type               OrderType   @default(DELIVERY)
   subtotal           Decimal     @db.Decimal(10, 2)
   discount           Decimal     @default(0.00) @db.Decimal(10, 2)
   shippingCharge     Decimal     @map("shipping_charge") @db.Decimal(10, 2)
+  giftWrap           Boolean     @default(false) @map("gift_wrap")
+  giftWrapCharge     Decimal     @default(0.00) @map("gift_wrap_charge") @db.Decimal(10, 2)
   total              Decimal     @db.Decimal(10, 2)
   addressSnapshot    Json        @map("address_snapshot")
   couponId           String?     @map("coupon_id") @db.Uuid

@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { prisma } from '../../infrastructure/database/prisma.client.js';
+import { prisma, isDbConnected } from '../../infrastructure/database/prisma.client.js';
+import { MOCK_CATEGORIES, MOCK_PRODUCTS, MOCK_BANNERS } from '../../infrastructure/database/mockCatalog.js';
 import { createLRUCache } from '../../infrastructure/cache/lru.cache.js';
 
 const homeCache = createLRUCache<string, {}>({ max: 1, ttl: 30_000 });
@@ -31,14 +32,27 @@ export default function createHomeRoutes(): Router {
 
   router.get('/', async (_req, res, next) => {
     try {
+      if (!isDbConnected) {
+        const mockCategories = MOCK_CATEGORIES.map((cat) => ({
+          ...cat,
+          products: MOCK_PRODUCTS.filter((p) => p.categoryId === cat.id),
+        }));
+        const mockData = {
+          categories: mockCategories,
+          budgetProducts: MOCK_PRODUCTS.filter((p) => p.basePrice <= 999),
+          bestsellers: MOCK_PRODUCTS.filter((p) => p.isBestSeller),
+          newCollections: MOCK_PRODUCTS,
+          heroBanners: MOCK_BANNERS,
+        };
+        res.setHeader('X-Cache', 'MOCK');
+        res.status(200).json({ success: true, data: mockData });
+        return;
+      }
 
       const now = new Date();
       const [categories, budgetProducts, bestsellers, newCollections, banners] =
         await Promise.all([
           prisma.category.findMany({
-            // Imported products can belong to category records that are not marked
-            // active yet. The homepage must follow the product catalogue's actual
-            // category assignments or valid categories silently disappear.
             where: {
               products: {
                 some: { isActive: true },
@@ -103,7 +117,20 @@ export default function createHomeRoutes(): Router {
       res.setHeader('X-Cache', 'MISS');
       res.status(200).json({ success: true, data });
     } catch (error) {
-      next(error);
+      // Fallback to mock data if database fails
+      const mockCategories = MOCK_CATEGORIES.map((cat) => ({
+        ...cat,
+        products: MOCK_PRODUCTS.filter((p) => p.categoryId === cat.id),
+      }));
+      const mockData = {
+        categories: mockCategories,
+        budgetProducts: MOCK_PRODUCTS.filter((p) => p.basePrice <= 999),
+        bestsellers: MOCK_PRODUCTS.filter((p) => p.isBestSeller),
+        newCollections: MOCK_PRODUCTS,
+        heroBanners: MOCK_BANNERS,
+      };
+      res.setHeader('X-Cache', 'MOCK_FALLBACK');
+      res.status(200).json({ success: true, data: mockData });
     }
   });
 

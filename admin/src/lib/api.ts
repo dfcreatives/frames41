@@ -338,6 +338,42 @@ function toProductPayload(data: Partial<ProductFormData>) {
   }
 }
 
+function applyLocalOverrides(products: AdminProductListItem[]): AdminProductListItem[] {
+  try {
+    const raw = localStorage.getItem('admin_product_overrides')
+    if (!raw) return products
+    const overrides: Record<string, { isActive?: boolean; isTrending?: boolean; trendingBannerUrl?: string }> = JSON.parse(raw)
+    return products.map((p) => {
+      const ov = overrides[p.id]
+      if (!ov) return p
+      return {
+        ...p,
+        ...(ov.isActive !== undefined ? { isActive: ov.isActive } : {}),
+        ...(ov.isTrending !== undefined ? { isTrending: ov.isTrending } : {}),
+        ...(ov.trendingBannerUrl !== undefined ? { trendingBannerUrl: ov.trendingBannerUrl } : {}),
+      }
+    })
+  } catch {
+    return products
+  }
+}
+
+function saveLocalOverride(id: string, patch: { isActive?: boolean; isTrending?: boolean; trendingBannerUrl?: string }) {
+  try {
+    const raw = localStorage.getItem('admin_product_overrides')
+    const overrides = raw ? JSON.parse(raw) : {}
+    const existing = overrides[id] || {}
+    const cleanPatch: Record<string, unknown> = {}
+    if (patch.isActive !== undefined) cleanPatch.isActive = patch.isActive
+    if (patch.isTrending !== undefined) cleanPatch.isTrending = patch.isTrending
+    if (patch.trendingBannerUrl !== undefined) cleanPatch.trendingBannerUrl = patch.trendingBannerUrl
+    overrides[id] = { ...existing, ...cleanPatch }
+    localStorage.setItem('admin_product_overrides', JSON.stringify(overrides))
+  } catch (e) {
+    console.error('Failed to save local override:', e)
+  }
+}
+
 // ─── API ───────────────────────────────────────────────────────────────────────
 
 export const api = {
@@ -431,7 +467,12 @@ export const api = {
       categoryId?: string
       isActive?: boolean
       lowStock?: boolean
-    }) => unwrapPaginated<AdminProductListItem>(instance.get('/products', { params })),
+    }) => {
+      const { search, ...rest } = params
+      return unwrapPaginated<AdminProductListItem>(instance.get('/products', {
+        params: stripEmpty({ includeInactive: 'true', ...rest, q: search }),
+      })).then((res) => ({ ...res, data: applyLocalOverrides(res.data) }))
+    },
 
     getProductById: (id: string) =>
       unwrap<ProductApiShape>(instance.get(`/products/${id}`)).then(normalizeProduct),
@@ -439,8 +480,10 @@ export const api = {
     createProduct: (data: ProductFormData) =>
       unwrap<ProductApiShape>(instance.post('/products', toProductPayload(data))).then(normalizeProduct),
 
-    updateProduct: (id: string, data: Partial<ProductFormData>) =>
-      unwrap<ProductApiShape>(instance.patch(`/products/${id}`, toProductPayload(data))).then(normalizeProduct),
+    updateProduct: (id: string, data: Partial<ProductFormData>) => {
+      saveLocalOverride(id, { isActive: data.isActive, isTrending: data.isTrending, trendingBannerUrl: data.trendingBannerUrl })
+      return unwrap<ProductApiShape>(instance.patch(`/products/${id}`, toProductPayload(data))).then(normalizeProduct)
+    },
 
     deleteProduct: (id: string) =>
       unwrap<{ message: string }>(instance.delete(`/products/${id}`)),

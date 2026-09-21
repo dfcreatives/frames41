@@ -75,7 +75,7 @@ export class AdminRepository implements IAdminRepository {
   }
 
   async getAnalytics(startDate: Date, endDate: Date): Promise<AnalyticsData> {
-    const [ordersAgg, uniqueCustomers] = await Promise.all([
+    const [ordersAgg, uniqueCustomers, statusCounts] = await Promise.all([
       this.prisma.order.aggregate({
         where: {
           placedAt: { gte: startDate, lte: endDate },
@@ -92,14 +92,32 @@ export class AdminRepository implements IAdminRepository {
         },
         _count: { userId: true },
       }),
+      this.prisma.order.groupBy({
+        by: ['status'],
+        where: {
+          placedAt: { gte: startDate, lte: endDate },
+        },
+        _count: { id: true },
+      }),
     ]);
 
     const gmv = Number(ordersAgg._sum.total ?? 0);
     const totalOrders = ordersAgg._count.id;
     const aov = totalOrders > 0 ? gmv / totalOrders : 0;
 
-    // Conversion rate: orders / (orders + abandoned cart triggers in period)
-    // Simplified: orders / total website visitors estimate (use orders * 10 as proxy)
+    const statusBreakdown: Record<string, number> = {
+      PENDING: 0,
+      PROCESSING: 0,
+      SHIPPED: 0,
+      DELIVERED: 0,
+      CANCELLED: 0,
+      REFUNDED: 0,
+    };
+
+    statusCounts.forEach((item) => {
+      statusBreakdown[item.status] = item._count.id;
+    });
+
     const conversionRate = totalOrders > 0 ? Math.min((totalOrders / (totalOrders * 10)) * 100, 100) : 0;
 
     return {
@@ -108,6 +126,7 @@ export class AdminRepository implements IAdminRepository {
       totalOrders,
       conversionRate: Number(conversionRate.toFixed(2)),
       period: `${startDate.toISOString()}_${endDate.toISOString()}`,
+      statusBreakdown,
     };
   }
 
@@ -277,6 +296,7 @@ export class AdminRepository implements IAdminRepository {
       userName: order.user.name,
       userPhone: order.user.phone,
       status: order.status,
+      type: order.type,
       subtotal: Number(order.subtotal),
       discount: Number(order.discount),
       shippingCharge: Number(order.shippingCharge),

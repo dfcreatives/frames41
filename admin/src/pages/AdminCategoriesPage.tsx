@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAdminCategories } from '@/hooks/useAdminCategories'
 import CategoryTree from '@/components/categories/CategoryTree'
 import CategoryForm from '@/components/categories/CategoryForm'
@@ -6,6 +7,7 @@ import ConfirmModal from '@/components/shared/ConfirmModal'
 import type { AdminCategory, CategoryFormData } from '@/types/admin'
 
 export default function AdminCategoriesPage() {
+  const navigate = useNavigate()
   const { categories, loading, error, createCategory, updateCategory, deleteCategory } = useAdminCategories()
   const [editing, setEditing] = useState<AdminCategory | null | 'new'>(null)
   const [deleting, setDeleting] = useState<AdminCategory | null>(null)
@@ -58,6 +60,7 @@ export default function AdminCategoriesPage() {
       ) : (
         <CategoryTree
           categories={categories}
+          onViewProducts={(cat) => navigate(`/products?categoryId=${encodeURIComponent(cat.id)}&categoryName=${encodeURIComponent(cat.name)}`)}
           onEdit={(cat) => setEditing(cat)}
           onDelete={(cat) => setDeleting(cat)}
         />
