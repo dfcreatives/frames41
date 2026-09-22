@@ -1,9 +1,11 @@
-import type { Payment } from '@prisma/client';
-import { prisma } from '../../infrastructure/database/prisma.client.js';
-import { razorpayClient } from '../../infrastructure/external/razorpay.client.js';
 import { env } from '../../config/env.js';
-import { NotFoundError, BadRequestError, UnauthorizedError } from '../../shared/errors/AppError.js';
+import { prisma } from '../../infrastructure/database/prisma.client.js';
+import { syncPaidOrderToDeskOrQueue } from '../../infrastructure/external/desk.client.js';
+import { razorpayClient } from '../../infrastructure/external/razorpay.client.js';
 import { logger } from '../../infrastructure/logger/pino.logger.js';
+import { NotFoundError, BadRequestError, UnauthorizedError } from '../../shared/errors/AppError.js';
+
+import type { Payment } from '@prisma/client';
 
 const RAZORPAY_MINIMUM_AMOUNT_IN_PAISE = 100;
 const RAZORPAY_MINIMUM_AMOUNT_IN_INR = RAZORPAY_MINIMUM_AMOUNT_IN_PAISE / 100;
@@ -274,6 +276,8 @@ export class PaymentService {
       { orderId: data.orderId, paymentId: data.razorpayPaymentId, isPartial: payment.isPartial, codDueAmount },
       'Payment verified and captured',
     );
+
+    await syncPaidOrderToDeskOrQueue(data.orderId);
   }
 
   /**
@@ -297,4 +301,3 @@ export class PaymentService {
     });
   }
 }
-

@@ -58,13 +58,13 @@ export default function CategoryProductsSection({
     <section
       id="collections"
       aria-labelledby="categories-heading"
-      className="mx-auto max-w-container px-4 pt-8 pb-16 sm:px-6 sm:pt-12 sm:pb-xl"
+      className="mx-auto max-w-container px-4 pt-2 pb-12 sm:px-6 sm:pt-4 sm:pb-16"
     >
-      <div className="mb-10 border-b border-[#800020]/20 pb-6 sm:mb-14 sm:pb-8">
+      <div className="mb-6 border-b border-[#800020]/20 pb-4 sm:mb-8 sm:pb-6">
         <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.3em] text-[#800020]">
           Shop by collection
         </span>
-        <h2 id="categories-heading" className="font-headline text-[28px] italic font-extrabold text-[#2b0b14] sm:text-headline-lg">
+        <h2 id="categories-heading" className="font-headline text-[28px] bold font-extrabold text-[#2b0b14] sm:text-headline-lg">
           Curated Categories
         </h2>
       </div>

@@ -40,7 +40,7 @@ function TabContent({ tab }: { tab: ProductTab }) {
   }
 
   if (!tab.content) {
-    return <p className="text-on-surface-variant/60 italic">No information available.</p>
+    return <p className="text-on-surface-variant/60 bold">No information available.</p>
   }
 
   return (

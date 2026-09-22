@@ -16,7 +16,7 @@ export default function GiftCardsPage() {
           <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary block mb-4">
             Give the Gift of Art
           </span>
-          <h1 className="font-headline text-4xl italic mb-6">Gift Cards</h1>
+          <h1 className="font-headline text-4xl bold mb-6">Gift Cards</h1>
           <p className="text-on-background/60 text-base leading-relaxed">
             Give someone the freedom to choose their perfect frame. Our digital gift cards are delivered instantly by email and never expire.
           </p>
@@ -29,7 +29,7 @@ export default function GiftCardsPage() {
               className="border border-on-background/10 rounded-lg p-8 text-center hover:border-primary hover:shadow-md transition-all cursor-pointer group"
             >
               <p className="text-xs uppercase tracking-widest text-on-background/50 mb-2">Gift Card</p>
-              <p className="font-headline text-3xl italic group-hover:text-primary transition-colors">
+              <p className="font-headline text-3xl bold group-hover:text-primary transition-colors">
                 ₹{amount.toLocaleString('en-IN')}
               </p>
             </div>

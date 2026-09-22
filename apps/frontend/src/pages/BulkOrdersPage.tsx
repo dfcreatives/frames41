@@ -51,7 +51,7 @@ export default function BulkOrdersPage() {
           <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary block mb-4">
             Volume Pricing
           </span>
-          <h1 className="font-headline text-4xl italic mb-6">Bulk Orders</h1>
+          <h1 className="font-headline text-4xl bold mb-6">Bulk Orders</h1>
           <p className="text-on-background/60 text-base leading-relaxed">
             Ordering 10 or more frames? Get significant discounts, priority production, and a dedicated account manager.
           </p>
@@ -61,7 +61,7 @@ export default function BulkOrdersPage() {
           {TIERS.map(({ min, max, discount, label }) => (
             <div key={label} className="border border-on-background/10 rounded-xl p-6 text-center hover:border-primary transition-colors">
               <p className="text-[10px] uppercase tracking-widest text-primary font-bold mb-2">{label}</p>
-              <p className="font-headline text-2xl italic mb-1">
+              <p className="font-headline text-2xl bold mb-1">
                 {max ? `${min}–${max}` : `${min}+`} units
               </p>
               <p className="text-2xl font-bold text-primary">{discount} off</p>
@@ -82,7 +82,7 @@ export default function BulkOrdersPage() {
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <h2 className="font-headline text-2xl italic text-center mb-8">Request a Quote</h2>
+          <h2 className="font-headline text-2xl bold text-center mb-8">Request a Quote</h2>
           {submitted ? (
             <div className="text-center py-12 border border-on-background/10 rounded-xl">
               <p className="text-2xl mb-3">🎉</p>

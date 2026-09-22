@@ -30,3 +30,11 @@ export interface ProfileData {
   readonly addresses: ReadonlyArray<ProfileAddress>
   readonly isNewsletterSubscribed: boolean
 }
+
+export interface AddressEditData {
+  readonly line1: string
+  readonly line2?: string
+  readonly city: string
+  readonly state: string
+  readonly zip: string
+}

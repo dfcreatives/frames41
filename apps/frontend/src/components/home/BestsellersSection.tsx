@@ -23,7 +23,7 @@ function BestsellerCard({ product }: BestsellerCardProps) {
             className="block h-full w-full object-cover"
           />
         </div>
-        <h3 className="font-headline text-xl sm:text-headline-md italic mb-1 sm:mb-2">{product.name}</h3>
+        <h3 className="font-headline text-xl sm:text-headline-md bold mb-1 sm:mb-2">{product.name}</h3>
         {product.description && (
           <p className="text-on-background/60 mb-4 sm:mb-6 text-sm">{product.description}</p>
         )}
@@ -59,7 +59,7 @@ export default function BestsellersSection({ products }: BestsellersSectionProps
           <span className="text-label-bold text-primary text-[10px] tracking-[0.3em] uppercase block mb-1">
             Top Choice
           </span>
-          <h2 id="bestsellers-heading" className="font-headline text-[28px] sm:text-headline-lg italic">
+          <h2 id="bestsellers-heading" className="font-headline text-[28px] sm:text-headline-lg bold">
             Bestsellers
           </h2>
         </div>

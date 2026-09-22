@@ -14,11 +14,11 @@ export default function OrderSummaryPanel({
   summary,
   trustBadges,
   status,
-  paymentMethod,
+  paymentMethod: _paymentMethod,
 }: OrderSummaryPanelProps) {
   const isProcessing = status === 'verifying' || status === 'processing'
   const { product, lineItems, totalLabel, totalValue } = summary
-  const actionLabel = paymentMethod === 'partial_cod' ? 'Pay 50% Now' : 'Pay with Razorpay'
+  const actionLabel = 'Pay with Razorpay'
 
   return (
     <div className="bg-surface-container p-4 sm:p-xl rounded-lg sm:sticky sm:top-32">

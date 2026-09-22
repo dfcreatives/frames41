@@ -8,6 +8,7 @@ interface AddressGridProps {
   selectedId: string
   onSelect: (id: string) => void
   onEdit: (id: string) => void
+  onDelete?: (id: string) => void
   onAdd: () => void
   showForm?: boolean
   onSaveForm?: (data: AddressFormData) => Promise<unknown>
@@ -19,6 +20,7 @@ export default function AddressGrid({
   selectedId,
   onSelect,
   onEdit,
+  onDelete,
   onAdd,
   showForm,
   onSaveForm,
@@ -48,6 +50,7 @@ export default function AddressGrid({
               isSelected={address.id === selectedId}
               onSelect={onSelect}
               onEdit={onEdit}
+              onDelete={onDelete}
             />
           ))}
           <AddNewAddressCard onAdd={onAdd} />

@@ -45,6 +45,7 @@ export interface ProductCustomizationConfig {
   readonly numberOfNames: { readonly enabled: boolean; readonly count: number }
   readonly date: { readonly enabled: boolean }
   readonly songName: { readonly enabled: boolean }
+  readonly address: { readonly enabled: boolean }
   readonly qrCodeImages: { readonly enabled: boolean; readonly count: number }
   readonly contactShop: { readonly enabled: boolean; readonly value: string }
   readonly startingFrom: { readonly enabled: boolean; readonly amount?: number }

@@ -7,12 +7,14 @@ interface Props {
   names: string[]
   date: string
   songName: string
+  address: string
   qrCodeImages: File[]
   error?: string
   onImagesChange: (files: File[]) => void
   onNamesChange: (names: string[]) => void
   onDateChange: (value: string) => void
   onSongNameChange: (value: string) => void
+  onAddressChange: (value: string) => void
   onQrCodeImagesChange: (files: File[]) => void
 }
 
@@ -35,12 +37,14 @@ export default function CustomerCustomizationForm({
   names,
   date,
   songName,
+  address,
   qrCodeImages,
   error,
   onImagesChange,
   onNamesChange,
   onDateChange,
   onSongNameChange,
+  onAddressChange,
   onQrCodeImagesChange,
 }: Props) {
   const hasInputs =
@@ -48,6 +52,7 @@ export default function CustomerCustomizationForm({
     config.numberOfNames.enabled ||
     config.date.enabled ||
     config.songName.enabled ||
+    config.address.enabled ||
     config.qrCodeImages.enabled ||
     config.startingFrom.enabled
 
@@ -57,7 +62,7 @@ export default function CustomerCustomizationForm({
     <section className="space-y-4 rounded-xl border border-outline-variant bg-white p-4 sm:p-5">
       <div>
         <h2 className="font-bold text-on-background">Personalise this product</h2>
-        <p className="mt-1 text-sm text-on-surface-variant">Add optional personalisation details below if desired.</p>
+        <p className="mt-1 text-sm text-on-surface-variant">Add required personalisation details below.</p>
       </div>
 
       {config.startingFrom.enabled && config.startingFrom.amount !== undefined && (
@@ -68,9 +73,10 @@ export default function CustomerCustomizationForm({
 
       {config.numberOfImages.enabled && (
         <label className="block text-sm font-bold text-on-background">
-          Upload up to {config.numberOfImages.count} image{config.numberOfImages.count === 1 ? '' : 's'} <span className="font-normal text-on-surface-variant text-xs">(Optional)</span>
+          Upload up to {config.numberOfImages.count} image{config.numberOfImages.count === 1 ? '' : 's'} <span className="text-red-600 font-bold ml-1">*</span>
           <input
             type="file"
+            required
             multiple={config.numberOfImages.count > 1}
             accept="image/jpeg,image/png,image/webp"
             onChange={(event) =>
@@ -88,14 +94,15 @@ export default function CustomerCustomizationForm({
       {config.numberOfNames.enabled && (
         <div className="space-y-3">
           <p className="text-sm font-bold text-on-background">
-            Enter up to {config.numberOfNames.count} name{config.numberOfNames.count === 1 ? '' : 's'} <span className="font-normal text-on-surface-variant text-xs">(Optional)</span>
+            Enter up to {config.numberOfNames.count} name{config.numberOfNames.count === 1 ? '' : 's'} <span className="text-red-600 font-bold ml-1">*</span>
           </p>
           {Array.from({ length: config.numberOfNames.count }, (_, index) => (
             <input
               key={index}
               value={names[index] ?? ''}
               maxLength={100}
-              placeholder={`Name ${index + 1} (Optional)`}
+              required
+              placeholder={`Name ${index + 1} *`}
               onChange={(event) => {
                 const next = Array.from({ length: config.numberOfNames.count }, (_, i) => names[i] ?? '')
                 next[index] = event.target.value
@@ -109,9 +116,10 @@ export default function CustomerCustomizationForm({
 
       {config.date.enabled && (
         <label className="block text-sm font-bold text-on-background">
-          Date <span className="font-normal text-on-surface-variant text-xs">(Optional)</span>
+          Date <span className="text-red-600 font-bold ml-1">*</span>
           <input
             type="date"
+            required
             value={date}
             onChange={(event) => onDateChange(event.target.value)}
             className="mt-2 block w-full rounded-lg border border-outline-variant bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
@@ -121,13 +129,28 @@ export default function CustomerCustomizationForm({
 
       {config.songName.enabled && (
         <label className="block text-sm font-bold text-on-background">
-          Name of the song <span className="text-error">*</span>
+          Name of the song <span className="text-red-600 font-bold ml-1">*</span>
           <input
             value={songName}
             maxLength={200}
             required
             onChange={(event) => onSongNameChange(event.target.value)}
-            placeholder="Enter the song name"
+            placeholder="Enter the song name *"
+            className="mt-2 block w-full rounded-lg border border-outline-variant bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+        </label>
+      )}
+
+      {config.address.enabled && (
+        <label className="block text-sm font-bold text-on-background">
+          Address <span className="text-red-600 font-bold ml-1">*</span>
+          <textarea
+            value={address}
+            maxLength={500}
+            required
+            rows={3}
+            onChange={(event) => onAddressChange(event.target.value)}
+            placeholder="Enter the address *"
             className="mt-2 block w-full rounded-lg border border-outline-variant bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
         </label>
@@ -135,9 +158,10 @@ export default function CustomerCustomizationForm({
 
       {config.qrCodeImages.enabled && (
         <label className="block text-sm font-bold text-on-background">
-          Upload up to {config.qrCodeImages.count} QR code image{config.qrCodeImages.count === 1 ? '' : 's'} <span className="font-normal text-on-surface-variant text-xs">(Optional)</span>
+          Upload up to {config.qrCodeImages.count} QR code image{config.qrCodeImages.count === 1 ? '' : 's'} <span className="text-red-600 font-bold ml-1">*</span>
           <input
             type="file"
+            required
             multiple={config.qrCodeImages.count > 1}
             accept="image/jpeg,image/png,image/webp"
             onChange={(event) =>
@@ -152,7 +176,7 @@ export default function CustomerCustomizationForm({
         </label>
       )}
 
-      {error && <p role="alert" className="text-sm font-medium text-error">{error}</p>}
+      {error && <p role="alert" className="text-sm font-medium text-red-600">{error}</p>}
     </section>
   )
 }

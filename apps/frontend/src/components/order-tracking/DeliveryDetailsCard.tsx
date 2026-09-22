@@ -17,7 +17,7 @@ export default function DeliveryDetailsCard({ delivery }: DeliveryDetailsCardPro
           <p className="font-label-bold text-secondary text-xs uppercase tracking-widest mb-3">
             Shipping Address
           </p>
-          <address className="font-body-md text-[#111110] leading-relaxed not-italic">
+          <address className="font-body-md text-[#111110] leading-relaxed not-bold">
             {address.recipientName}
             <br />
             {address.streetLine1}
@@ -32,7 +32,7 @@ export default function DeliveryDetailsCard({ delivery }: DeliveryDetailsCardPro
           <p className="font-label-bold text-secondary text-xs uppercase tracking-widest mb-3">
             Contact Information
           </p>
-          <address className="font-body-md text-[#111110] not-italic">
+          <address className="font-body-md text-[#111110] not-bold">
             <a
               href={`mailto:${contact.email}`}
               className="hover:underline underline-offset-2 transition-all"

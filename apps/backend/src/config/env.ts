@@ -23,6 +23,14 @@ const envSchema = z.object({
   APP_NAME: z.string().default('Frames41 API'),
   APP_URL: z.string().url().default('https://frames41-production.up.railway.app'),
 
+  // DFDesk server-to-server order integration
+  DF_DESK_API_URL: emptyStringToUndefined(z.string().url()),
+  DF_INTEGRATION_SECRET: emptyStringToUndefined(z.string().min(32)),
+  DF_DESK_DELIVERY_DAYS: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .default('7'),
+
   // Security
   JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET must be at least 32 characters').default('default-super-secret-access-key-for-development'),
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters').default('default-super-secret-refresh-key-for-development'),

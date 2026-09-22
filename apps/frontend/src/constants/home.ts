@@ -7,8 +7,11 @@ import type {
 } from "../types/home";
 
 export const NAV_LINKS: ReadonlyArray<NavLink> = [
+  { label: "Home", href: "/" },
   { label: "Shop", href: "/shop" },
   { label: "Our Story", href: "/about" },
+  { label: "Reviews", href: "/#customer-reviews" },
+  { label: "Studio", href: "https://jkfotoz.com" },
 ];
 
 export const HERO = {

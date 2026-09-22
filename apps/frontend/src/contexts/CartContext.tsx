@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { adaptCart } from '@/lib/adapters'
+import {useNavigate} from "react-router-dom"
 import { useAuth } from './AuthContext'
 import type { CartData, CartLineItem } from '@/types/shipping'
 
@@ -110,7 +111,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cartData, setCartData] = useState<CartData | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const requestVersion = useRef(0)
-
+  const navigate = useNavigate()
   const itemCount = useMemo(
     () => cartData?.items.reduce((sum, item) => sum + item.quantity, 0) ?? 0,
     [cartData],
@@ -119,6 +120,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const setCart = useCallback((cart: unknown) => {
     const data = adaptCart(cart)
     setCartData(data)
+
+    // getCart() doesn't compute shipping/coupon totals, only the pricing
+    // engine (/cart/calculate) does — fetch it to fill in real charges.
+    const version = requestVersion.current
+    api.cart.calculate({})
+      .then((calc: unknown) => {
+        if (version !== requestVersion.current) return
+        const c = calc as { shippingCharge?: number; couponDiscount?: number }
+        setCartData((prev) => prev ? {
+          ...prev,
+          charges: {
+            ...prev.charges,
+            shippingInr: Number(c.shippingCharge ?? 0),
+            discountInr: Number(c.couponDiscount ?? 0),
+          },
+        } : prev)
+      })
+      .catch(() => {})
   }, [])
 
   const setGuestCart = useCallback((items: GuestCartItem[]) => {
@@ -182,10 +201,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
           setGuestCart(current)
           toast.success('Added to cart')
+          console.log('Navigating to cart page')
+          navigate('/cart')
           return
         }
         setGuestCart([...current, productToGuestItem(product, quantity, customization, customImageUrl)])
         toast.success('Added to cart')
+        navigate('/cart')
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Failed to add item to cart'
         toast.error(message)
@@ -200,6 +222,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setCart(cart)
       setIsLoading(false)
       toast.success('Added to cart')
+      navigate('/cart')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to add item to cart'
       toast.error(message)

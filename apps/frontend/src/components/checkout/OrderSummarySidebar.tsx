@@ -62,6 +62,12 @@ function OrderTotals({ totals, selectedDelivery }: OrderTotalsProps) {
           <dd>−{formatINR(totals.discountInr)}</dd>
         </div>
       )}
+      {totals.giftWrapInr > 0 && (
+        <div className="flex justify-between font-body-md text-body-md">
+          <dt className="text-secondary">Gift wrapping</dt>
+          <dd>{formatINR(totals.giftWrapInr)}</dd>
+        </div>
+      )}
       <div className="flex justify-between font-label-bold text-[20px] pt-4 border-t border-[#E2E2DE]">
         <dt>Total</dt>
         <dd>{formatINR(totals.totalInr)}</dd>
@@ -81,6 +87,9 @@ interface OrderSummarySidebarProps {
   applyingCoupon?: boolean
   onApplyCoupon?: (code: string) => Promise<number>
   onRemoveCoupon?: () => Promise<void>
+  giftWrap?: boolean
+  togglingGiftWrap?: boolean
+  onToggleGiftWrap?: (next: boolean) => Promise<void>
 }
 
 export default function OrderSummarySidebar({
@@ -94,9 +103,13 @@ export default function OrderSummarySidebar({
   applyingCoupon = false,
   onApplyCoupon,
   onRemoveCoupon,
+  giftWrap = false,
+  togglingGiftWrap = false,
+  onToggleGiftWrap,
 }: OrderSummarySidebarProps) {
   const [code, setCode] = useState(couponCode ?? '')
   const [couponError, setCouponError] = useState<string | null>(null)
+  const [giftWrapError, setGiftWrapError] = useState<string | null>(null)
 
   async function handleApplyCoupon() {
     if (!onApplyCoupon) return
@@ -116,6 +129,16 @@ export default function OrderSummarySidebar({
       setCode('')
     } catch (error: unknown) {
       setCouponError(error instanceof Error ? error.message : 'Unable to remove promo code')
+    }
+  }
+
+  async function handleToggleGiftWrap(next: boolean) {
+    if (!onToggleGiftWrap) return
+    setGiftWrapError(null)
+    try {
+      await onToggleGiftWrap(next)
+    } catch (error: unknown) {
+      setGiftWrapError(error instanceof Error ? error.message : 'Unable to update gift wrapping')
     }
   }
 
@@ -184,6 +207,29 @@ export default function OrderSummarySidebar({
             <p role="alert" className="mt-2 text-xs text-red-600">{couponError}</p>
           )}
         </div>
+
+        {onToggleGiftWrap && (
+          <div className="mb-6 border-t border-[#E2E2DE] pt-6">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={giftWrap}
+                disabled={togglingGiftWrap}
+                onChange={(event) => {
+                  void handleToggleGiftWrap(event.target.checked)
+                }}
+                className="mt-1 h-4 w-4 shrink-0 accent-primary disabled:opacity-50"
+              />
+              <span className="text-sm">
+                Gift wrap this order
+                <span className="text-secondary"> (+{formatINR(60)})</span>
+              </span>
+            </label>
+            {giftWrapError && (
+              <p role="alert" className="mt-2 text-xs text-red-600">{giftWrapError}</p>
+            )}
+          </div>
+        )}
 
         <OrderTotals totals={totals} selectedDelivery={selectedDelivery} />
 

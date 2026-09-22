@@ -1,9 +1,11 @@
-import type { Request, Response } from 'express';
-import type { Prisma } from '@prisma/client';
-import { razorpayClient } from '../../infrastructure/external/razorpay.client.js';
-import { prisma } from '../../infrastructure/database/prisma.client.js';
-import { logger } from '../../infrastructure/logger/pino.logger.js';
 import { env } from '../../config/env.js';
+import { prisma } from '../../infrastructure/database/prisma.client.js';
+import { syncPaidOrderToDeskOrQueue } from '../../infrastructure/external/desk.client.js';
+import { razorpayClient } from '../../infrastructure/external/razorpay.client.js';
+import { logger } from '../../infrastructure/logger/pino.logger.js';
+
+import type { Prisma } from '@prisma/client';
+import type { Request, Response } from 'express';
 
 /**
  * Razorpay webhook handler
@@ -142,6 +144,11 @@ async function handlePaymentCaptured(payment: RazorpayWebhookPayment): Promise<v
     return;
   }
 
+  const codDueAmount = paymentRecord.isPartial
+    ? Math.max(0, Math.round((Number(paymentRecord.order.total) - Number(paymentRecord.amount)) * 100) / 100)
+    : 0;
+  const orderStatus = paymentRecord.isPartial ? 'PROCESSING' : 'PAID';
+
   await prisma.$transaction([
     prisma.payment.update({
       where: { id: paymentRecord.id },
@@ -155,18 +162,21 @@ async function handlePaymentCaptured(payment: RazorpayWebhookPayment): Promise<v
     prisma.order.update({
       where: { id: paymentRecord.orderId },
       data: {
-        status: 'PAID',
+        status: orderStatus,
         paidAt: new Date(),
+        codDueAmount,
       },
     }),
     prisma.orderStatusHistory.create({
       data: {
         orderId: paymentRecord.orderId,
-        status: 'PAID',
+        status: orderStatus,
         note: 'Payment confirmed via webhook',
       },
     }),
   ]);
+
+  await syncPaidOrderToDeskOrQueue(paymentRecord.orderId);
 }
 
 /**

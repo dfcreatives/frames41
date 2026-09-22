@@ -23,9 +23,9 @@ export function adaptProduct(p: Raw): Product {
   const firstImage = Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : null
   const rawUrl = firstImage?.url || firstImage?.src || p.imageUrl || p.image || p.url || p.category?.image || p.category?.imageUrl || ''
 
-  let displayName = p.name || 'Custom Photo Frame'
+  let displayName = p.name ?? ''
   const catName = p.categoryName || p.category?.name
-  if (catName && displayName.length <= 4 && !displayName.toLowerCase().includes(catName.toLowerCase())) {
+  if (p.name && catName && displayName.length <= 4 && !displayName.toLowerCase().includes(catName.toLowerCase())) {
     const cleanCat = catName.replace(/^\d+\s*/, '').trim()
     displayName = `${cleanCat} (${p.name})`
   }
@@ -57,6 +57,7 @@ export function adaptProductDetail(p: Raw): ProductData {
     },
     date: { enabled: rawConfig.date?.enabled ?? false },
     songName: { enabled: rawConfig.songName?.enabled ?? false },
+    address: { enabled: rawConfig.address?.enabled ?? false },
     qrCodeImages: {
       enabled: rawConfig.qrCodeImages?.enabled ?? false,
       count: rawConfig.qrCodeImages?.count ?? 1,
@@ -99,7 +100,7 @@ export function adaptProductDetail(p: Raw): ProductData {
     ],
     relatedProducts: [],
     customizationConfig,
-    shippingNote: 'Shipping charges: ₹75 (up to ₹200), ₹100 (₹200–₹1000), ₹150 (above ₹1000)',
+    shippingNote: 'Flat ₹80 shipping on all orders',
     shippingDuration: '3–7 business days',
   }
 }
@@ -129,7 +130,7 @@ export function adaptRelatedProduct(p: Raw): RelatedProduct {
 
 // ─── Category ─────────────────────────────────────────────────────────────────
 export function adaptCategory(c: Raw, index = 0): Category {
-  const rawImage = c.imageUrl ?? c.image ?? c.products?.[0]?.images?.[0]?.url ?? c.products?.[0]?.imageUrl ?? 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&q=80'
+  const rawImage = c.imageUrl ?? c.image ?? c.products?.[0]?.images?.[0]?.url ?? c.products?.[0]?.imageUrl ?? ''
   return {
     id: c.id,
     title: c.name,
@@ -230,12 +231,14 @@ export function adaptCheckoutTotals(cart: Raw): CheckoutTotals {
   const subtotalInr = Number(cart.subtotal ?? 0)
   const shippingInr = Number(cart.shippingCharge ?? 0)
   const discountInr = Number(cart.couponDiscount ?? 0)
+  const giftWrapInr = Number(cart.giftWrapCharge ?? 0)
   return {
     subtotalInr,
     taxInr: 0,
     shippingInr,
     discountInr,
-    totalInr: Number(cart.total ?? subtotalInr + shippingInr - discountInr),
+    giftWrapInr,
+    totalInr: Number(cart.total ?? subtotalInr + shippingInr - discountInr + giftWrapInr),
   }
 }
 

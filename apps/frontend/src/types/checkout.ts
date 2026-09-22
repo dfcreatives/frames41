@@ -31,6 +31,7 @@ export interface CheckoutTotals {
   readonly taxInr: number
   readonly shippingInr: number
   readonly discountInr: number
+  readonly giftWrapInr: number
   readonly totalInr: number
 }
 

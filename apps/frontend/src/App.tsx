@@ -4,6 +4,7 @@ import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { CartProvider } from '@/contexts/CartContext'
 import ProtectedRoute from '@/components/layout/ProtectedRoute'
+import WhatsAppFab from '@/components/layout/WhatsAppFab'
 
 // Public pages
 const HomePage = lazy(() => import('@/pages/HomePage'))
@@ -89,11 +90,18 @@ function P({ children }: { children: React.ReactNode }) {
 }
 
 function ScrollToTop() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
 
   useEffect(() => {
+    if (hash) {
+      const el = document.getElementById(hash.slice(1))
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        return
+      }
+    }
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior })
-  }, [pathname])
+  }, [pathname, hash])
 
   return null
 }
@@ -105,6 +113,7 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <OfflineBanner />
+          <WhatsAppFab />
           <Toaster position="top-right" richColors />
           <Suspense fallback={<div className="min-h-screen bg-[#f8f7f2]" aria-busy="true" />}>
           <Routes>

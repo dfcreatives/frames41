@@ -17,11 +17,15 @@ interface CheckoutProps {
   onProceedToPayment?: (params: CheckoutSubmitParams) => void
   isProceeding?: boolean
   onEditAddress?: (id: string) => void
+  onDeleteAddress?: (id: string) => void
   onSaveAddress?: (data: AddressFormData) => Promise<unknown>
   couponCode?: string | null
   applyingCoupon?: boolean
   onApplyCoupon?: (code: string) => Promise<number>
   onRemoveCoupon?: () => Promise<void>
+  giftWrap?: boolean
+  togglingGiftWrap?: boolean
+  onToggleGiftWrap?: (next: boolean) => Promise<void>
 }
 
 export default function Checkout({
@@ -31,11 +35,15 @@ export default function Checkout({
   onProceedToPayment,
   isProceeding = false,
   onEditAddress,
+  onDeleteAddress,
   onSaveAddress,
   couponCode,
   applyingCoupon,
   onApplyCoupon,
   onRemoveCoupon,
+  giftWrap,
+  togglingGiftWrap,
+  onToggleGiftWrap,
 }: CheckoutProps) {
   const [selectedAddressId, setSelectedAddressId] = useState(defaultAddressId || data.addresses[0]?.id || '')
   const [selectedDeliveryId, setSelectedDeliveryId] = useState(defaultDeliveryId)
@@ -83,6 +91,7 @@ export default function Checkout({
             selectedId={selectedAddressId}
             onSelect={setSelectedAddressId}
             onEdit={(id) => onEditAddress?.(id)}
+            onDelete={(id) => onDeleteAddress?.(id)}
             onAdd={() => setShowAddressForm(true)}
             showForm={showAddressForm}
             onSaveForm={handleSaveAddress}
@@ -106,6 +115,9 @@ export default function Checkout({
           applyingCoupon={applyingCoupon}
           onApplyCoupon={onApplyCoupon}
           onRemoveCoupon={onRemoveCoupon}
+          giftWrap={giftWrap}
+          togglingGiftWrap={togglingGiftWrap}
+          onToggleGiftWrap={onToggleGiftWrap}
         />
       </div>
     </main>

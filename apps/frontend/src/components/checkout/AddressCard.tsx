@@ -6,9 +6,10 @@ interface AddressCardProps {
   isSelected: boolean
   onSelect: (id: string) => void
   onEdit: (id: string) => void
+  onDelete?: (id: string) => void
 }
 
-export default function AddressCard({ address, isSelected, onSelect, onEdit }: AddressCardProps) {
+export default function AddressCard({ address, isSelected, onSelect, onEdit, onDelete }: AddressCardProps) {
   const { id, label, fullName, line1, line2, city, state, zip, country } = address
 
   function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
@@ -49,7 +50,7 @@ export default function AddressCard({ address, isSelected, onSelect, onEdit }: A
 
         <h3 className="font-label-bold text-label-bold text-[#111110] mb-2">{fullName}</h3>
 
-        <address className="font-body-md text-body-md text-secondary not-italic">
+        <address className="font-body-md text-body-md text-secondary not-bold">
           {line1}
           <br />
           {line2 && (
@@ -66,16 +67,30 @@ export default function AddressCard({ address, isSelected, onSelect, onEdit }: A
 
       <div className="mt-6 flex justify-between items-center">
         {isSelected ? (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation()
-              onEdit(id)
-            }}
-            className="font-label-bold text-label-bold text-[#111110] hover:underline underline-offset-4 transition-all"
-          >
-            Edit Details
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                onEdit(id)
+              }}
+              className="font-label-bold text-label-bold text-[#111110] hover:underline underline-offset-4 transition-all"
+            >
+              Edit Details
+            </button>
+            {onDelete && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete(id)
+                }}
+                className="font-label-bold text-label-bold text-red-600 hover:underline underline-offset-4 transition-all text-xs"
+              >
+                Delete Address
+              </button>
+            )}
+          </div>
         ) : (
           <>
             <button
@@ -88,16 +103,30 @@ export default function AddressCard({ address, isSelected, onSelect, onEdit }: A
             >
               Deliver here
             </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                onEdit(id)
-              }}
-              className="font-label-bold text-label-bold text-[#8A8A85] hover:text-[#111110] transition-colors"
-            >
-              Edit
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit(id)
+                }}
+                className="font-label-bold text-label-bold text-[#8A8A85] hover:text-[#111110] transition-colors"
+              >
+                Edit
+              </button>
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDelete(id)
+                  }}
+                  className="font-label-bold text-label-bold text-red-600 hover:underline underline-offset-4 transition-all text-xs"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
           </>
         )}
       </div>

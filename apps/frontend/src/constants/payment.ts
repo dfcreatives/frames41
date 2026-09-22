@@ -1,7 +1,15 @@
-import type { PaymentMethod, PaymentOrderSummary, TrustBadge } from '../types/payment'
+import type { PaymentMethod, PaymentOrderSummary, PickupLocation, TrustBadge } from '../types/payment'
 
 export const ACTIVE_FORM_ID = 'active-payment-form'
 
+// Store pickup orders only need to be paid half upfront; the rest is due at pickup.
+export const PICKUP_ADVANCE_RATIO = 0.5
+
+export const STORE_PICKUP_LOCATION: PickupLocation = {
+  name: 'Frames41 Store',
+  address: 'MX7X+P3G, Palaghat Road, Pollachi, Tamil Nadu 642001',
+  hours: 'Mon–Sat, 10:00 AM – 7:00 PM',
+}
 export const PAYMENT_METHODS: ReadonlyArray<PaymentMethod> = [
   {
     id: 'razorpay',
@@ -9,31 +17,24 @@ export const PAYMENT_METHODS: ReadonlyArray<PaymentMethod> = [
     description: 'UPI, cards, netbanking and wallets',
     icon: 'verified_user',
   },
-  {
-    id: 'partial_cod',
-    label: 'Partial Payment',
-    description: 'Pay 50% now via Razorpay, 50% cash on delivery',
-    icon: 'payments',
-  },
 ] as const
 
 export const ORDER_SUMMARY: PaymentOrderSummary = {
   product: {
     collection: 'Frames41 Collection',
-    name: 'Hand-Carved Teak Occasional Chair',
+    name: 'Personalized Photo Frame',
     qty: 1,
     imageUrl:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuC3Gda7wmMvGB5XZb9EzcLC_sZ73hBwLkcPWMAkFpix9sjoWB4BXtPaAEgOncelJ4GMwE9r0OujnPzrk71ui7BxAtpw-NZuWNHhgwXV95RQ6f-jS2ASoSoQccAp_cSMBTmde-yxzmaq-v9b2vptNSVT_gHjqNSeo7ez6WNADFfuFnJ7F3TQD6hPH9uxZiF2SCGKEnWYVxWKp2o-QWV3HJ-wAfXtSNwU5RAwsDsEF2zoADkI8I4y8gJ300M0qfYdP3xqbOxJ-q-aJug',
-    imageAlt: 'Hand-Carved Teak Occasional Chair — Frames41 Collection',
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&q=80',
+    imageAlt: 'Personalized Photo Frame',
   },
   lineItems: [
-    { label: 'Subtotal', value: '₹42,500' },
+    { label: 'Subtotal', value: '₹358' },
     { label: 'Shipping', value: 'Free', isFree: true },
-    { label: 'Estimated Taxes', value: '₹7,650' },
   ],
   totalLabel: 'Total',
-  totalValue: '₹50,150',
-  totalAmount: 50150,
+  totalValue: '₹358',
+  totalAmount: 358,
 }
 
 export const TRUST_BADGES: ReadonlyArray<TrustBadge> = [

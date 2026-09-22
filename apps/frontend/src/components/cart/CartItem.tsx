@@ -5,12 +5,13 @@ import Icon from '../ui/Icon'
 interface CartItemProps {
   item: CartLineItem
   quantity: number
+  removing?: boolean
   onIncrement: (id: string) => void
   onDecrement: (id: string) => void
   onRemove: (id: string) => void
 }
 
-export default function CartItem({ item, quantity, onIncrement, onDecrement, onRemove }: CartItemProps) {
+export default function CartItem({ item, quantity, removing = false, onIncrement, onDecrement, onRemove }: CartItemProps) {
   return (
     <article className="bg-white border border-outline-variant rounded-xl p-3 sm:p-5 lg:p-6 flex gap-3 sm:gap-4 lg:gap-5 transition-shadow hover:shadow-md">
       {/* Thumbnail */}
@@ -82,11 +83,12 @@ export default function CartItem({ item, quantity, onIncrement, onDecrement, onR
           <button
             type="button"
             onClick={() => onRemove(item.id)}
-            aria-label={`Remove ${item.name} from cart`}
-            className="flex items-center gap-1 text-on-background/40 hover:text-error transition-colors font-bold uppercase text-[10px] tracking-widest"
+            disabled={removing}
+            aria-label={removing ? `Removing ${item.name} from cart` : `Remove ${item.name} from cart`}
+            className="flex items-center gap-1 text-on-background/40 hover:text-error transition-colors font-bold uppercase text-[10px] tracking-widest disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-on-background/40"
           >
             <Icon name="delete" className="text-sm" />
-            <span className="hidden sm:inline">Remove</span>
+            <span className="hidden sm:inline">{removing ? 'Removing…' : 'Remove'}</span>
           </button>
         </div>
       </div>

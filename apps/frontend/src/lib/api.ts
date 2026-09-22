@@ -189,6 +189,33 @@ function unwrapPaginated<T>(promise: Promise<AxiosResponse>): Promise<PaginatedR
   });
 }
 
+function filterActiveProducts(res: any): any {
+  if (!res) return res
+  try {
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('admin_product_overrides') : null
+    const overrides: Record<string, { isActive?: boolean; isTrending?: boolean }> = raw ? JSON.parse(raw) : {}
+    const list = Array.isArray(res.data) ? res.data : Array.isArray(res.products) ? res.products : Array.isArray(res) ? res : null
+    if (!list) return res
+    const filtered = list.map((item: any) => {
+      if (!item || typeof item !== 'object') return item
+      const ov = item.id ? overrides[item.id] : undefined
+      if (!ov) return item
+      return {
+        ...item,
+        ...(ov.isActive !== undefined ? { isActive: ov.isActive } : {}),
+        ...(ov.isTrending !== undefined ? { isTrending: ov.isTrending } : {}),
+      }
+    }).filter((item: any) => item && item.isActive !== false)
+
+    if (Array.isArray(res.data)) return { ...res, data: filtered }
+    if (Array.isArray(res.products)) return { ...res, products: filtered }
+    if (Array.isArray(res)) return filtered
+    return res
+  } catch {
+    return res
+  }
+}
+
 // ─── API namespace ─────────────────────────────────────────────────────────────
 export const api = {
   home: {
@@ -238,7 +265,7 @@ export const api = {
 
   products: {
     getProducts: (params?: Record<string, unknown>) =>
-      unwrapPaginated<unknown>(instance.get("/products", { params })),
+      unwrapPaginated<unknown>(instance.get("/products", { params })).then(filterActiveProducts),
     getById: (id: string) =>
       unwrap<unknown>(instance.get(`/products/${id}`)),
     getBySlug: (slug: string) =>
@@ -246,11 +273,11 @@ export const api = {
     searchProducts: (q: string, params?: Record<string, unknown>) =>
       unwrapPaginated<unknown>(
         instance.get("/products/search", { params: { q, ...params } }),
-      ),
+      ).then(filterActiveProducts),
     getUnderPrice: (amount: number, params?: Record<string, unknown>) =>
       unwrapPaginated<unknown>(
         instance.get(`/products/under-price/${amount}`, { params }),
-      ),
+      ).then(filterActiveProducts),
   },
 
   categories: {
@@ -303,12 +330,12 @@ export const api = {
     removeItem: (id: string) =>
       unwrap<unknown>(instance.delete(`/cart/items/${id}`)),
     clearCart: () => unwrap<unknown>(instance.delete("/cart")),
-    calculate: (data: { couponCode?: string; pincode?: string }) =>
+    calculate: (data: { couponCode?: string; pincode?: string; giftWrap?: boolean }) =>
       unwrap<unknown>(instance.post("/cart/calculate", data)),
   },
 
   orders: {
-    create: (data: { addressId: string; couponCode?: string }, idempotencyKey?: string) =>
+    create: (data: { addressId: string; couponCode?: string; giftWrap?: boolean }, idempotencyKey?: string) =>
       unwrap<unknown>(instance.post(
         "/orders",
         data,
@@ -321,6 +348,8 @@ export const api = {
       unwrap<unknown>(instance.get(`/orders/by-number/${orderNumber}`)),
     cancel: (id: string) =>
       unwrap<unknown>(instance.post(`/orders/${id}/cancel`)),
+    updateType: (id: string, type: 'DELIVERY' | 'PICKUP') =>
+      unwrap<unknown>(instance.patch(`/orders/${id}/type`, { type })),
     requestRefund: (id: string, data: { reason: string; videoUrl?: string }) =>
       unwrap<unknown>(instance.post(`/orders/${id}/refund`, data)),
   },

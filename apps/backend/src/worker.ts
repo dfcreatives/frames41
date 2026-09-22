@@ -53,6 +53,15 @@ async function processJob(jobId: string, type: string, payload: Record<string, u
       logger.info({ jobId }, 'Refund job queued for manual processing');
       break;
     }
+    case 'desk-order-sync': {
+      const orderId = payload.orderId;
+      if (typeof orderId !== 'string' || !orderId) {
+        throw new Error('DFDesk sync job is missing orderId');
+      }
+      const { syncPaidOrderToDesk } = await import('./infrastructure/external/desk.client.js');
+      await syncPaidOrderToDesk(orderId);
+      break;
+    }
     default: {
       logger.warn({ jobId, type }, 'Unknown job type');
       throw new Error(`Unknown job type: ${type}`);

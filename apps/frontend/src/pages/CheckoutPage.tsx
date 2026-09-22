@@ -105,7 +105,8 @@ function AuthenticatedCheckout() {
   const navigate = useNavigate()
   const {
     checkoutData, loading, ordering, applyingCoupon, couponCode, error,
-    createOrder, applyCoupon, removeCoupon, refresh,
+    giftWrap, togglingGiftWrap,
+    createOrder, applyCoupon, removeCoupon, toggleGiftWrap, refresh,
   } = useCheckout()
 
   if (loading) {
@@ -143,6 +144,16 @@ function AuthenticatedCheckout() {
     return saved
   }
 
+  async function handleDeleteAddress(id: string) {
+    try {
+      await api.users.deleteAddress(id)
+      toast.success('Address deleted')
+      await refresh()
+    } catch {
+      toast.error('Failed to delete address')
+    }
+  }
+
   return (
     <>
       <Checkout
@@ -151,15 +162,19 @@ function AuthenticatedCheckout() {
         defaultDeliveryId="standard"
         isProceeding={ordering}
         onProceedToPayment={async ({ addressId }) => {
-          const orderId = await createOrder(addressId, couponCode ?? undefined)
+          const orderId = await createOrder(addressId, couponCode ?? undefined, giftWrap)
           if (orderId) navigate(`/payment/${orderId}`)
         }}
         onEditAddress={() => navigate('/profile')}
+        onDeleteAddress={handleDeleteAddress}
         onSaveAddress={handleSaveAddress}
         couponCode={couponCode}
         applyingCoupon={applyingCoupon}
         onApplyCoupon={applyCoupon}
         onRemoveCoupon={removeCoupon}
+        giftWrap={giftWrap}
+        togglingGiftWrap={togglingGiftWrap}
+        onToggleGiftWrap={toggleGiftWrap}
       />
       {ordering && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">

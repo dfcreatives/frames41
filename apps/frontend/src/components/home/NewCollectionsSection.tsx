@@ -59,15 +59,15 @@ export default function NewCollectionsSection({ products }: NewCollectionsSectio
     <section
       id="new-collections"
       aria-labelledby="new-collections-heading"
-      className="pt-16 sm:pt-xl max-w-container mx-auto px-4 sm:px-6"
+      className="pt-10 sm:pt-12 pb-4 sm:pb-6 max-w-container mx-auto px-4 sm:px-6"
     >
       <div className="flex flex-col md:flex-row justify-between items-baseline mb-8 sm:mb-12 gap-4 border-b border-on-background/10 pb-6 sm:pb-8">
         <div>
-          <span className="text-label-bold text-primary text-[10px] tracking-[0.3em] uppercase block mb-1">
-            Just In
-          </span>
-          <h2 id="new-collections-heading" className="font-headline text-[28px] sm:text-headline-lg italic">
-            New Collections
+          {/* <span className="text-label-bold text-primary text-[10px] tracking-[0.3em] uppercase block mb-1">
+            Just in
+          </span> */}
+          <h2 id="new-collections-heading" className="font-headline text-[28px] sm:text-headline-lg bold">
+            Trending Collections
           </h2>
         </div>
         <div className="flex gap-2 sm:gap-4">

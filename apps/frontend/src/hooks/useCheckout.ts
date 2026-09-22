@@ -13,6 +13,7 @@ interface CartCalculation {
   couponDiscount: number
   couponCode?: string
   shippingCharge: number
+  giftWrapCharge: number
   total: number
 }
 
@@ -23,6 +24,8 @@ export function useCheckout() {
   const [ordering, setOrdering] = useState(false)
   const [applyingCoupon, setApplyingCoupon] = useState(false)
   const [couponCode, setCouponCode] = useState<string | null>(null)
+  const [giftWrap, setGiftWrap] = useState(false)
+  const [togglingGiftWrap, setTogglingGiftWrap] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const orderPromiseRef = useRef<Promise<string | null> | null>(null)
   const orderKeyRef = useRef<string | null>(null)
@@ -45,6 +48,7 @@ export function useCheckout() {
         totals: adaptCheckoutTotals(calculation ?? cart),
       })
       setCouponCode(null)
+      setGiftWrap(false)
     } catch {
       setError('Failed to load checkout data')
     } finally {
@@ -58,7 +62,7 @@ export function useCheckout() {
     void load()
   }, [load])
 
-  const createOrder = useCallback(async (addressId: string, code?: string) => {
+  const createOrder = useCallback(async (addressId: string, code?: string, wrapGift?: boolean) => {
     if (orderPromiseRef.current) return orderPromiseRef.current
 
     const promise = (async () => {
@@ -82,7 +86,7 @@ export function useCheckout() {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const order = await api.orders.create(
-          { addressId, couponCode: code ?? undefined },
+          { addressId, couponCode: code ?? undefined, giftWrap: wrapGift },
           orderKeyRef.current ?? undefined,
         ) as any
 
@@ -144,16 +148,39 @@ export function useCheckout() {
     }
   }, [refreshCart])
 
+  const toggleGiftWrap = useCallback(async (next: boolean) => {
+    setGiftWrap(next)
+    setTogglingGiftWrap(true)
+    try {
+      const calculation = await api.cart.calculate({
+        couponCode: couponCode ?? undefined,
+        giftWrap: next,
+      }) as CartCalculation
+      setCheckoutData((current) => current ? {
+        ...current,
+        totals: adaptCheckoutTotals(calculation),
+      } : current)
+    } catch (err) {
+      setGiftWrap(!next)
+      throw err
+    } finally {
+      setTogglingGiftWrap(false)
+    }
+  }, [couponCode])
+
   return {
     checkoutData,
     loading,
     ordering,
     applyingCoupon,
     couponCode,
+    giftWrap,
+    togglingGiftWrap,
     error,
     createOrder,
     applyCoupon,
     removeCoupon,
+    toggleGiftWrap,
     refresh: load,
   }
 }

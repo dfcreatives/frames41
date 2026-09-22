@@ -76,7 +76,7 @@ export default function OptimizedImage({
           setError(true)
           onError?.(e)
         }}
-        className={`max-h-full max-w-full ${objectFitClass}`}
+        className={`w-full h-full ${objectFitClass}`}
         {...props}
       />
     </div>

@@ -47,7 +47,7 @@ export default function ProductSectionShimmer({
             </p>
           )}
           {title ? (
-            <h2 className="font-headline text-[28px] sm:text-headline-lg italic">{title}</h2>
+            <h2 className="font-headline text-[28px] sm:text-headline-lg bold">{title}</h2>
           ) : (
             <Shimmer dark={dark} className={`h-10 w-48 ${dark ? 'mx-auto' : ''}`} />
           )}

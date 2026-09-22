@@ -1,5 +1,5 @@
 const ANNOUNCEMENT =
-  'Crafting Stories in Wood • Free Shipping Above ₹999 • Express Dispatch Across India'
+  'Crafting Stories in Wood • Shipping From ₹75 • Express Dispatch Across India'
 
 export default function AnnouncementBar() {
   return (

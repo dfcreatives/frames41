@@ -5,6 +5,7 @@ import CartItem from './CartItem'
 interface CartItemListProps {
   items: ReadonlyArray<CartLineItem>
   quantities: Readonly<Record<string, number>>
+  removingIds?: ReadonlySet<string>
   onIncrement: (id: string) => void
   onDecrement: (id: string) => void
   onRemove: (id: string) => void
@@ -13,6 +14,7 @@ interface CartItemListProps {
 export default function CartItemList({
   items,
   quantities,
+  removingIds,
   onIncrement,
   onDecrement,
   onRemove,
@@ -38,6 +40,7 @@ export default function CartItemList({
           <CartItem
             item={item}
             quantity={quantities[item.id] ?? item.quantity}
+            removing={removingIds?.has(item.id) ?? false}
             onIncrement={onIncrement}
             onDecrement={onDecrement}
             onRemove={onRemove}

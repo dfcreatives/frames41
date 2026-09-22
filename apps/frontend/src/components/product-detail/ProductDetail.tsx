@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import type { ProductData } from '../../types/productDetail'
 import { useProductDetail } from '@/hooks/useProductDetailUi'
@@ -58,21 +58,53 @@ export default function ProductDetail({
   const [names, setNames] = useState<string[]>([])
   const [date, setDate] = useState('')
   const [songName, setSongName] = useState('')
+  const [address, setAddress] = useState('')
   const [qrCodeImages, setQrCodeImages] = useState<File[]>([])
   const [customizationError, setCustomizationError] = useState('')
   const config = data.customizationConfig
   const { isAuthenticated } = useAuth()
+  const isSubmittingRef = useRef(false)
 
   const handleAddToCart = useCallback(async () => {
-    if (!onAddToCart || cartStatus !== 'idle') return
+    // cartStatus alone can't block a second click fired before the first
+    // setState commits, so guard synchronously with a ref too.
+    if (!onAddToCart || isSubmittingRef.current || cartStatus !== 'idle') return
+    isSubmittingRef.current = true
 
     const oversizedFile = [...images, ...qrCodeImages].find((file) => file.size > 200 * 1024 * 1024)
     if (oversizedFile) {
       setCustomizationError(`${oversizedFile.name} must be 200 MB or smaller.`)
+      isSubmittingRef.current = false
+      return
+    }
+    if (config.numberOfImages.enabled && config.numberOfImages.count > 0 && images.length === 0) {
+      setCustomizationError(`Please upload the required photo(s).`)
+      isSubmittingRef.current = false
+      return
+    }
+    if (config.numberOfNames.enabled && config.numberOfNames.count > 0 && names.filter((n) => n?.trim()).length < config.numberOfNames.count) {
+      setCustomizationError(`Please enter all required name(s).`)
+      isSubmittingRef.current = false
+      return
+    }
+    if (config.date.enabled && !date) {
+      setCustomizationError('Please select a date.')
+      isSubmittingRef.current = false
       return
     }
     if (config.songName.enabled && !songName?.trim()) {
       setCustomizationError('Please enter the name of the song.')
+      isSubmittingRef.current = false
+      return
+    }
+    if (config.address.enabled && !address?.trim()) {
+      setCustomizationError('Please enter the address.')
+      isSubmittingRef.current = false
+      return
+    }
+    if (config.qrCodeImages.enabled && config.qrCodeImages.count > 0 && qrCodeImages.length === 0) {
+      setCustomizationError('Please upload the required QR code photo.')
+      isSubmittingRef.current = false
       return
     }
     setCartStatus('adding')
@@ -114,6 +146,7 @@ export default function ProductDetail({
       if (filteredNames.length > 0) customization.names = filteredNames
       if (date) customization.date = date
       if (songName?.trim()) customization.songName = songName.trim()
+      if (address?.trim()) customization.address = address.trim()
 
       await onAddToCart({
         productId: data.id,
@@ -126,8 +159,10 @@ export default function ProductDetail({
     } catch {
       setCustomizationError('We could not save your customization. Please try again.')
       setCartStatus('idle')
+    } finally {
+      isSubmittingRef.current = false
     }
-  }, [onAddToCart, data.id, quantity, cartStatus, images, names, date, songName, qrCodeImages, isAuthenticated, config])
+  }, [onAddToCart, data.id, quantity, cartStatus, images, names, date, songName, address, qrCodeImages, isAuthenticated, config])
 
   const handleWishlistToggle = useCallback(() => {
     const next = !isWishlisted
@@ -159,12 +194,14 @@ export default function ProductDetail({
                 names={names}
                 date={date}
                 songName={songName}
+                address={address}
                 qrCodeImages={qrCodeImages}
                 error={customizationError}
                 onImagesChange={(files) => { setImages(files); setCustomizationError('') }}
                 onNamesChange={(values) => { setNames(values); setCustomizationError('') }}
                 onDateChange={(value) => { setDate(value); setCustomizationError('') }}
                 onSongNameChange={(value) => { setSongName(value); setCustomizationError('') }}
+                onAddressChange={(value) => { setAddress(value); setCustomizationError('') }}
                 onQrCodeImagesChange={(files) => { setQrCodeImages(files); setCustomizationError('') }}
               />
             )}

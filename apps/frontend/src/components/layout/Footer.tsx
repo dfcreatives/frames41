@@ -1,5 +1,6 @@
 import type { FooterColumn, SocialLink } from '../../types/home'
 import Icon from '../ui/Icon'
+import BrandLogo from '../ui/BrandLogo'
 
 interface FooterProps {
   columns: ReadonlyArray<FooterColumn>
@@ -43,9 +44,9 @@ export default function Footer({ columns, socialLinks }: FooterProps) {
             <a
               href="/"
               aria-label="Frames 41 home"
-              className="text-3xl font-headline italic mb-8 block text-amber-200"
+              className="mb-8 block inline-flex items-center"
             >
-              Frames 41
+              <BrandLogo variant="dark" height={44} />
             </a>
             <p className="text-amber-200/60 text-sm mb-8 leading-relaxed">
               Bringing the timeless beauty of raw materials into modern living through

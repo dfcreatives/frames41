@@ -71,7 +71,20 @@ export function useProductListing() {
       .then((res: unknown) => {
         if (cancelled) return
         const data = res as any
-        const items = (data?.products ?? data?.data ?? data ?? []).map(adaptProductListing)
+        let rawItems = data?.products ?? data?.data ?? data ?? []
+        try {
+          const rawOver = localStorage.getItem('admin_product_overrides')
+          if (rawOver) {
+            const overrides: Record<string, { isActive?: boolean; isTrending?: boolean }> = JSON.parse(rawOver)
+            rawItems = rawItems.map((p: any) => {
+              const ov = overrides[p.id]
+              if (!ov) return p
+              return { ...p, ...(ov.isActive !== undefined ? { isActive: ov.isActive } : {}) }
+            })
+          }
+        } catch {}
+        rawItems = rawItems.filter((p: any) => p.isActive !== false)
+        const items = rawItems.map(adaptProductListing)
         setProducts(items)
         setCursor(data?.nextCursor ?? null)
         setHasMore(data?.hasMore ?? false)
@@ -120,7 +133,20 @@ export function useProductListing() {
 
     try {
       const res = (await api.products.getProducts(params)) as any
-      const items = (res?.products ?? res?.data ?? res ?? []).map(adaptProductListing)
+      let rawItems = res?.products ?? res?.data ?? res ?? []
+      try {
+        const rawOver = localStorage.getItem('admin_product_overrides')
+        if (rawOver) {
+          const overrides: Record<string, { isActive?: boolean; isTrending?: boolean }> = JSON.parse(rawOver)
+          rawItems = rawItems.map((p: any) => {
+            const ov = overrides[p.id]
+            if (!ov) return p
+            return { ...p, ...(ov.isActive !== undefined ? { isActive: ov.isActive } : {}) }
+          })
+        }
+      } catch {}
+      rawItems = rawItems.filter((p: any) => p.isActive !== false)
+      const items = rawItems.map(adaptProductListing)
       setProducts((prev) => [...prev, ...items])
       setCursor(res?.nextCursor ?? null)
       setHasMore(res?.hasMore ?? false)

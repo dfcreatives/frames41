@@ -16,7 +16,7 @@ export default function OrderSupportPanel({ steps, supportEmail }: OrderSupportP
       <OrderProgressTracker steps={steps} />
 
       <div className="mt-12 pt-12 border-t border-outline-variant">
-        <p className="text-body-md text-on-surface-variant mb-4 italic">
+        <p className="text-body-md text-on-surface-variant mb-4 bold">
           Need to make a change?
         </p>
         <p className="text-body-md text-on-background">

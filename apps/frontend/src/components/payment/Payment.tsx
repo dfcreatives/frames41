@@ -1,29 +1,54 @@
-import { useState } from 'react'
-import type { PaymentMethodId, PaymentOrderSummary, PaymentPayload, PaymentStatus } from '../../types/payment'
-import { ACTIVE_FORM_ID, TRUST_BADGES } from '../../constants/payment'
+import { useMemo, useState } from 'react'
+import type { OrderType, PaymentMethodId, PaymentOrderSummary, PaymentPayload, PaymentStatus } from '../../types/payment'
+import { ACTIVE_FORM_ID, PICKUP_ADVANCE_RATIO, TRUST_BADGES } from '../../constants/payment'
 import { NAV_LINKS } from '../../constants/home'
 import Navbar from '../layout/Navbar'
 import Footer from '../layout/Footer'
 import { FOOTER_COLUMNS, SOCIAL_LINKS } from '../../constants/home'
 import PaymentMethodSelector from './PaymentMethodSelector'
 import OrderSummaryPanel from './OrderSummaryPanel'
+import FulfillmentTypeSelector from './FulfillmentTypeSelector'
 
 const DEFAULT_METHOD: PaymentMethodId = 'razorpay'
+const DEFAULT_FULFILLMENT: OrderType = 'DELIVERY'
 
 interface PaymentProps {
   summary: PaymentOrderSummary
-  onPaymentSubmit?: (method: PaymentMethodId) => Promise<void>
+  onPaymentSubmit?: (method: PaymentMethodId, fulfillmentType: OrderType) => Promise<void>
   externalStatus?: PaymentStatus
 }
 
 export default function Payment({ summary, onPaymentSubmit, externalStatus }: PaymentProps) {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>(DEFAULT_METHOD)
+  const [fulfillmentType, setFulfillmentType] = useState<OrderType>(DEFAULT_FULFILLMENT)
   const [internalStatus, setInternalStatus] = useState<PaymentStatus>('idle')
   const status = externalStatus ?? internalStatus
+  const isBusy = status === 'processing' || status === 'verifying'
+
+  const displaySummary = useMemo<PaymentOrderSummary>(() => {
+    if (fulfillmentType !== 'PICKUP') return summary
+
+    const formatInr = (value: number) =>
+      new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value)
+
+    const payNow = Math.round(summary.totalAmount * PICKUP_ADVANCE_RATIO * 100) / 100
+    const dueAtPickup = Math.round((summary.totalAmount - payNow) * 100) / 100
+
+    return {
+      ...summary,
+      lineItems: [
+        ...summary.lineItems,
+        { label: 'Due at pickup', value: `−${formatInr(dueAtPickup)}` },
+      ],
+      totalLabel: 'Pay Now (50%)',
+      totalValue: formatInr(payNow),
+      totalAmount: payNow,
+    }
+  }, [summary, fulfillmentType])
 
   const handleSubmit = async (payload: PaymentPayload) => {
     if (onPaymentSubmit) {
-      await onPaymentSubmit(payload.method)
+      await onPaymentSubmit(payload.method, fulfillmentType)
       return
     }
     setInternalStatus('processing')
@@ -76,20 +101,26 @@ export default function Payment({ summary, onPaymentSubmit, externalStatus }: Pa
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-xl">
           <section className="lg:col-span-7" aria-label="Payment method selection">
+            <FulfillmentTypeSelector
+              value={fulfillmentType}
+              onChange={setFulfillmentType}
+              disabled={isBusy}
+            />
+
             <PaymentMethodSelector
               formId={ACTIVE_FORM_ID}
               selectedMethod={selectedMethod}
               onMethodChange={handleMethodChange}
               onSubmit={handleSubmit}
               status={status}
-              totalAmount={summary.totalAmount}
+              totalAmount={displaySummary.totalAmount}
             />
           </section>
 
           <aside className="lg:col-span-5" aria-label="Order summary">
             <OrderSummaryPanel
               formId={ACTIVE_FORM_ID}
-              summary={summary}
+              summary={displaySummary}
               trustBadges={TRUST_BADGES}
               status={status}
               paymentMethod={selectedMethod}

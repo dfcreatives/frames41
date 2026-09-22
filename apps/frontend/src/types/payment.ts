@@ -1,4 +1,6 @@
-export type PaymentMethodId = 'razorpay' | 'partial_cod'
+export type PaymentMethodId = 'razorpay'
+
+export type OrderType = 'DELIVERY' | 'PICKUP'
 
 export interface PaymentMethod {
   readonly id: PaymentMethodId
@@ -9,9 +11,7 @@ export interface PaymentMethod {
 
 export type PaymentStatus = 'idle' | 'verifying' | 'processing' | 'success' | 'error'
 
-export type PaymentPayload =
-  | { readonly method: 'razorpay' }
-  | { readonly method: 'partial_cod' }
+export type PaymentPayload = { readonly method: 'razorpay' }
 
 export interface OrderLineItem {
   readonly label: string
@@ -39,4 +39,10 @@ export interface TrustBadge {
   readonly src: string
   readonly alt: string
   readonly className: string
+}
+
+export interface PickupLocation {
+  readonly name: string
+  readonly address: string
+  readonly hours: string
 }
